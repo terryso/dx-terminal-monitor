@@ -73,7 +73,6 @@ python main.py
 | `/swaps` | 最近交易 |
 | `/strategies` | 活跃策略 |
 | `/vault` | Vault 信息 |
-| `/refresh` | 刷新数据 |
 
 ## 相关链接
 

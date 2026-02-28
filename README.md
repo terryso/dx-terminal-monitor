@@ -73,7 +73,6 @@ python main.py
 | `/swaps` | Recent swaps |
 | `/strategies` | Active strategies |
 | `/vault` | Vault info |
-| `/refresh` | Refresh data |
 
 ## Links
 
