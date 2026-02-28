@@ -259,7 +259,7 @@ async def post_init(app: Application):
         BotCommand("swaps", "Swaps"),
         BotCommand("strategies", "Strategies"),
         BotCommand("vault", "Vault info"),
-        BotCommand("disable_strategy", "禁用策略"),
+        BotCommand("disable_strategy", "Disable strategy"),
     ]
     await app.bot.set_my_commands(commands)
     logger.info("Commands menu set")
