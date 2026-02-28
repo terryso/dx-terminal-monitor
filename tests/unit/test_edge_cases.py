@@ -77,7 +77,7 @@ class TestPostInit:
 
     @pytest.mark.asyncio
     async def test_post_init_sets_commands(self) -> None:
-        """Test post_init sets bot commands."""
+        """Test post_init sets bot commands including Story 1-3 new commands."""
         # Given
         mock_app = MagicMock()
         mock_app.bot = AsyncMock()
@@ -99,6 +99,9 @@ class TestPostInit:
         assert "swaps" in command_names
         assert "strategies" in command_names
         assert "vault" in command_names
+        # Story 1-3: Verify new commands are registered
+        assert "disable_strategy" in command_names
+        assert "disable_all" in command_names
 
 
 # =============================================================================
