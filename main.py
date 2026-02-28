@@ -83,6 +83,8 @@ Commands:
 /add_strategy <text> - Add new strategy
 /disable_strategy <id> - Disable a specific strategy
 /disable_all - Disable all active strategies
+/pause - Pause Agent trading
+/resume - Resume Agent trading
 """
     await update.message.reply_text(help_text)
 
@@ -264,6 +266,8 @@ async def post_init(app: Application):
         BotCommand("add_strategy", "Add new strategy"),
         BotCommand("disable_strategy", "Disable strategy"),
         BotCommand("disable_all", "Disable all strategies"),
+        BotCommand("pause", "Pause agent trading"),
+        BotCommand("resume", "Resume agent trading"),
     ]
     await app.bot.set_my_commands(commands)
     logger.info("Commands menu set")
@@ -384,6 +388,66 @@ async def cmd_add_strategy(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text(f"添加失败: {error}")
 
 
+async def cmd_pause(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """Pause agent trading."""
+    # Admin permission check (high-risk operation)
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text("未授权: 仅管理员可暂停交易")
+        return
+
+    # Pre-check: verify vault is not already paused
+    vault_data = await api.get_vault()
+    if isinstance(vault_data, dict) and vault_data.get("paused") is True:
+        await update.message.reply_text("Agent 已经处于暂停状态")
+        return
+
+    # Log admin action for audit
+    logger.info(f"Admin {update.effective_user.id} pausing vault")
+
+    # Call contract
+    result = await contract().pause_vault(True)
+
+    # Handle response
+    if result.get("success"):
+        tx_hash = result.get("transactionHash", "")
+        await update.message.reply_text(
+            f"⏸️ Agent 已暂停，将不会执行任何交易\n交易哈希: {tx_hash}"
+        )
+    else:
+        error = result.get("error", "未知错误")
+        await update.message.reply_text(f"暂停失败: {error}")
+
+
+async def cmd_resume(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """Resume agent trading."""
+    # Admin permission check (high-risk operation)
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text("未授权: 仅管理员可恢复交易")
+        return
+
+    # Pre-check: verify vault is currently paused
+    vault_data = await api.get_vault()
+    if isinstance(vault_data, dict) and vault_data.get("paused") is False:
+        await update.message.reply_text("Agent 已经处于运行状态")
+        return
+
+    # Log admin action for audit
+    logger.info(f"Admin {update.effective_user.id} resuming vault")
+
+    # Call contract
+    result = await contract().pause_vault(False)
+
+    # Handle response
+    if result.get("success"):
+        tx_hash = result.get("transactionHash", "")
+        await update.message.reply_text(
+            f"▶️ Agent 已恢复，将继续执行交易\n交易哈希: {tx_hash}"
+        )
+    else:
+        error = result.get("error", "未知错误")
+        await update.message.reply_text(f"恢复失败: {error}")
+
+
 def create_app():
     """Create and configure the Telegram application."""
     app = Application.builder().token(TELEGRAM_BOT_TOKEN).post_init(post_init).build()
@@ -399,6 +463,8 @@ def create_app():
     app.add_handler(CommandHandler("add_strategy", cmd_add_strategy))
     app.add_handler(CommandHandler("disable_strategy", cmd_disable_strategy))
     app.add_handler(CommandHandler("disable_all", cmd_disable_all))
+    app.add_handler(CommandHandler("pause", cmd_pause))
+    app.add_handler(CommandHandler("resume", cmd_resume))
     return app
 
 

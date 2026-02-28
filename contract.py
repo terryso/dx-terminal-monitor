@@ -318,3 +318,25 @@ class VaultContract:
         except Exception as e:
             logger.warning(f"Failed to parse strategy ID from logs: {e}")
             return None
+
+    async def pause_vault(self, paused: bool = True) -> Dict[str, Any]:
+        """
+        Pause or resume Agent trading.
+
+        Args:
+            paused: True to pause, False to resume
+
+        Returns:
+            Dict with keys:
+                - success: bool
+                - transactionHash: str (hex) - on success
+                - status: int - on success
+                - blockNumber: int - on success
+                - error: str - on failure
+        """
+        try:
+            tx_func = self.contract.functions.pauseVault(paused)
+            return await self._send_transaction(tx_func)
+        except Exception as e:
+            logger.error(f"Failed to {'pause' if paused else 'resume'} vault: {e}")
+            return {"success": False, "error": str(e)}

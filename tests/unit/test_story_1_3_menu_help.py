@@ -82,7 +82,7 @@ class TestPostInitStory13:
         call_args = mock_app.bot.set_my_commands.call_args[0][0]
         command_names = [cmd.command for cmd in call_args]
 
-        # All expected commands including the new ones from Story 1-3 and Story 2-1
+        # All expected commands including the new ones from Story 1-3, 2-1, and 2-2
         expected_commands = [
             "start",
             "balance",
@@ -95,9 +95,11 @@ class TestPostInitStory13:
             "add_strategy",      # NEW - Story 2-1
             "disable_strategy",  # NEW - Story 1-3
             "disable_all",       # NEW - Story 1-3
+            "pause",             # NEW - Story 2-2
+            "resume",            # NEW - Story 2-2
         ]
 
-        assert len(command_names) == 11, f"Expected 11 commands, got {len(command_names)}"
+        assert len(command_names) == 13, f"Expected 13 commands, got {len(command_names)}"
         for expected in expected_commands:
             assert expected in command_names, f"Command '{expected}' should be registered"
 
