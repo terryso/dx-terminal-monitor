@@ -43,7 +43,7 @@ development_status:
   # Epic 1: Web3 基础设施与策略禁用
   epic-1: in-progress
   1-0-web3-infrastructure: done
-  1-1-disable-strategy: backlog
+  1-1-disable-strategy: done
   1-2-disable-all-strategies: backlog
   1-3-update-menu-help: backlog
   epic-1-retrospective: optional
