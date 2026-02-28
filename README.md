@@ -1,5 +1,7 @@
 # DX Terminal Monitor
 
+[中文](README_CN.md) | English
+
 A Telegram bot for monitoring Terminal Markets Vault.
 
 ## Features
@@ -77,5 +79,3 @@ python main.py
 
 - [Terminal Markets](https://terminal.markets/)
 - [Terminal Markets API Docs](https://docs.terminal.markets)
-
-[中文文档](README_CN.md)

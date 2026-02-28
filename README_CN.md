@@ -1,5 +1,7 @@
 # DX Terminal Monitor
 
+中文 | [English](README.md)
+
 Terminal Markets Vault 监控 Telegram Bot。
 
 ## 功能
