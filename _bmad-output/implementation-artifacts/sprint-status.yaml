@@ -49,8 +49,8 @@ development_status:
   epic-1-retrospective: optional
 
   # Epic 2: 策略管理与交易控制
-  epic-2: backlog
-  2-1-add-strategy: backlog
+  epic-2: in-progress
+  2-1-add-strategy: done
   2-2-pause-resume-agent: backlog
   epic-2-retrospective: optional
 

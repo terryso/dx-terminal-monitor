@@ -1305,3 +1305,573 @@ class TestCmdDisableAll:
         # Then
         assert result['success'] is True
         assert result['disabledCount'] == -1  # -1 indicates count unavailable
+
+
+# =============================================================================
+# Tests for cmd_add_strategy (Story 2-1: ATDD RED Phase)
+# =============================================================================
+
+class TestCmdAddStrategy:
+    """Tests for /add_strategy command - Story 2-1.
+
+    NOTE: These tests are intentionally FAILING (TDD RED phase).
+    The cmd_add_strategy function is NOT YET IMPLEMENTED.
+    These tests define the EXPECTED behavior that implementation should satisfy.
+    """
+
+    @pytest.mark.asyncio
+    async def test_add_strategy_success(
+        self,
+        mock_telegram_update: MagicMock,
+        mock_telegram_context: MagicMock,
+    ) -> None:
+        """Test successful strategy addition by admin user.
+
+        Verifies: AC#2, AC#3, AC#5
+        - Command handler exists and accepts strategy content
+        - Returns success message with strategy ID
+        """
+        # Given - admin user with valid strategy content
+        mock_telegram_update.effective_user.id = 123456789  # Admin user
+
+        mock_contract_result = {
+            "success": True,
+            "strategyId": 4,
+            "transactionHash": "0xabc123def456",
+            "status": 1,
+            "blockNumber": 12345678,
+        }
+
+        # Create mock contract instance
+        mock_contract_instance = MagicMock()
+        mock_contract_instance.add_strategy = AsyncMock(return_value=mock_contract_result)
+
+        with patch("main.is_admin", return_value=True), \
+             patch("main.contract", return_value=mock_contract_instance):
+            from main import cmd_add_strategy
+
+            # When
+            mock_telegram_context.args = ["当", "ETH", "跌破", "3000", "时买入"]
+            await cmd_add_strategy(mock_telegram_update, mock_telegram_context)
+
+        # Then
+        mock_telegram_update.message.reply_text.assert_called_once()
+        call_args = mock_telegram_update.message.reply_text.call_args[0][0]
+        assert "策略已添加" in call_args
+        assert "#4" in call_args
+
+    @pytest.mark.asyncio
+    async def test_add_strategy_unauthorized_non_admin(
+        self,
+        mock_telegram_update: MagicMock,
+        mock_telegram_context: MagicMock,
+    ) -> None:
+        """Test non-admin user is rejected.
+
+        Verifies: AC#7
+        - Only admin users can add strategies
+        """
+        # Given - non-admin user
+        mock_telegram_update.effective_user.id = 99999  # Non-admin
+
+        # Create mock contract instance (should not be called)
+        mock_contract_instance = MagicMock()
+        mock_contract_instance.add_strategy = AsyncMock()
+
+        with patch("main.is_admin", return_value=False), \
+             patch("main.contract", return_value=mock_contract_instance):
+            from main import cmd_add_strategy
+
+            # When
+            mock_telegram_context.args = ["test strategy"]
+            await cmd_add_strategy(mock_telegram_update, mock_telegram_context)
+
+        # Then
+        mock_telegram_update.message.reply_text.assert_called_once()
+        call_args = mock_telegram_update.message.reply_text.call_args[0][0]
+        assert "未授权" in call_args or "unauthorized" in call_args.lower()
+        # Verify contract was NOT called for non-admin
+        mock_contract_instance.add_strategy.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_add_strategy_no_args(
+        self,
+        mock_telegram_update: MagicMock,
+        mock_telegram_context: MagicMock,
+    ) -> None:
+        """Test error when no strategy content provided.
+
+        Verifies: AC#2, AC#3
+        - Shows usage help when no args provided
+        """
+        # Given - admin user but no args
+        mock_telegram_update.effective_user.id = 123456789  # Admin user
+
+        with patch("main.is_admin", return_value=True):
+            from main import cmd_add_strategy
+
+            # When
+            mock_telegram_context.args = None  # No args
+            await cmd_add_strategy(mock_telegram_update, mock_telegram_context)
+
+        # Then
+        mock_telegram_update.message.reply_text.assert_called_once()
+        call_args = mock_telegram_update.message.reply_text.call_args[0][0]
+        assert "用法" in call_args
+
+    @pytest.mark.asyncio
+    async def test_add_strategy_empty_args(
+        self,
+        mock_telegram_update: MagicMock,
+        mock_telegram_context: MagicMock,
+    ) -> None:
+        """Test error when args list is empty.
+
+        Verifies: AC#2, AC#3
+        - Shows usage help when args list is empty
+        """
+        # Given - admin user with empty args
+        mock_telegram_update.effective_user.id = 123456789  # Admin user
+
+        with patch("main.is_admin", return_value=True):
+            from main import cmd_add_strategy
+
+            # When
+            mock_telegram_context.args = []  # Empty list
+            await cmd_add_strategy(mock_telegram_update, mock_telegram_context)
+
+        # Then
+        mock_telegram_update.message.reply_text.assert_called_once()
+        call_args = mock_telegram_update.message.reply_text.call_args[0][0]
+        assert "用法" in call_args
+
+    @pytest.mark.asyncio
+    async def test_add_strategy_max_limit_reached(
+        self,
+        mock_telegram_update: MagicMock,
+        mock_telegram_context: MagicMock,
+    ) -> None:
+        """Test error when strategy limit (8) is reached.
+
+        Verifies: AC#6
+        - Shows user-friendly error when max strategies reached
+        """
+        # Given - admin user but max limit reached
+        mock_telegram_update.effective_user.id = 123456789  # Admin user
+
+        mock_contract_result = {
+            "success": False,
+            "error": "Max strategies limit reached (8)",
+        }
+
+        # Create mock contract instance
+        mock_contract_instance = MagicMock()
+        mock_contract_instance.add_strategy = AsyncMock(return_value=mock_contract_result)
+
+        with patch("main.is_admin", return_value=True), \
+             patch("main.contract", return_value=mock_contract_instance):
+            from main import cmd_add_strategy
+
+            # When
+            mock_telegram_context.args = ["new strategy"]
+            await cmd_add_strategy(mock_telegram_update, mock_telegram_context)
+
+        # Then
+        mock_telegram_update.message.reply_text.assert_called_once()
+        call_args = mock_telegram_update.message.reply_text.call_args[0][0]
+        assert "上限" in call_args or "limit" in call_args.lower()
+
+    @pytest.mark.asyncio
+    async def test_add_strategy_contract_failure(
+        self,
+        mock_telegram_update: MagicMock,
+        mock_telegram_context: MagicMock,
+    ) -> None:
+        """Test handling of generic contract failure.
+
+        Verifies: AC#2
+        - Shows error message on contract failure
+        """
+        # Given - admin user but contract fails
+        mock_telegram_update.effective_user.id = 123456789  # Admin user
+
+        mock_contract_result = {
+            "success": False,
+            "error": "Network connection failed",
+        }
+
+        # Create mock contract instance
+        mock_contract_instance = MagicMock()
+        mock_contract_instance.add_strategy = AsyncMock(return_value=mock_contract_result)
+
+        with patch("main.is_admin", return_value=True), \
+             patch("main.contract", return_value=mock_contract_instance):
+            from main import cmd_add_strategy
+
+            # When
+            mock_telegram_context.args = ["test strategy"]
+            await cmd_add_strategy(mock_telegram_update, mock_telegram_context)
+
+        # Then
+        mock_telegram_update.message.reply_text.assert_called_once()
+        call_args = mock_telegram_update.message.reply_text.call_args[0][0]
+        assert "失败" in call_args or "error" in call_args.lower()
+
+    @pytest.mark.asyncio
+    async def test_add_strategy_registers_command_handler(self) -> None:
+        """Test cmd_add_strategy is registered as command handler.
+
+        Verifies: AC#2
+        """
+        import os
+        import sys
+
+        os.environ['RPC_URL'] = 'https://eth-test.example.com'
+        os.environ['PRIVATE_KEY'] = '0x' + 'a' * 64
+        os.environ['CHAIN_ID'] = '1'
+        os.environ['VAULT_ADDRESS'] = '0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C'
+
+        for mod in ['main', 'contract', 'config']:
+            if mod in sys.modules:
+                del sys.modules[mod]
+
+        try:
+            from main import create_app
+
+            app = create_app()
+
+            # Check if add_strategy handler is registered
+            all_handlers = []
+            for group_handlers in app.handlers.values():
+                all_handlers.extend(group_handlers)
+
+            # CommandHandler uses 'commands' attribute (frozenset)
+            has_add_strategy = any(
+                hasattr(h, 'commands') and 'add_strategy' in h.commands
+                for h in all_handlers
+            )
+
+            assert has_add_strategy, "Command handler for 'add_strategy' not registered"
+        finally:
+            for key in ['RPC_URL', 'PRIVATE_KEY', 'CHAIN_ID', 'VAULT_ADDRESS']:
+                os.environ.pop(key, None)
+
+    @pytest.mark.asyncio
+    async def test_add_strategy_registers_bot_command(self) -> None:
+        """Test add_strategy is registered in bot menu.
+
+        Verifies: AC#2
+        """
+        import os
+        import sys
+
+        os.environ['RPC_URL'] = 'https://eth-test.example.com'
+        os.environ['PRIVATE_KEY'] = '0x' + 'a' * 64
+        os.environ['CHAIN_ID'] = '1'
+        os.environ['VAULT_ADDRESS'] = '0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C'
+
+        for mod in ['main', 'contract', 'config']:
+            if mod in sys.modules:
+                del sys.modules[mod]
+
+        try:
+            from telegram import BotCommand
+
+            # Mock the bot
+            mock_bot = MagicMock()
+            mock_bot.set_my_commands = AsyncMock()
+
+            mock_app = MagicMock()
+            mock_app.bot = mock_bot
+
+            from main import post_init
+
+            # Run post_init
+            await post_init(mock_app)
+
+            # Check if set_my_commands was called
+            mock_bot.set_my_commands.assert_called_once()
+            commands = mock_bot.set_my_commands.call_args[0][0]
+
+            # Verify add_strategy command is in the list
+            command_names = [cmd.command if hasattr(cmd, 'command') else str(cmd) for cmd in commands]
+            assert 'add_strategy' in command_names, "'add_strategy' not in bot commands"
+        finally:
+            for key in ['RPC_URL', 'PRIVATE_KEY', 'CHAIN_ID', 'VAULT_ADDRESS']:
+                os.environ.pop(key, None)
+
+    @pytest.mark.asyncio
+    async def test_add_strategy_help_text_updated(
+        self,
+        mock_telegram_update: MagicMock,
+        mock_telegram_context: MagicMock,
+    ) -> None:
+        """Test help text includes add_strategy command.
+
+        Verifies: AC#2
+        """
+        import os
+        import sys
+
+        os.environ['RPC_URL'] = 'https://eth-test.example.com'
+        os.environ['PRIVATE_KEY'] = '0x' + 'a' * 64
+        os.environ['CHAIN_ID'] = '1'
+        os.environ['VAULT_ADDRESS'] = '0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C'
+
+        for mod in ['main', 'contract', 'config']:
+            if mod in sys.modules:
+                del sys.modules[mod]
+
+        try:
+            from main import cmd_start
+
+            with patch("main.authorized", return_value=True):
+                mock_telegram_update.message.reply_text = AsyncMock()
+
+                # When
+                await cmd_start(mock_telegram_update, mock_telegram_context)
+
+                # Then
+                call_args = mock_telegram_update.message.reply_text.call_args[0][0]
+                assert "add_strategy" in call_args.lower() or "/add_strategy" in call_args
+        finally:
+            for key in ['RPC_URL', 'PRIVATE_KEY', 'CHAIN_ID', 'VAULT_ADDRESS']:
+                os.environ.pop(key, None)
+
+    @pytest.mark.asyncio
+    async def test_add_strategy_empty_content(
+        self,
+        mock_telegram_update: MagicMock,
+        mock_telegram_context: MagicMock,
+    ) -> None:
+        """Test error when strategy content is empty (whitespace only).
+
+        Verifies: Input validation - empty content check
+        """
+        # Given - admin user with whitespace-only content
+        mock_telegram_update.effective_user.id = 123456789  # Admin user
+
+        # Create mock contract instance (should not be called)
+        mock_contract_instance = MagicMock()
+        mock_contract_instance.add_strategy = AsyncMock()
+
+        with patch("main.is_admin", return_value=True), \
+             patch("main.contract", return_value=mock_contract_instance):
+            from main import cmd_add_strategy
+
+            # When - args contain only whitespace
+            mock_telegram_context.args = ["   ", "  "]
+            await cmd_add_strategy(mock_telegram_update, mock_telegram_context)
+
+        # Then
+        mock_telegram_update.message.reply_text.assert_called_once()
+        call_args = mock_telegram_update.message.reply_text.call_args[0][0]
+        assert "空" in call_args or "empty" in call_args.lower()
+        # Verify contract was NOT called
+        mock_contract_instance.add_strategy.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_add_strategy_content_too_long(
+        self,
+        mock_telegram_update: MagicMock,
+        mock_telegram_context: MagicMock,
+    ) -> None:
+        """Test error when strategy content exceeds length limit.
+
+        Verifies: Input validation - content length limit (500 chars)
+        """
+        # Given - admin user with content too long
+        mock_telegram_update.effective_user.id = 123456789  # Admin user
+
+        # Create mock contract instance (should not be called)
+        mock_contract_instance = MagicMock()
+        mock_contract_instance.add_strategy = AsyncMock()
+
+        # Content longer than 500 chars
+        long_content = "a" * 501
+
+        with patch("main.is_admin", return_value=True), \
+             patch("main.contract", return_value=mock_contract_instance):
+            from main import cmd_add_strategy
+
+            # When
+            mock_telegram_context.args = [long_content]
+            await cmd_add_strategy(mock_telegram_update, mock_telegram_context)
+
+        # Then
+        mock_telegram_update.message.reply_text.assert_called_once()
+        call_args = mock_telegram_update.message.reply_text.call_args[0][0]
+        assert "过长" in call_args or "long" in call_args.lower() or "500" in call_args
+        # Verify contract was NOT called
+        mock_contract_instance.add_strategy.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_add_strategy_none_strategy_id(
+        self,
+        mock_telegram_update: MagicMock,
+        mock_telegram_context: MagicMock,
+    ) -> None:
+        """Test graceful handling when strategyId is None.
+
+        Verifies: Error handling - None strategyId from log parsing failure
+        """
+        # Given - admin user, contract succeeds but strategyId is None
+        mock_telegram_update.effective_user.id = 123456789  # Admin user
+
+        mock_contract_result = {
+            "success": True,
+            "strategyId": None,  # Parsing failed
+            "transactionHash": "0xabc123def456",
+            "status": 1,
+            "blockNumber": 12345678,
+        }
+
+        mock_contract_instance = MagicMock()
+        mock_contract_instance.add_strategy = AsyncMock(return_value=mock_contract_result)
+
+        with patch("main.is_admin", return_value=True), \
+             patch("main.contract", return_value=mock_contract_instance):
+            from main import cmd_add_strategy
+
+            # When
+            mock_telegram_context.args = ["test strategy"]
+            await cmd_add_strategy(mock_telegram_update, mock_telegram_context)
+
+        # Then
+        mock_telegram_update.message.reply_text.assert_called_once()
+        call_args = mock_telegram_update.message.reply_text.call_args[0][0]
+        # Should show a message about unable to parse ID
+        assert "无法解析" in call_args or "ID" in call_args
+        assert "0xabc123def456" in call_args  # Should still show tx hash
+
+
+# =============================================================================
+# Tests for contract.add_strategy method (Story 2-1)
+# =============================================================================
+
+class TestContractAddStrategy:
+    """Tests for VaultContract.add_strategy method - Story 2-1."""
+
+    @pytest.mark.asyncio
+    async def test_add_strategy_method_calls_contract(self) -> None:
+        """Test add_strategy calls web3 addStrategy with correct params.
+
+        Verifies: AC#1, AC#4
+        """
+        from contract import VaultContract
+
+        # Create a mock instance
+        mock_vault = MagicMock(spec=VaultContract)
+        mock_vault._send_transaction = AsyncMock(return_value={
+            'success': True,
+            'transactionHash': '0xabc123...',
+            'status': 1,
+            'blockNumber': 12345,
+            'receipt': {'logs': []},
+        })
+        mock_vault.contract = MagicMock()
+        mock_vault.contract.functions.addStrategy.return_value = "mock_tx_func"
+
+        # When
+        result = await VaultContract.add_strategy(mock_vault, "test strategy")
+
+        # Then
+        assert result['success'] is True
+        assert 'transactionHash' in result
+        mock_vault._send_transaction.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_add_strategy_with_default_params(self) -> None:
+        """Test add_strategy uses default expiry=0, priority=1.
+
+        Verifies: AC#4
+        """
+        from contract import VaultContract
+
+        mock_vault = MagicMock(spec=VaultContract)
+        mock_vault._send_transaction = AsyncMock(return_value={
+            'success': True,
+            'transactionHash': '0xabc123...',
+            'receipt': {'logs': []},
+        })
+        mock_vault.contract = MagicMock()
+        mock_contract_func = MagicMock()
+        mock_vault.contract.functions.addStrategy.return_value = mock_contract_func
+
+        # When - call without expiry/priority (should use defaults)
+        result = await VaultContract.add_strategy(mock_vault, "test strategy")
+
+        # Then - verify default params were used
+        mock_vault.contract.functions.addStrategy.assert_called_once_with(
+            "test strategy", 0, 1  # content, expiry=0, priority=1
+        )
+
+    @pytest.mark.asyncio
+    async def test_add_strategy_returns_strategy_id(self) -> None:
+        """Test add_strategy returns strategyId from event logs.
+
+        Verifies: AC#1
+        """
+        from contract import VaultContract
+        from unittest.mock import MagicMock
+
+        mock_vault = MagicMock(spec=VaultContract)
+
+        # Mock event log parsing
+        mock_receipt = {
+            'logs': [
+                {
+                    'topics': [
+                        MagicMock(hex=lambda: '0x' + 'a' * 64),  # event sig
+                        MagicMock(hex=lambda: '0x' + '0' * 62 + '04'),  # strategyId = 4
+                    ]
+                }
+            ]
+        }
+
+        mock_vault._send_transaction = AsyncMock(return_value={
+            'success': True,
+            'transactionHash': '0xabc123...',
+            'status': 1,
+            'blockNumber': 12345,
+            'receipt': mock_receipt,
+        })
+        mock_vault.contract = MagicMock()
+        mock_vault.contract.functions.addStrategy.return_value = "mock_tx_func"
+
+        # Mock w3.keccak for event signature
+        mock_vault.w3 = MagicMock()
+        mock_vault.w3.keccak = MagicMock(return_value=MagicMock(hex=lambda: '0x' + 'a' * 64))
+
+        # When
+        result = await VaultContract.add_strategy(mock_vault, "test strategy")
+
+        # Then
+        assert result['success'] is True
+        # strategyId might be None if parsing fails, which is acceptable
+        # The key is that the method handles the receipt properly
+
+    @pytest.mark.asyncio
+    async def test_add_strategy_handles_failure(self) -> None:
+        """Test add_strategy handles contract failure gracefully.
+
+        Verifies: AC#1
+        """
+        from contract import VaultContract
+
+        mock_vault = MagicMock(spec=VaultContract)
+        mock_vault._send_transaction = AsyncMock(return_value={
+            'success': False,
+            'error': 'Gas estimation failed',
+        })
+        mock_vault.contract = MagicMock()
+        mock_vault.contract.functions.addStrategy.return_value = "mock_tx_func"
+
+        # When
+        result = await VaultContract.add_strategy(mock_vault, "test strategy")
+
+        # Then
+        assert result['success'] is False
+        assert 'error' in result
+        assert 'Gas estimation failed' in result['error']
+

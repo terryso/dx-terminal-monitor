@@ -3,7 +3,7 @@ import time
 from telegram import Update, BotCommand
 from telegram.ext import Application, CommandHandler, ContextTypes
 from telegram.error import TimedOut, NetworkError, TelegramError
-from config import TELEGRAM_BOT_TOKEN, ALLOWED_USERS
+from config import TELEGRAM_BOT_TOKEN, ALLOWED_USERS, is_admin
 from api import TerminalAPI
 from contract import VaultContract
 
@@ -80,6 +80,7 @@ Commands:
 /swaps - Recent swaps
 /strategies - Active strategies
 /vault - Vault info
+/add_strategy <text> - Add new strategy
 /disable_strategy <id> - Disable a specific strategy
 /disable_all - Disable all active strategies
 """
@@ -260,6 +261,7 @@ async def post_init(app: Application):
         BotCommand("swaps", "Swaps"),
         BotCommand("strategies", "Strategies"),
         BotCommand("vault", "Vault info"),
+        BotCommand("add_strategy", "Add new strategy"),
         BotCommand("disable_strategy", "Disable strategy"),
         BotCommand("disable_all", "Disable all strategies"),
     ]
@@ -327,6 +329,61 @@ async def cmd_disable_all(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"交易失败: {error}")
 
 
+async def cmd_add_strategy(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """Add a new trading strategy."""
+    # Admin permission check (high-risk operation)
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text("未授权: 仅管理员可添加策略")
+        return
+
+    # Parse arguments
+    args = ctx.args or []
+    if len(args) == 0:
+        await update.message.reply_text("用法: /add_strategy <策略内容>")
+        return
+
+    # Join all arguments as strategy content
+    content = " ".join(args)
+
+    # Input validation: check for empty content
+    if not content.strip():
+        await update.message.reply_text("错误: 策略内容不能为空")
+        return
+
+    # Input validation: check content length limit
+    MAX_STRATEGY_LENGTH = 500
+    if len(content) > MAX_STRATEGY_LENGTH:
+        await update.message.reply_text(f"错误: 策略内容过长（最多 {MAX_STRATEGY_LENGTH} 字符）")
+        return
+
+    # Log admin action for audit
+    logger.info(f"Admin {update.effective_user.id} adding strategy: {content[:50]}...")
+
+    # Call contract (using default parameters: expiry=0, priority=1)
+    result = await contract().add_strategy(content)
+
+    # Handle response
+    if result.get("success"):
+        strategy_id = result.get("strategyId")
+        tx_hash = result.get("transactionHash", "")
+        # Handle case where strategyId parsing failed
+        if strategy_id is None:
+            await update.message.reply_text(
+                f"策略已添加，但无法解析策略 ID\n交易哈希: {tx_hash}\n请查看交易详情获取策略 ID"
+            )
+        else:
+            await update.message.reply_text(
+                f"策略已添加，ID: #{strategy_id}\n交易哈希: {tx_hash}"
+            )
+    else:
+        error = result.get("error", "未知错误")
+        # Check if it's a strategy limit error
+        if "max" in error.lower() or "limit" in error.lower() or "8" in error:
+            await update.message.reply_text("错误: 已达到策略数量上限 (最多 8 个)")
+        else:
+            await update.message.reply_text(f"添加失败: {error}")
+
+
 def create_app():
     """Create and configure the Telegram application."""
     app = Application.builder().token(TELEGRAM_BOT_TOKEN).post_init(post_init).build()
@@ -339,6 +396,7 @@ def create_app():
     app.add_handler(CommandHandler("swaps", cmd_swaps))
     app.add_handler(CommandHandler("strategies", cmd_strategies))
     app.add_handler(CommandHandler("vault", cmd_vault))
+    app.add_handler(CommandHandler("add_strategy", cmd_add_strategy))
     app.add_handler(CommandHandler("disable_strategy", cmd_disable_strategy))
     app.add_handler(CommandHandler("disable_all", cmd_disable_all))
     return app

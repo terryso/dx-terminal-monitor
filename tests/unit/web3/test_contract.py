@@ -465,3 +465,160 @@ class TestConfigurationValidation:
             contract.VaultContract()
 
         assert "PRIVATE_KEY" in str(exc_info.value)
+
+
+# ============================================================================
+# Story 2-1: add_strategy method (ATDD RED Phase)
+# ============================================================================
+
+class TestAddStrategyMethod:
+    """Tests for VaultContract.add_strategy method - Story 2-1.
+
+    NOTE: These tests are intentionally FAILING (TDD RED phase).
+    The add_strategy method is NOT YET IMPLEMENTED.
+    These tests define the EXPECTED behavior that implementation should satisfy.
+    """
+
+    @pytest.mark.asyncio
+    async def test_contract_add_strategy_success(
+        self,
+        web3_test_env,
+        mock_web3_components,
+    ) -> None:
+        """Test successful add_strategy call with default parameters.
+
+        Verifies: AC#1, AC#4
+        - Method exists and returns success result
+        - Default parameters: expiry=0, priority=1
+        """
+        mock_w3, mock_account, mock_contract = mock_web3_components
+
+        # Setup mock for addStrategy transaction
+        mock_contract.functions.addStrategy.return_value.estimate_gas.return_value = 100000
+        mock_contract.functions.addStrategy.return_value.build_transaction.return_value = {
+            'from': '0xTestSender0000000000000000000000000000',
+            'nonce': 1,
+            'gas': 120000,
+            'gasPrice': 1000000000,
+            'chainId': 1,
+        }
+
+        vc = create_mocked_vault_contract(mock_web3_components)
+
+        # When - call add_strategy with content only (using defaults)
+        result = await vc.add_strategy("当 ETH 跌破 3000 时买入")
+
+        # Then
+        assert result is not None
+        assert result['success'] is True
+        assert 'transactionHash' in result
+
+        # Verify the contract was called with correct parameters
+        mock_contract.functions.addStrategy.assert_called_once_with(
+            "当 ETH 跌破 3000 时买入",
+            0,  # expiry=0 (永不过期)
+            1,  # priority=1 (中等)
+        )
+
+    @pytest.mark.asyncio
+    async def test_contract_add_strategy_with_custom_params(
+        self,
+        web3_test_env,
+        mock_web3_components,
+    ) -> None:
+        """Test add_strategy call with custom expiry and priority.
+
+        Verifies: AC#1, AC#4
+        - Method supports custom expiry and priority parameters
+        """
+        mock_w3, mock_account, mock_contract = mock_web3_components
+
+        # Setup mock for addStrategy transaction
+        mock_contract.functions.addStrategy.return_value.estimate_gas.return_value = 100000
+        mock_contract.functions.addStrategy.return_value.build_transaction.return_value = {
+            'from': '0xTestSender0000000000000000000000000000',
+            'nonce': 1,
+            'gas': 120000,
+            'gasPrice': 1000000000,
+            'chainId': 1,
+        }
+
+        vc = create_mocked_vault_contract(mock_web3_components)
+
+        # When - call add_strategy with custom parameters
+        result = await vc.add_strategy(
+            content="High priority strategy",
+            expiry=1735689600,  # Some future timestamp
+            priority=2,  # HIGH priority
+        )
+
+        # Then
+        assert result is not None
+        assert result['success'] is True
+
+        # Verify the contract was called with custom parameters
+        mock_contract.functions.addStrategy.assert_called_once_with(
+            "High priority strategy",
+            1735689600,
+            2,
+        )
+
+    @pytest.mark.asyncio
+    async def test_contract_add_strategy_returns_error_on_failure(
+        self,
+        web3_test_env,
+        mock_web3_components,
+    ) -> None:
+        """Test add_strategy returns error dict on contract failure.
+
+        Verifies: AC#1
+        - Method returns proper error response on failure
+        """
+        mock_w3, mock_account, mock_contract = mock_web3_components
+
+        # Setup mock to simulate gas estimation failure (e.g., max limit reached)
+        mock_contract.functions.addStrategy.return_value.estimate_gas.side_effect = \
+            Exception("Max strategies limit reached")
+
+        vc = create_mocked_vault_contract(mock_web3_components)
+
+        # When
+        result = await vc.add_strategy("New strategy")
+
+        # Then
+        assert result['success'] is False
+        assert 'error' in result
+        assert "Max strategies" in result['error'] or "limit" in result['error'].lower()
+
+    @pytest.mark.asyncio
+    async def test_contract_add_strategy_default_parameters(
+        self,
+        web3_test_env,
+        mock_web3_components,
+    ) -> None:
+        """Test that add_strategy uses correct default parameters.
+
+        Verifies: AC#4
+        - Default expiry=0 (永不过期)
+        - Default priority=1 (中等)
+        """
+        mock_w3, mock_account, mock_contract = mock_web3_components
+
+        # Setup mock
+        mock_contract.functions.addStrategy.return_value.estimate_gas.return_value = 100000
+        mock_contract.functions.addStrategy.return_value.build_transaction.return_value = {
+            'from': '0xTestSender0000000000000000000000000000',
+            'nonce': 1,
+            'gas': 120000,
+        }
+
+        vc = create_mocked_vault_contract(mock_web3_components)
+
+        # When - call with only content, letting defaults apply
+        await vc.add_strategy("Test strategy")
+
+        # Then - verify defaults were applied
+        call_args = mock_contract.functions.addStrategy.call_args
+        assert call_args[0][0] == "Test strategy"  # content
+        assert call_args[0][1] == 0  # expiry default
+        assert call_args[0][2] == 1  # priority default

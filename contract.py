@@ -149,6 +149,7 @@ class VaultContract:
                 'transactionHash': tx_hash.hex(),
                 'status': receipt['status'],
                 'blockNumber': receipt['blockNumber'],
+                'receipt': dict(receipt),
             }
 
         except ConnectionError as e:
@@ -253,3 +254,67 @@ class VaultContract:
                 'success': False,
                 'error': str(e),
             }
+
+    async def add_strategy(
+        self,
+        content: str,
+        expiry: int = 0,
+        priority: int = 1
+    ) -> Dict[str, Any]:
+        """
+        Add a new trading strategy.
+
+        Args:
+            content: Strategy text content
+            expiry: Expiration timestamp (0 = never expires)
+            priority: Priority level (0=LOW, 1=MEDIUM, 2=HIGH)
+
+        Returns:
+            Dict with keys:
+                - success: bool
+                - transactionHash: str (hex) - on success
+                - strategyId: int - on success (parsed from event logs)
+                - status: int - on success
+                - blockNumber: int - on success
+                - error: str - on failure
+        """
+        try:
+            tx_func = self.contract.functions.addStrategy(content, expiry, priority)
+            result = await self._send_transaction(tx_func)
+
+            # If successful, try to parse strategyId from logs
+            if result.get("success"):
+                result["strategyId"] = self._parse_strategy_id_from_logs(
+                    result.get("receipt", {})
+                )
+
+            return result
+        except Exception as e:
+            logger.error(f"Failed to add strategy: {e}")
+            return {"success": False, "error": str(e)}
+
+    def _parse_strategy_id_from_logs(self, receipt: Dict) -> Optional[int]:
+        """Parse the newly added strategy ID from transaction receipt logs.
+
+        Args:
+            receipt: Transaction receipt dictionary
+
+        Returns:
+            Strategy ID if found, None otherwise
+        """
+        try:
+            # StrategyAdded event signature
+            event_signature = self.w3.keccak(text="StrategyAdded(uint256,string)").hex()
+
+            # Search through logs for the event
+            for log in receipt.get("logs", []):
+                if len(log.get("topics", [])) > 0 and log["topics"][0].hex() == event_signature:
+                    # Parse strategyId from the first topic (indexed parameter)
+                    strategy_id = int(log["topics"][1].hex(), 16)
+                    return strategy_id
+
+            logger.warning("StrategyAdded event not found in transaction logs")
+            return None
+        except Exception as e:
+            logger.warning(f"Failed to parse strategy ID from logs: {e}")
+            return None
