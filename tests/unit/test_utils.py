@@ -2,7 +2,6 @@
 Unit tests for utility functions in main.py.
 """
 
-import pytest
 
 from tests.support.helpers import (
     format_eth,

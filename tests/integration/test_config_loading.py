@@ -4,10 +4,7 @@ Integration tests for dx-terminal-monitor.
 These tests verify the integration between components.
 """
 
-import os
-from unittest.mock import patch
 
-import pytest
 
 
 class TestConfigDefaults:
@@ -16,7 +13,6 @@ class TestConfigDefaults:
     def test_default_values_defined(self) -> None:
         """Test that config.py has the expected default values in code."""
         # Read config.py source to verify defaults exist
-        import config
         source = open("config.py").read()
 
         # Verify default values are defined in the source

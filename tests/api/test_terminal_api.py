@@ -5,10 +5,7 @@ These tests verify the external API endpoints.
 Mark with @pytest.mark.api and run separately with: pytest -m api
 """
 
-import os
-
 import pytest
-import aiohttp
 
 from api import TerminalAPI
 
@@ -19,9 +16,8 @@ class TestTerminalAPI:
 
     @pytest.fixture
     def api_client(self) -> TerminalAPI:
-        """Create API client with configured base URL."""
-        base_url = os.getenv("API_BASE_URL", "https://api.terminal.markets/api/v1")
-        vault_address = os.getenv("VAULT_ADDRESS", "0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C")
+        """Create API client. Reads config from environment variables."""
+        # API_BASE_URL and VAULT_ADDRESS are read by TerminalAPI from os.environ
         return TerminalAPI()
 
     @pytest.mark.asyncio
