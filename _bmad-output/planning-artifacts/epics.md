@@ -24,9 +24,11 @@ inputDocuments:
 | FR1 | 禁用指定策略 | P0 |
 | FR2 | 禁用所有活跃策略 | P0 |
 | FR3 | 添加新策略 | P1 |
-| FR4 | 暂停/恢复 Vault 交易 | P1 |
+| FR4 | 暂停/恢复 Agent 自动交易 | P1 |
 | FR5 | 更新 Vault 交易设置 | P2 |
 | FR6 | 提取 ETH | P2 |
+
+> **注意**: 合约不支持恢复已禁用的策略，如需恢复需通过 `addStrategy` 重新添加。
 
 ### 非功能需求 (NFR)
 
@@ -178,17 +180,24 @@ result = await contract.disable_all_strategies()
 
 ---
 
-### Story 2.2: 暂停/恢复交易命令
+### Story 2.2: 暂停/恢复 Agent 交易命令
 
-**作为用户，我需要** 通过 `/pause` 和 `/resume` 命令控制交易，**以便** 在市场异常时保护资金。
+**作为用户，我需要** 通过 `/pause` 和 `/resume` 命令控制 Agent 自动交易，**以便** 在市场异常时保护资金。
 
 **验收标准:**
 - [ ] 实现 `contract.pause_vault(paused: bool)` 方法
 - [ ] 实现 `cmd_pause` 和 `cmd_resume` 命令处理函数
-- [ ] `/pause` 返回: "Vault 已暂停，Agent 将不会执行交易"
-- [ ] `/resume` 返回: "Vault 已恢复交易"
+- [ ] `/pause` 返回: "⏸️ Agent 已暂停，将不会执行任何交易"
+- [ ] `/resume` 返回: "▶️ Agent 已恢复，将继续执行交易"
 - [ ] 管理员权限检查
 - [ ] 添加单元测试
+
+**技术说明:**
+```python
+# 调用合约的 pauseVault(bool paused_)
+# paused_ = True  → 暂停 Agent 交易
+# paused_ = False → 恢复 Agent 交易
+```
 
 **预估复杂度**: 低
 
