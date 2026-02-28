@@ -1,9 +1,12 @@
 import logging
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv()
+# Load .env from the project root directory (where this file is located)
+_env_path = Path(__file__).parent / '.env'
+load_dotenv(_env_path)
 
 logger = logging.getLogger(__name__)
 

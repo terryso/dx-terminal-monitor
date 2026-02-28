@@ -135,3 +135,34 @@ class VaultContract:
                 'success': False,
                 'error': str(e),
             }
+
+    async def disable_strategy(self, strategy_id: int) -> Dict[str, Any]:
+        """
+        Disable a specific strategy by ID.
+
+        Args:
+            strategy_id: The ID of the strategy to disable.
+
+        Returns:
+            Dict with keys:
+                - success: bool
+                - transactionHash: str (hex) - on success
+                - status: int - on success
+                - blockNumber: int - on success
+                - error: str - on failure
+        """
+        try:
+            # Get contract function
+            tx_func = self.contract.functions.disableStrategy(strategy_id)
+
+            # Send transaction
+            result = await self._send_transaction(tx_func)
+
+            return result
+
+        except Exception as e:
+            logger.error(f"Failed to disable strategy #{strategy_id}: {e}")
+            return {
+                'success': False,
+                'error': str(e),
+            }

@@ -5,6 +5,7 @@ from telegram.ext import Application, CommandHandler, ContextTypes
 from telegram.error import TimedOut, NetworkError, TelegramError
 from config import TELEGRAM_BOT_TOKEN, ALLOWED_USERS
 from api import TerminalAPI
+from contract import VaultContract
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -13,6 +14,27 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 api = TerminalAPI()
+
+# Contract instance - can be mocked for testing
+_contract_instance = None
+
+
+def get_contract():
+    """Get or create the contract instance."""
+    global _contract_instance
+    if _contract_instance is None:
+        _contract_instance = VaultContract()
+    return _contract_instance
+
+
+def set_contract(instance):
+    """Set contract instance (for testing)."""
+    global _contract_instance
+    _contract_instance = instance
+
+
+# For use in command handlers - calls get_contract() lazily
+contract = get_contract
 
 
 def format_eth(wei: str) -> str:
@@ -58,6 +80,7 @@ Commands:
 /swaps - Recent swaps
 /strategies - Active strategies
 /vault - Vault info
+/disable_strategy <id> - 禁用指定策略
 """
     await update.message.reply_text(help_text)
 
@@ -236,9 +259,55 @@ async def post_init(app: Application):
         BotCommand("swaps", "Swaps"),
         BotCommand("strategies", "Strategies"),
         BotCommand("vault", "Vault info"),
+        BotCommand("disable_strategy", "禁用策略"),
     ]
     await app.bot.set_my_commands(commands)
     logger.info("Commands menu set")
+
+
+async def cmd_disable_strategy(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    if not authorized(update):
+        await update.message.reply_text("未授权")
+        return
+
+    args = ctx.args or []
+    if len(args) == 0:
+        await update.message.reply_text("用法: /disable_strategy <id>")
+        return
+
+    try:
+        strategy_id = int(args[0])
+    except ValueError:
+        await update.message.reply_text("错误: 策略 ID 必须是数字")
+        return
+
+    result = await contract().disable_strategy(strategy_id)
+
+    if result.get("success"):
+        tx_hash = result.get("transactionHash", "")
+        await update.message.reply_text(f"策略 #{strategy_id} 已禁用，交易哈希: {tx_hash}")
+    else:
+        error = result.get("error", "未知错误")
+        if "doesn't exist" in error.lower() or "not active" in error.lower():
+            await update.message.reply_text(f"策略 #{strategy_id} 不存在或已禁用")
+        else:
+            await update.message.reply_text(f"交易失败: {error}")
+
+
+def create_app():
+    """Create and configure the Telegram application."""
+    app = Application.builder().token(TELEGRAM_BOT_TOKEN).post_init(post_init).build()
+    app.add_handler(CommandHandler("start", cmd_start))
+    app.add_handler(CommandHandler("help", cmd_start))
+    app.add_handler(CommandHandler("balance", cmd_balance))
+    app.add_handler(CommandHandler("pnl", cmd_pnl))
+    app.add_handler(CommandHandler("positions", cmd_positions))
+    app.add_handler(CommandHandler("activity", cmd_activity))
+    app.add_handler(CommandHandler("swaps", cmd_swaps))
+    app.add_handler(CommandHandler("strategies", cmd_strategies))
+    app.add_handler(CommandHandler("vault", cmd_vault))
+    app.add_handler(CommandHandler("disable_strategy", cmd_disable_strategy))
+    return app
 
 
 def main():
@@ -254,16 +323,6 @@ def main():
     if not TELEGRAM_BOT_TOKEN:
         print("Error: TELEGRAM_BOT_TOKEN not set")
         return
-    app = Application.builder().token(TELEGRAM_BOT_TOKEN).post_init(post_init).build()
-    app.add_handler(CommandHandler("start", cmd_start))
-    app.add_handler(CommandHandler("help", cmd_start))
-    app.add_handler(CommandHandler("balance", cmd_balance))
-    app.add_handler(CommandHandler("pnl", cmd_pnl))
-    app.add_handler(CommandHandler("positions", cmd_positions))
-    app.add_handler(CommandHandler("activity", cmd_activity))
-    app.add_handler(CommandHandler("swaps", cmd_swaps))
-    app.add_handler(CommandHandler("strategies", cmd_strategies))
-    app.add_handler(CommandHandler("vault", cmd_vault))
 
     # 带自动重试的运行循环
     retry_count = 0
@@ -272,6 +331,8 @@ def main():
 
     while retry_count < max_retries:
         try:
+            # 每次重试都创建新的 Application 实例，避免事件循环已关闭的问题
+            app = create_app()
             logger.info(f"Bot starting... (attempt {retry_count + 1}/{max_retries})")
             app.run_polling(allowed_updates=Update.ALL_TYPES)
             # 如果正常退出，重置重试计数
