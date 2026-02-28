@@ -1,5 +1,4 @@
 import logging
-import asyncio
 import time
 from telegram import Update, BotCommand
 from telegram.ext import Application, CommandHandler, ContextTypes
@@ -19,14 +18,14 @@ api = TerminalAPI()
 def format_eth(wei: str) -> str:
     try:
         return f"{float(wei) / 1e18:.6f}"
-    except:
+    except (ValueError, TypeError):
         return wei
 
 
 def format_usd(value) -> str:
     try:
         return f"${float(value):.2f}"
-    except:
+    except (ValueError, TypeError):
         return str(value)
 
 
@@ -34,7 +33,7 @@ def format_percent(value) -> str:
     try:
         sign = "+" if float(value) > 0 else ""
         return f"{sign}{float(value):.2f}%"
-    except:
+    except (ValueError, TypeError):
         return str(value)
 
 
