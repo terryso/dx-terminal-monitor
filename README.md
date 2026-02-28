@@ -1,79 +1,81 @@
 # DX Terminal Monitor
 
-Terminal Markets Vault 监控 Telegram Bot。
+A Telegram bot for monitoring Terminal Markets Vault.
 
-## 功能
+## Features
 
-- 查询 Vault 余额和持仓
-- 查看 PnL 盈亏详情
-- 查看最近交易活动
-- 查看活跃策略
-- 实时数据刷新
+- Query vault balance and positions
+- View PnL details
+- Track recent trading activity
+- View active strategies
+- Real-time data refresh
 
-## 安装
+## Installation
 
 ```bash
-# 克隆仓库
+# Clone the repository
 git clone https://github.com/terryso/dx-terminal-monitor.git
 cd dx-terminal-monitor
 
-# 创建虚拟环境
+# Create virtual environment
 python3 -m venv venv
 source venv/bin/activate
 
-# 安装依赖
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-## 配置
+## Configuration
 
-1. 复制配置文件模板
+1. Copy the example config file
 ```bash
 cp .env.example .env
 ```
 
-2. 编辑 `.env` 文件
+2. Edit `.env` file
 ```
-# Telegram Bot Token (从 @BotFather 获取)
+# Telegram Bot Token (from @BotFather)
 TELEGRAM_BOT_TOKEN=your_bot_token_here
 
-# 允许使用的 Telegram 用户 ID (逗号分隔)
+# Allowed Telegram user IDs (comma separated)
 ALLOWED_USERS=your_telegram_user_id
 
-# Terminal Markets Vault 地址
+# Terminal Markets Vault address
 VAULT_ADDRESS=your_vault_address
 
-# API 基础 URL
+# API base URL
 API_BASE_URL=https://api.terminal.markets/api/v1
 ```
 
-### 获取 Telegram 凭证
+### Getting Telegram Credentials
 
-1. **Bot Token**: 在 Telegram 搜索 @BotFather，发送 `/newbot` 创建机器人
-2. **User ID**: 在 Telegram 搜索 @userinfobot 获取你的 User ID
+1. **Bot Token**: Search @BotFather on Telegram, send `/newbot` to create a bot
+2. **User ID**: Search @userinfobot on Telegram to get your User ID
 
-## 运行
+## Usage
 
 ```bash
 source venv/bin/activate
 python main.py
 ```
 
-## 命令
+## Commands
 
-| 命令 | 功能 |
-|------|------|
-| `/start` | 显示帮助 |
-| `/balance` | 查看余额 |
-| `/pnl` | 查看盈亏 |
-| `/positions` | 查看持仓 |
-| `/activity` | 最近活动 |
-| `/swaps` | 最近交易 |
-| `/strategies` | 活跃策略 |
-| `/vault` | Vault 信息 |
-| `/refresh` | 刷新数据 |
+| Command | Description |
+|---------|-------------|
+| `/start` | Show help |
+| `/balance` | View balance |
+| `/pnl` | View P&L |
+| `/positions` | View positions |
+| `/activity` | Recent activity |
+| `/swaps` | Recent swaps |
+| `/strategies` | Active strategies |
+| `/vault` | Vault info |
+| `/refresh` | Refresh data |
 
-## 相关链接
+## Links
 
 - [Terminal Markets](https://terminal.markets/)
-- [Terminal Markets API 文档](https://docs.terminal.markets)
+- [Terminal Markets API Docs](https://docs.terminal.markets)
+
+[中文文档](README_CN.md)
