@@ -1,0 +1,13 @@
+# Test dependencies for dx-terminal-monitor
+# Install with: pip install -r requirements-test.txt
+
+# Testing framework
+pytest>=8.0
+pytest-asyncio>=0.23
+
+# Coverage
+pytest-cov>=4.0
+
+# Async HTTP testing
+aiohttp>=3.9.3
+pytest-aiohttp>=1.0
