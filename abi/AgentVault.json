@@ -1,0 +1,64 @@
+[
+  {
+    "inputs": [
+      {"internalType": "uint256", "name": "strategyId", "type": "uint256"}
+    ],
+    "name": "disableStrategy",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "disableAllActiveStrategies",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {"internalType": "bytes32", "name": "contentHash", "type": "bytes32"},
+      {"internalType": "uint256", "name": "expiry", "type": "uint256"},
+      {"internalType": "uint8", "name": "priority", "type": "uint8"}
+    ],
+    "name": "addStrategy",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {"internalType": "bool", "name": "paused", "type": "bool"}
+    ],
+    "name": "pauseVault",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "components": [
+          {"internalType": "uint256", "name": "maxTradeAmount", "type": "uint256"},
+          {"internalType": "uint16", "name": "slippageBps", "type": "uint16"}
+        ],
+        "internalType": "struct Settings",
+        "name": "newSettings",
+        "type": "tuple"
+      }
+    ],
+    "name": "updateSettings",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {"internalType": "uint256", "name": "amount", "type": "uint256"}
+    ],
+    "name": "withdraw",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]
