@@ -51,7 +51,7 @@ development_status:
   # Epic 2: 策略管理与交易控制
   epic-2: in-progress
   2-1-add-strategy: done
-  2-2-pause-resume-agent: backlog
+  2-2-pause-resume-agent: done
   epic-2-retrospective: optional
 
   # Epic 3: 高级管理与资金操作
