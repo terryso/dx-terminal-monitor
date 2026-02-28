@@ -80,7 +80,8 @@ Commands:
 /swaps - Recent swaps
 /strategies - Active strategies
 /vault - Vault info
-/disable_strategy <id> - 禁用指定策略
+/disable_strategy <id> - Disable a specific strategy
+/disable_all - Disable all active strategies
 """
     await update.message.reply_text(help_text)
 
@@ -260,6 +261,7 @@ async def post_init(app: Application):
         BotCommand("strategies", "Strategies"),
         BotCommand("vault", "Vault info"),
         BotCommand("disable_strategy", "Disable strategy"),
+        BotCommand("disable_all", "Disable all strategies"),
     ]
     await app.bot.set_my_commands(commands)
     logger.info("Commands menu set")
@@ -294,6 +296,37 @@ async def cmd_disable_strategy(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text(f"交易失败: {error}")
 
 
+async def cmd_disable_all(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """Disable all active strategies."""
+    if not authorized(update):
+        await update.message.reply_text("未授权")
+        return
+
+    # Define callback to get active strategy count from API
+    async def get_active_count() -> int:
+        data = await api.get_strategies()
+        if isinstance(data, dict) and "error" in data:
+            logger.warning(f"Failed to fetch strategies: {data['error']}")
+            return -1
+        return len(data) if data else 0
+
+    result = await contract().disable_all_strategies(get_active_count)
+
+    if result.get("success"):
+        disabled_count = result.get("disabledCount", -1)
+        if result.get("message") == "no_active_strategies" or disabled_count == 0:
+            await update.message.reply_text("没有活跃策略")
+        elif disabled_count == -1:
+            tx_hash = result.get("transactionHash", "")
+            await update.message.reply_text(f"已禁用所有策略，交易哈希: {tx_hash}")
+        else:
+            tx_hash = result.get("transactionHash", "")
+            await update.message.reply_text(f"已禁用 {disabled_count} 个策略，交易哈希: {tx_hash}")
+    else:
+        error = result.get("error", "未知错误")
+        await update.message.reply_text(f"交易失败: {error}")
+
+
 def create_app():
     """Create and configure the Telegram application."""
     app = Application.builder().token(TELEGRAM_BOT_TOKEN).post_init(post_init).build()
@@ -307,6 +340,7 @@ def create_app():
     app.add_handler(CommandHandler("strategies", cmd_strategies))
     app.add_handler(CommandHandler("vault", cmd_vault))
     app.add_handler(CommandHandler("disable_strategy", cmd_disable_strategy))
+    app.add_handler(CommandHandler("disable_all", cmd_disable_all))
     return app
 
 

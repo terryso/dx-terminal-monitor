@@ -930,3 +930,378 @@ class TestCmdDisableStrategy:
         assert result['success'] is True
         assert 'transactionHash' in result
         mock_vault._send_transaction.assert_called_once()
+
+
+# =============================================================================
+# Tests for cmd_disable_all (Story 1.2 - ATDD RED PHASE)
+# These tests are intentionally designed to FAIL until the feature is implemented.
+# =============================================================================
+
+class TestCmdDisableAll:
+    """Tests for /disable_all command (Story 1.2)."""
+
+    @pytest.fixture(autouse=True)
+    def setup_environment(self):
+        """Set up environment and isolate main module."""
+        import os
+        import sys
+
+        # Set environment variables
+        os.environ['RPC_URL'] = 'https://eth-test.example.com'
+        os.environ['PRIVATE_KEY'] = '0x' + 'a' * 64
+        os.environ['CHAIN_ID'] = '1'
+        os.environ['VAULT_ADDRESS'] = '0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C'
+
+        # Remove main and contract from cache if loaded
+        for mod in ['main', 'contract', 'config']:
+            if mod in sys.modules:
+                del sys.modules[mod]
+
+        yield
+
+        # Clean up
+        for key in ['RPC_URL', 'PRIVATE_KEY', 'CHAIN_ID', 'VAULT_ADDRESS']:
+            os.environ.pop(key, None)
+        for mod in ['main', 'contract', 'config']:
+            if mod in sys.modules:
+                del sys.modules[mod]
+
+    @pytest.fixture
+    def mock_contract_instance(self) -> MagicMock:
+        """Create a mock contract instance."""
+        contract_mock = MagicMock()
+        contract_mock.disable_all_strategies = AsyncMock(return_value={
+            'success': True,
+            'transactionHash': '0xabc123...',
+            'disabledCount': 3,
+        })
+        return contract_mock
+
+    @pytest.mark.asyncio
+    async def test_cmd_disable_all_success(
+        self,
+        mock_telegram_update: MagicMock,
+        mock_telegram_context: MagicMock,
+        mock_contract_instance: MagicMock,
+    ) -> None:
+        """Test successful disable all strategies (P0)."""
+        # Given
+        mock_tx_hash = "0xdef456..."
+        disabled_count = 3
+        mock_contract_instance.disable_all_strategies.return_value = {
+            'success': True,
+            'transactionHash': mock_tx_hash,
+            'disabledCount': disabled_count,
+        }
+
+        with patch("contract.VaultContract", return_value=mock_contract_instance):
+            from main import cmd_disable_all
+
+            with patch("main.authorized", return_value=True), \
+                 patch("main.api") as mock_api:
+                mock_api.get_strategies = AsyncMock(return_value=[
+                    {"strategyId": 1},
+                    {"strategyId": 2},
+                    {"strategyId": 3},
+                ])
+                mock_telegram_update.message.reply_text = AsyncMock()
+
+                # When
+                await cmd_disable_all(mock_telegram_update, mock_telegram_context)
+
+                # Then
+                mock_contract_instance.disable_all_strategies.assert_called_once()
+                call_args = mock_telegram_update.message.reply_text.call_args[0][0]
+                assert "已禁用" in call_args
+                assert str(disabled_count) in call_args
+                assert mock_tx_hash in call_args
+
+    @pytest.mark.asyncio
+    async def test_cmd_disable_all_no_active_strategies(
+        self,
+        mock_telegram_update: MagicMock,
+        mock_telegram_context: MagicMock,
+        mock_contract_instance: MagicMock,
+    ) -> None:
+        """Test disable all when no active strategies (P1)."""
+        # Given - API returns empty strategies list
+        mock_contract_instance.disable_all_strategies.return_value = {
+            'success': True,
+            'disabledCount': 0,
+            'message': 'no_active_strategies',
+        }
+
+        with patch("contract.VaultContract", return_value=mock_contract_instance):
+            from main import cmd_disable_all
+
+            with patch("main.authorized", return_value=True), \
+                 patch("main.api") as mock_api:
+                mock_api.get_strategies = AsyncMock(return_value=[])
+                mock_telegram_update.message.reply_text = AsyncMock()
+
+                # When
+                await cmd_disable_all(mock_telegram_update, mock_telegram_context)
+
+                # Then
+                call_args = mock_telegram_update.message.reply_text.call_args[0][0]
+                assert "没有活跃策略" in call_args
+
+    @pytest.mark.asyncio
+    async def test_cmd_disable_all_unauthorized(
+        self,
+        mock_telegram_update: MagicMock,
+        mock_telegram_context: MagicMock,
+    ) -> None:
+        """Test disable all rejects unauthorized users (P0)."""
+        # Given
+        mock_contract = MagicMock()
+
+        with patch("contract.VaultContract", return_value=mock_contract):
+            from main import cmd_disable_all
+
+            with patch("main.authorized", return_value=False):
+                mock_telegram_update.message.reply_text = AsyncMock()
+
+                # When
+                await cmd_disable_all(mock_telegram_update, mock_telegram_context)
+
+        # Then
+        mock_telegram_update.message.reply_text.assert_called_once_with("未授权")
+
+    @pytest.mark.asyncio
+    async def test_cmd_disable_all_contract_fails(
+        self,
+        mock_telegram_update: MagicMock,
+        mock_telegram_context: MagicMock,
+        mock_contract_instance: MagicMock,
+    ) -> None:
+        """Test disable all with contract error (P1)."""
+        # Given
+        error_msg = "Gas 估算失败，可能是合约条件不满足"
+        mock_contract_instance.disable_all_strategies.return_value = {
+            'success': False,
+            'error': error_msg,
+        }
+
+        with patch("contract.VaultContract", return_value=mock_contract_instance):
+            from main import cmd_disable_all
+
+            with patch("main.authorized", return_value=True), \
+                 patch("main.api") as mock_api:
+                mock_api.get_strategies = AsyncMock(return_value=[{"strategyId": 1}])
+                mock_telegram_update.message.reply_text = AsyncMock()
+
+                # When
+                await cmd_disable_all(mock_telegram_update, mock_telegram_context)
+
+        # Then
+        call_args = mock_telegram_update.message.reply_text.call_args[0][0]
+        assert "交易失败" in call_args
+        assert error_msg in call_args
+
+    @pytest.mark.asyncio
+    async def test_cmd_disable_all_contract_method_calls_disableAllActiveStrategies(
+        self,
+    ) -> None:
+        """Test contract.disable_all_strategies calls web3 disableAllActiveStrategies (Unit)."""
+        # This test validates the contract.py method, not the command handler
+        # Given
+        from contract import VaultContract
+
+        # Create a mock instance with proper setup
+        mock_vault = MagicMock(spec=VaultContract)
+        mock_vault._send_transaction = AsyncMock(return_value={
+            'success': True,
+            'transactionHash': '0xabc123...',
+            'status': 1,
+            'blockNumber': 12345,
+        })
+        mock_vault.contract = MagicMock()
+        mock_vault.contract.functions.disableAllActiveStrategies.return_value = "mock_tx_func"
+
+        # Mock the callback
+        async def mock_get_count():
+            return 3
+
+        # When - call the actual method from the class
+        result = await VaultContract.disable_all_strategies(mock_vault, mock_get_count)
+
+        # Then
+        assert result['success'] is True
+        assert result['disabledCount'] == 3
+        assert 'transactionHash' in result
+        mock_vault._send_transaction.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_cmd_disable_all_registers_command_handler(
+        self,
+    ) -> None:
+        """Test cmd_disable_all is registered as command handler (P1)."""
+        import os
+        import sys
+
+        os.environ['RPC_URL'] = 'https://eth-test.example.com'
+        os.environ['PRIVATE_KEY'] = '0x' + 'a' * 64
+        os.environ['CHAIN_ID'] = '1'
+        os.environ['VAULT_ADDRESS'] = '0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C'
+
+        for mod in ['main', 'contract', 'config']:
+            if mod in sys.modules:
+                del sys.modules[mod]
+
+        try:
+            from main import create_app
+
+            app = create_app()
+
+            # Check if disable_all handler is registered
+            # The handlers attribute is a dict mapping group_id to list of handlers
+            all_handlers = []
+            for group_handlers in app.handlers.values():
+                all_handlers.extend(group_handlers)
+
+            # CommandHandler uses 'commands' attribute (frozenset)
+            has_disable_all = any(
+                hasattr(h, 'commands') and 'disable_all' in h.commands
+                for h in all_handlers
+            )
+
+            assert has_disable_all, "Command handler for 'disable_all' not registered"
+        finally:
+            for key in ['RPC_URL', 'PRIVATE_KEY', 'CHAIN_ID', 'VAULT_ADDRESS']:
+                os.environ.pop(key, None)
+
+    @pytest.mark.asyncio
+    async def test_cmd_disable_all_registers_bot_command(
+        self,
+    ) -> None:
+        """Test disable_all is registered in bot menu (P1)."""
+        import os
+        import sys
+
+        os.environ['RPC_URL'] = 'https://eth-test.example.com'
+        os.environ['PRIVATE_KEY'] = '0x' + 'a' * 64
+        os.environ['CHAIN_ID'] = '1'
+        os.environ['VAULT_ADDRESS'] = '0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C'
+
+        for mod in ['main', 'contract', 'config']:
+            if mod in sys.modules:
+                del sys.modules[mod]
+
+        try:
+            from telegram import BotCommand
+
+            # Mock the bot
+            mock_bot = MagicMock()
+            mock_bot.set_my_commands = AsyncMock()
+
+            mock_app = MagicMock()
+            mock_app.bot = mock_bot
+
+            from main import post_init
+
+            # Run post_init using await (proper async pattern)
+            await post_init(mock_app)
+
+            # Check if set_my_commands was called
+            mock_bot.set_my_commands.assert_called_once()
+            commands = mock_bot.set_my_commands.call_args[0][0]
+
+            # Verify disable_all command is in the list
+            command_names = [cmd.command if hasattr(cmd, 'command') else str(cmd) for cmd in commands]
+            assert 'disable_all' in command_names, "'disable_all' not in bot commands"
+        finally:
+            for key in ['RPC_URL', 'PRIVATE_KEY', 'CHAIN_ID', 'VAULT_ADDRESS']:
+                os.environ.pop(key, None)
+
+    @pytest.mark.asyncio
+    async def test_cmd_disable_all_help_text_updated(
+        self,
+        mock_telegram_update: MagicMock,
+        mock_telegram_context: MagicMock,
+    ) -> None:
+        """Test help text includes disable_all command (P1)."""
+        import os
+        import sys
+
+        os.environ['RPC_URL'] = 'https://eth-test.example.com'
+        os.environ['PRIVATE_KEY'] = '0x' + 'a' * 64
+        os.environ['CHAIN_ID'] = '1'
+        os.environ['VAULT_ADDRESS'] = '0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C'
+
+        for mod in ['main', 'contract', 'config']:
+            if mod in sys.modules:
+                del sys.modules[mod]
+
+        try:
+            from main import cmd_start
+
+            with patch("main.authorized", return_value=True):
+                mock_telegram_update.message.reply_text = AsyncMock()
+
+                # When
+                await cmd_start(mock_telegram_update, mock_telegram_context)
+
+                # Then
+                call_args = mock_telegram_update.message.reply_text.call_args[0][0]
+                assert "disable_all" in call_args.lower() or "/disable_all" in call_args
+        finally:
+            for key in ['RPC_URL', 'PRIVATE_KEY', 'CHAIN_ID', 'VAULT_ADDRESS']:
+                os.environ.pop(key, None)
+
+    @pytest.mark.asyncio
+    async def test_cmd_disable_all_api_unavailable(
+        self,
+        mock_telegram_update: MagicMock,
+        mock_telegram_context: MagicMock,
+        mock_contract_instance: MagicMock,
+    ) -> None:
+        """Test disable all when API is unavailable (P1)."""
+        # Given - API returns error, count unavailable
+        mock_tx_hash = "0xdef456..."
+        mock_contract_instance.disable_all_strategies.return_value = {
+            'success': True,
+            'transactionHash': mock_tx_hash,
+            'disabledCount': -1,  # -1 indicates count unavailable
+        }
+
+        with patch("contract.VaultContract", return_value=mock_contract_instance):
+            from main import cmd_disable_all
+
+            with patch("main.authorized", return_value=True), \
+                 patch("main.api") as mock_api:
+                mock_api.get_strategies = AsyncMock(return_value={"error": "API unavailable"})
+                mock_telegram_update.message.reply_text = AsyncMock()
+
+                # When
+                await cmd_disable_all(mock_telegram_update, mock_telegram_context)
+
+                # Then
+                call_args = mock_telegram_update.message.reply_text.call_args[0][0]
+                assert "已禁用所有策略" in call_args
+                assert mock_tx_hash in call_args
+
+    @pytest.mark.asyncio
+    async def test_cmd_disable_all_contract_method_without_callback(
+        self,
+    ) -> None:
+        """Test contract.disable_all_strategies without callback returns -1."""
+        # Given
+        from contract import VaultContract
+
+        mock_vault = MagicMock(spec=VaultContract)
+        mock_vault._send_transaction = AsyncMock(return_value={
+            'success': True,
+            'transactionHash': '0xabc123...',
+            'status': 1,
+            'blockNumber': 12345,
+        })
+        mock_vault.contract = MagicMock()
+        mock_vault.contract.functions.disableAllActiveStrategies.return_value = "mock_tx_func"
+
+        # When - call without callback
+        result = await VaultContract.disable_all_strategies(mock_vault, None)
+
+        # Then
+        assert result['success'] is True
+        assert result['disabledCount'] == -1  # -1 indicates count unavailable
