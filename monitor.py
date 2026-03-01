@@ -74,11 +74,29 @@ class ActivityMonitor:
         """
         new_items = []
         for activity in activities:
-            activity_id = activity.get('id')
+            # API 返回 cursor 作为唯一标识
+            activity_id = activity.get('cursor') or activity.get('id')
             if activity_id and activity_id not in self.seen_ids:
                 new_items.append(activity)
                 self.seen_ids.add(activity_id)
         return new_items
+
+    async def _preload_existing_activities(self):
+        """预加载已存在的活动 ID，避免启动时发送历史通知。
+
+        首次启动时获取现有活动并记录其 ID，但不触发回调。
+        """
+        try:
+            result = await self.api.get_activity(50)
+            if "error" not in result:
+                activities = result.get("items", result.get("activities", []))
+                for activity in activities:
+                    activity_id = activity.get('cursor') or activity.get('id')
+                    if activity_id:
+                        self.seen_ids.add(activity_id)
+                logger.info(f"Preloaded {len(self.seen_ids)} existing activity IDs")
+        except Exception as e:
+            logger.warning(f"Failed to preload activities: {e}")
 
     async def start(self):
         """启动监控循环。
@@ -89,6 +107,9 @@ class ActivityMonitor:
         self.running = True
         logger.info(f"Activity monitor started (interval: {self.poll_interval}s)")
 
+        # 预加载已存在的活动，避免启动时发送历史通知
+        await self._preload_existing_activities()
+
         while self.running:
             try:
                 # 获取活动
@@ -97,17 +118,23 @@ class ActivityMonitor:
                 if "error" in result:
                     logger.error(f"Failed to fetch activity: {result['error']}")
                 else:
-                    activities = result.get("activities", [])
+                    # API 返回 items 而不是 activities
+                    activities = result.get("items", result.get("activities", []))
+                    if activities:
+                        logger.debug(f"Fetched {len(activities)} activities, latest: {activities[0].get('cursor', 'unknown')}")
 
                     # 过滤新活动
                     new_items = self._filter_new(activities)
+
+                    if new_items:
+                        logger.info(f"Found {len(new_items)} new activities to notify")
 
                     # 触发回调
                     for item in new_items:
                         try:
                             await self.callback(item)
                         except Exception as e:
-                            logger.error(f"Callback error for activity {item.get('id')}: {e}")
+                            logger.error(f"Callback error for activity {item.get('cursor')}: {e}")
 
             except Exception as e:
                 logger.error(f"Monitor loop error: {e}")
