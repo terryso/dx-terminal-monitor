@@ -18,14 +18,14 @@ class TestFormatEthEdgeCases:
 
     def test_format_eth_float_input(self) -> None:
         """Test format_eth with float input."""
-        from main import format_eth
+        from utils.formatters import format_eth
         # Float should work (converted to float again)
         result = format_eth(1000000000000000000.0)
         assert "1.000000" == result
 
     def test_format_eth_negative_value(self) -> None:
         """Test format_eth with negative value."""
-        from main import format_eth
+        from utils.formatters import format_eth
         result = format_eth("-1000000000000000000")
         assert result == "-1.000000"
 
@@ -35,13 +35,13 @@ class TestFormatUsdEdgeCases:
 
     def test_format_usd_float_input(self) -> None:
         """Test format_usd with float input."""
-        from main import format_usd
+        from utils.formatters import format_usd
         result = format_usd(1234.5678)
         assert result == "$1234.57"
 
     def test_format_usd_very_large_value(self) -> None:
         """Test format_usd with very large value."""
-        from main import format_usd
+        from utils.formatters import format_usd
         result = format_usd("9999999999.99")
         assert result == "$9999999999.99"
 
@@ -51,19 +51,19 @@ class TestFormatPercentEdgeCases:
 
     def test_format_percent_float_input(self) -> None:
         """Test format_percent with float input."""
-        from main import format_percent
+        from utils.formatters import format_percent
         result = format_percent(15.5)
         assert result == "+15.50%"
 
     def test_format_percent_zero_boundary(self) -> None:
         """Test format_percent at zero boundary."""
-        from main import format_percent
+        from utils.formatters import format_percent
         result = format_percent("0.0")
         assert result == "0.00%"
 
     def test_format_percent_very_small_positive(self) -> None:
         """Test format_percent with very small positive value."""
-        from main import format_percent
+        from utils.formatters import format_percent
         result = format_percent("0.001")
         assert result == "+0.00%"
 

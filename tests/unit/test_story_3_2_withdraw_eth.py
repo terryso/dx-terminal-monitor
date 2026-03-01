@@ -161,10 +161,12 @@ class TestCmdWithdraw:
         mock_contract_instance.contract.functions.withdrawETH.return_value.build_transaction.return_value = {}
         mock_contract_instance.contract.functions.withdrawETH.return_value.estimate_gas.return_value = 100000
 
-        with patch("main.is_admin", return_value=True), \
-             patch("main.contract", return_value=mock_contract_instance), \
-             patch("main.api", mock_api):
-            from main import cmd_withdraw, handle_withdraw_confirm, _pending_withdrawals
+        with patch("commands.withdraw.is_admin", return_value=True), \
+             patch("commands.withdraw._get_contract") as mock_get_contract, \
+             patch("commands.withdraw._get_api") as mock_get_api:
+            mock_get_contract.return_value = mock_contract_instance
+            mock_get_api.return_value = mock_api
+            from commands.withdraw import cmd_withdraw, handle_withdraw_confirm, _pending_withdrawals
 
             # Clear any pending withdrawals
             _pending_withdrawals.clear()
@@ -194,9 +196,10 @@ class TestCmdWithdraw:
         mock_api = AsyncMock()
         mock_api.get_vault.return_value = mock_vault_low_balance
 
-        with patch("main.is_admin", return_value=True), \
-             patch("main.api", mock_api):
-            from main import cmd_withdraw
+        with patch("commands.withdraw.is_admin", return_value=True), \
+             patch("commands.withdraw._get_api") as mock_get_api:
+            mock_get_api.return_value = mock_api
+            from commands.withdraw import cmd_withdraw
 
             # When
             result = await cmd_withdraw(mock_update, mock_context)
@@ -213,8 +216,8 @@ class TestCmdWithdraw:
         mock_update.effective_user.id = 99999  # Non-admin
         mock_context.args = ["0.5"]
 
-        with patch("main.is_admin", return_value=False):
-            from main import cmd_withdraw
+        with patch("commands.withdraw.is_admin", return_value=False):
+            from commands.withdraw import cmd_withdraw
 
             # When
             result = await cmd_withdraw(mock_update, mock_context)
@@ -234,9 +237,10 @@ class TestCmdWithdraw:
         mock_api = AsyncMock()
         mock_api.get_vault.return_value = mock_vault_with_balance
 
-        with patch("main.is_admin", return_value=True), \
-             patch("main.api", mock_api):
-            from main import cmd_withdraw, handle_withdraw_confirm, _pending_withdrawals
+        with patch("commands.withdraw.is_admin", return_value=True), \
+             patch("commands.withdraw._get_api") as mock_get_api:
+            mock_get_api.return_value = mock_api
+            from commands.withdraw import cmd_withdraw, handle_withdraw_confirm, _pending_withdrawals
 
             # Clear any pending withdrawals
             _pending_withdrawals.clear()
@@ -260,8 +264,8 @@ class TestCmdWithdraw:
         mock_update.effective_user.id = 123456789
         mock_context.args = ["abc"]
 
-        with patch("main.is_admin", return_value=True):
-            from main import cmd_withdraw
+        with patch("commands.withdraw.is_admin", return_value=True):
+            from commands.withdraw import cmd_withdraw
 
             # When
             result = await cmd_withdraw(mock_update, mock_context)
@@ -278,8 +282,8 @@ class TestCmdWithdraw:
         mock_update.effective_user.id = 123456789
         mock_context.args = []
 
-        with patch("main.is_admin", return_value=True):
-            from main import cmd_withdraw
+        with patch("commands.withdraw.is_admin", return_value=True):
+            from commands.withdraw import cmd_withdraw
 
             # When
             result = await cmd_withdraw(mock_update, mock_context)
@@ -296,8 +300,8 @@ class TestCmdWithdraw:
         mock_update.effective_user.id = 123456789
         mock_context.args = ["-0.5"]
 
-        with patch("main.is_admin", return_value=True):
-            from main import cmd_withdraw
+        with patch("commands.withdraw.is_admin", return_value=True):
+            from commands.withdraw import cmd_withdraw
 
             # When
             result = await cmd_withdraw(mock_update, mock_context)
@@ -314,8 +318,8 @@ class TestCmdWithdraw:
         mock_update.effective_user.id = 123456789
         mock_context.args = ["0.1234567"]  # 7 decimal places
 
-        with patch("main.is_admin", return_value=True):
-            from main import cmd_withdraw
+        with patch("commands.withdraw.is_admin", return_value=True):
+            from commands.withdraw import cmd_withdraw
 
             # When
             result = await cmd_withdraw(mock_update, mock_context)
@@ -335,9 +339,10 @@ class TestCmdWithdraw:
         mock_api = AsyncMock()
         mock_api.get_vault.return_value = mock_vault_with_balance
 
-        with patch("main.is_admin", return_value=True), \
-             patch("main.api", mock_api):
-            from main import cmd_withdraw, handle_withdraw_confirm, _pending_withdrawals
+        with patch("commands.withdraw.is_admin", return_value=True), \
+             patch("commands.withdraw._get_api") as mock_get_api:
+            mock_get_api.return_value = mock_api
+            from commands.withdraw import cmd_withdraw, handle_withdraw_confirm, _pending_withdrawals
 
             # Clear any pending withdrawals
             _pending_withdrawals.clear()
@@ -372,10 +377,12 @@ class TestCmdWithdraw:
         mock_contract_instance.contract.functions.withdrawETH.return_value.build_transaction.return_value = {}
         mock_contract_instance.contract.functions.withdrawETH.return_value.estimate_gas.side_effect = Exception("Contract error")
 
-        with patch("main.is_admin", return_value=True), \
-             patch("main.contract", return_value=mock_contract_instance), \
-             patch("main.api", mock_api):
-            from main import cmd_withdraw, handle_withdraw_confirm, _pending_withdrawals
+        with patch("commands.withdraw.is_admin", return_value=True), \
+             patch("commands.withdraw._get_contract") as mock_get_contract, \
+             patch("commands.withdraw._get_api") as mock_get_api:
+            mock_get_contract.return_value = mock_contract_instance
+            mock_get_api.return_value = mock_api
+            from commands.withdraw import cmd_withdraw, handle_withdraw_confirm, _pending_withdrawals
 
             # Clear any pending withdrawals
             _pending_withdrawals.clear()
@@ -492,13 +499,16 @@ class TestCommandRegistration:
         """Test that withdraw handler is added to application."""
         # When
         from main import create_app
+        from commands import register_handlers
 
-        # Note: This test verifies the handler is added without actually creating the app
-        # since that requires a valid bot token. Instead, we verify the code structure.
+        # Note: After refactoring, register_handlers() is called in create_app
+        # to add all handlers including the withdraw ConversationHandler
         import inspect
         source = inspect.getsource(create_app)
 
-        # Then
-        assert "withdraw_handler" in source
-        assert "ConversationHandler" in source
-        assert "cmd_withdraw" in source
+        # Then - verify register_handlers is called
+        assert "register_handlers" in source
+
+        # Verify withdraw handler exists in commands module
+        from commands.withdraw import create_withdraw_handler
+        assert create_withdraw_handler is not None

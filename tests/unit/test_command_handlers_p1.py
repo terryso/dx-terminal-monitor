@@ -37,10 +37,12 @@ class TestCmdActivity:
             ]
         }
 
-        with patch("main.authorized", return_value=True), \
-             patch("main.api") as mock_api:
+        with patch("commands.query.authorized", return_value=True), \
+             patch("commands.query._get_api") as mock_get_api:
+            mock_api = MagicMock()
             mock_api.get_activity = AsyncMock(return_value=mock_api_response)
-            from main import cmd_activity
+            mock_get_api.return_value = mock_api
+            from commands.query import cmd_activity
 
             # When
             await cmd_activity(mock_telegram_update, mock_telegram_context)
@@ -72,10 +74,12 @@ class TestCmdActivity:
             ]
         }
 
-        with patch("main.authorized", return_value=True), \
-             patch("main.api") as mock_api:
+        with patch("commands.query.authorized", return_value=True), \
+             patch("commands.query._get_api") as mock_get_api:
+            mock_api = MagicMock()
             mock_api.get_activity = AsyncMock(return_value=mock_api_response)
-            from main import cmd_activity
+            mock_get_api.return_value = mock_api
+            from commands.query import cmd_activity
 
             # When
             await cmd_activity(mock_telegram_update, mock_telegram_context)
@@ -105,10 +109,12 @@ class TestCmdActivity:
             ]
         }
 
-        with patch("main.authorized", return_value=True), \
-             patch("main.api") as mock_api:
+        with patch("commands.query.authorized", return_value=True), \
+             patch("commands.query._get_api") as mock_get_api:
+            mock_api = MagicMock()
             mock_api.get_activity = AsyncMock(return_value=mock_api_response)
-            from main import cmd_activity
+            mock_get_api.return_value = mock_api
+            from commands.query import cmd_activity
 
             # When
             await cmd_activity(mock_telegram_update, mock_telegram_context)
@@ -134,10 +140,12 @@ class TestCmdActivity:
             ]
         }
 
-        with patch("main.authorized", return_value=True), \
-             patch("main.api") as mock_api:
+        with patch("commands.query.authorized", return_value=True), \
+             patch("commands.query._get_api") as mock_get_api:
+            mock_api = MagicMock()
             mock_api.get_activity = AsyncMock(return_value=mock_api_response)
-            from main import cmd_activity
+            mock_get_api.return_value = mock_api
+            from commands.query import cmd_activity
 
             # When
             await cmd_activity(mock_telegram_update, mock_telegram_context)
@@ -158,10 +166,12 @@ class TestCmdActivity:
         # Given
         mock_api_response = {"items": []}
 
-        with patch("main.authorized", return_value=True), \
-             patch("main.api") as mock_api:
+        with patch("commands.query.authorized", return_value=True), \
+             patch("commands.query._get_api") as mock_get_api:
+            mock_api = MagicMock()
             mock_api.get_activity = AsyncMock(return_value=mock_api_response)
-            from main import cmd_activity
+            mock_get_api.return_value = mock_api
+            from commands.query import cmd_activity
 
             # When
             await cmd_activity(mock_telegram_update, mock_telegram_context)
@@ -181,10 +191,12 @@ class TestCmdActivity:
         # Given
         mock_api_response = {"error": "Timeout"}
 
-        with patch("main.authorized", return_value=True), \
-             patch("main.api") as mock_api:
+        with patch("commands.query.authorized", return_value=True), \
+             patch("commands.query._get_api") as mock_get_api:
+            mock_api = MagicMock()
             mock_api.get_activity = AsyncMock(return_value=mock_api_response)
-            from main import cmd_activity
+            mock_get_api.return_value = mock_api
+            from commands.query import cmd_activity
 
             # When
             await cmd_activity(mock_telegram_update, mock_telegram_context)
@@ -201,8 +213,8 @@ class TestCmdActivity:
         mock_telegram_context: MagicMock,
     ) -> None:
         """Test /activity rejects unauthorized users."""
-        with patch("main.authorized", return_value=False):
-            from main import cmd_activity
+        with patch("commands.query.authorized", return_value=False):
+            from commands.query import cmd_activity
 
             # When
             await cmd_activity(mock_telegram_update, mock_telegram_context)
@@ -243,10 +255,12 @@ class TestCmdSwaps:
             ]
         }
 
-        with patch("main.authorized", return_value=True), \
-             patch("main.api") as mock_api:
+        with patch("commands.query.authorized", return_value=True), \
+             patch("commands.query._get_api") as mock_get_api:
+            mock_api = MagicMock()
             mock_api.get_swaps = AsyncMock(return_value=mock_api_response)
-            from main import cmd_swaps
+            mock_get_api.return_value = mock_api
+            from commands.query import cmd_swaps
 
             # When
             await cmd_swaps(mock_telegram_update, mock_telegram_context)
@@ -270,10 +284,12 @@ class TestCmdSwaps:
         # Given
         mock_api_response = {"items": []}
 
-        with patch("main.authorized", return_value=True), \
-             patch("main.api") as mock_api:
+        with patch("commands.query.authorized", return_value=True), \
+             patch("commands.query._get_api") as mock_get_api:
+            mock_api = MagicMock()
             mock_api.get_swaps = AsyncMock(return_value=mock_api_response)
-            from main import cmd_swaps
+            mock_get_api.return_value = mock_api
+            from commands.query import cmd_swaps
 
             # When
             await cmd_swaps(mock_telegram_update, mock_telegram_context)
@@ -293,10 +309,12 @@ class TestCmdSwaps:
         # Given
         mock_api_response = {"error": "Network error"}
 
-        with patch("main.authorized", return_value=True), \
-             patch("main.api") as mock_api:
+        with patch("commands.query.authorized", return_value=True), \
+             patch("commands.query._get_api") as mock_get_api:
+            mock_api = MagicMock()
             mock_api.get_swaps = AsyncMock(return_value=mock_api_response)
-            from main import cmd_swaps
+            mock_get_api.return_value = mock_api
+            from commands.query import cmd_swaps
 
             # When
             await cmd_swaps(mock_telegram_update, mock_telegram_context)
@@ -313,8 +331,8 @@ class TestCmdSwaps:
         mock_telegram_context: MagicMock,
     ) -> None:
         """Test /swaps rejects unauthorized users."""
-        with patch("main.authorized", return_value=False):
-            from main import cmd_swaps
+        with patch("commands.query.authorized", return_value=False):
+            from commands.query import cmd_swaps
 
             # When
             await cmd_swaps(mock_telegram_update, mock_telegram_context)
@@ -351,10 +369,12 @@ class TestCmdStrategies:
             },
         ]
 
-        with patch("main.authorized", return_value=True), \
-             patch("main.api") as mock_api:
+        with patch("commands.query.authorized", return_value=True), \
+             patch("commands.query._get_api") as mock_get_api:
+            mock_api = MagicMock()
             mock_api.get_strategies = AsyncMock(return_value=mock_api_response)
-            from main import cmd_strategies
+            mock_get_api.return_value = mock_api
+            from commands.query import cmd_strategies
 
             # When
             await cmd_strategies(mock_telegram_update, mock_telegram_context)
@@ -377,10 +397,12 @@ class TestCmdStrategies:
         # Given
         mock_api_response = []
 
-        with patch("main.authorized", return_value=True), \
-             patch("main.api") as mock_api:
+        with patch("commands.query.authorized", return_value=True), \
+             patch("commands.query._get_api") as mock_get_api:
+            mock_api = MagicMock()
             mock_api.get_strategies = AsyncMock(return_value=mock_api_response)
-            from main import cmd_strategies
+            mock_get_api.return_value = mock_api
+            from commands.query import cmd_strategies
 
             # When
             await cmd_strategies(mock_telegram_update, mock_telegram_context)
@@ -400,10 +422,12 @@ class TestCmdStrategies:
         # Given
         mock_api_response = {"error": "Unauthorized access"}
 
-        with patch("main.authorized", return_value=True), \
-             patch("main.api") as mock_api:
+        with patch("commands.query.authorized", return_value=True), \
+             patch("commands.query._get_api") as mock_get_api:
+            mock_api = MagicMock()
             mock_api.get_strategies = AsyncMock(return_value=mock_api_response)
-            from main import cmd_strategies
+            mock_get_api.return_value = mock_api
+            from commands.query import cmd_strategies
 
             # When
             await cmd_strategies(mock_telegram_update, mock_telegram_context)
@@ -420,8 +444,8 @@ class TestCmdStrategies:
         mock_telegram_context: MagicMock,
     ) -> None:
         """Test /strategies rejects unauthorized users."""
-        with patch("main.authorized", return_value=False):
-            from main import cmd_strategies
+        with patch("commands.query.authorized", return_value=False):
+            from commands.query import cmd_strategies
 
             # When
             await cmd_strategies(mock_telegram_update, mock_telegram_context)
@@ -456,10 +480,12 @@ class TestCmdVault:
             "slippageBps": "50",  # 0.5%
         }
 
-        with patch("main.authorized", return_value=True), \
-             patch("main.api") as mock_api:
+        with patch("commands.query.authorized", return_value=True), \
+             patch("commands.query._get_api") as mock_get_api:
+            mock_api = MagicMock()
             mock_api.get_vault = AsyncMock(return_value=mock_api_response)
-            from main import cmd_vault
+            mock_get_api.return_value = mock_api
+            from commands.query import cmd_vault
 
             # When
             await cmd_vault(mock_telegram_update, mock_telegram_context)
@@ -492,10 +518,12 @@ class TestCmdVault:
             "slippageBps": "100",
         }
 
-        with patch("main.authorized", return_value=True), \
-             patch("main.api") as mock_api:
+        with patch("commands.query.authorized", return_value=True), \
+             patch("commands.query._get_api") as mock_get_api:
+            mock_api = MagicMock()
             mock_api.get_vault = AsyncMock(return_value=mock_api_response)
-            from main import cmd_vault
+            mock_get_api.return_value = mock_api
+            from commands.query import cmd_vault
 
             # When
             await cmd_vault(mock_telegram_update, mock_telegram_context)
@@ -515,10 +543,12 @@ class TestCmdVault:
         # Given
         mock_api_response = {"error": "Vault not found"}
 
-        with patch("main.authorized", return_value=True), \
-             patch("main.api") as mock_api:
+        with patch("commands.query.authorized", return_value=True), \
+             patch("commands.query._get_api") as mock_get_api:
+            mock_api = MagicMock()
             mock_api.get_vault = AsyncMock(return_value=mock_api_response)
-            from main import cmd_vault
+            mock_get_api.return_value = mock_api
+            from commands.query import cmd_vault
 
             # When
             await cmd_vault(mock_telegram_update, mock_telegram_context)
@@ -535,8 +565,8 @@ class TestCmdVault:
         mock_telegram_context: MagicMock,
     ) -> None:
         """Test /vault rejects unauthorized users."""
-        with patch("main.authorized", return_value=False):
-            from main import cmd_vault
+        with patch("commands.query.authorized", return_value=False):
+            from commands.query import cmd_vault
 
             # When
             await cmd_vault(mock_telegram_update, mock_telegram_context)
@@ -606,12 +636,12 @@ class TestCmdDisableStrategy:
             'transactionHash': mock_tx_hash,
         }
 
-        # Patch contract.VaultContract before importing main
+        # Patch contract.VaultContract before importing commands.admin
         with patch("contract.VaultContract", return_value=mock_contract_instance):
-            from main import cmd_disable_strategy
+            from commands.admin import cmd_disable_strategy
 
-            # Now patch authorized
-            with patch("main.authorized", return_value=True):
+            # Now patch is_admin (admin commands use config.is_admin)
+            with patch("commands.admin.is_admin", return_value=True):
                 # Set up command args
                 mock_telegram_context.args = [str(strategy_id)]
                 mock_telegram_update.message.reply_text = AsyncMock()
@@ -637,9 +667,9 @@ class TestCmdDisableStrategy:
         mock_contract = MagicMock()
 
         with patch("contract.VaultContract", return_value=mock_contract):
-            from main import cmd_disable_strategy
+            from commands.admin import cmd_disable_strategy
 
-            with patch("main.authorized", return_value=True):
+            with patch("commands.admin.is_admin", return_value=True):
                 mock_telegram_context.args = []
                 mock_telegram_update.message.reply_text = AsyncMock()
 
@@ -662,9 +692,9 @@ class TestCmdDisableStrategy:
         mock_contract = MagicMock()
 
         with patch("contract.VaultContract", return_value=mock_contract):
-            from main import cmd_disable_strategy
+            from commands.admin import cmd_disable_strategy
 
-            with patch("main.authorized", return_value=True):
+            with patch("commands.admin.is_admin", return_value=True):
                 mock_telegram_context.args = ["abc"]
                 mock_telegram_update.message.reply_text = AsyncMock()
 
@@ -692,9 +722,9 @@ class TestCmdDisableStrategy:
         })
 
         with patch("contract.VaultContract", return_value=mock_contract):
-            from main import cmd_disable_strategy
+            from commands.admin import cmd_disable_strategy
 
-            with patch("main.authorized", return_value=True):
+            with patch("commands.admin.is_admin", return_value=True):
                 mock_telegram_context.args = [str(strategy_id)]
                 mock_telegram_update.message.reply_text = AsyncMock()
 
@@ -722,9 +752,9 @@ class TestCmdDisableStrategy:
         })
 
         with patch("contract.VaultContract", return_value=mock_contract):
-            from main import cmd_disable_strategy
+            from commands.admin import cmd_disable_strategy
 
-            with patch("main.authorized", return_value=True):
+            with patch("commands.admin.is_admin", return_value=True):
                 mock_telegram_context.args = [str(strategy_id)]
                 mock_telegram_update.message.reply_text = AsyncMock()
 
@@ -753,9 +783,9 @@ class TestCmdDisableStrategy:
         })
 
         with patch("contract.VaultContract", return_value=mock_contract):
-            from main import cmd_disable_strategy
+            from commands.admin import cmd_disable_strategy
 
-            with patch("main.authorized", return_value=True):
+            with patch("commands.admin.is_admin", return_value=True):
                 mock_telegram_context.args = [str(strategy_id)]
                 mock_telegram_update.message.reply_text = AsyncMock()
 
@@ -779,9 +809,9 @@ class TestCmdDisableStrategy:
         mock_contract = MagicMock()
 
         with patch("contract.VaultContract", return_value=mock_contract):
-            from main import cmd_disable_strategy
+            from commands.admin import cmd_disable_strategy
 
-            with patch("main.authorized", return_value=False):
+            with patch("commands.admin.is_admin", return_value=False):
                 mock_telegram_context.args = ["1"]
                 mock_telegram_update.message.reply_text = AsyncMock()
 
@@ -789,7 +819,9 @@ class TestCmdDisableStrategy:
                 await cmd_disable_strategy(mock_telegram_update, mock_telegram_context)
 
         # Then
-        mock_telegram_update.message.reply_text.assert_called_once_with("未授权")
+        mock_telegram_update.message.reply_text.assert_called_once()
+        call_args = mock_telegram_update.message.reply_text.call_args[0][0]
+        assert "未授权" in call_args
 
     @pytest.mark.asyncio
     async def test_cmd_disable_strategy_authorized_user_proceeds(
@@ -808,9 +840,9 @@ class TestCmdDisableStrategy:
         })
 
         with patch("contract.VaultContract", return_value=mock_contract):
-            from main import cmd_disable_strategy
+            from commands.admin import cmd_disable_strategy
 
-            with patch("main.authorized", return_value=True):
+            with patch("commands.admin.is_admin", return_value=True):
                 mock_telegram_context.args = [str(strategy_id)]
                 mock_telegram_update.message.reply_text = AsyncMock()
 
@@ -836,9 +868,9 @@ class TestCmdDisableStrategy:
         })
 
         with patch("contract.VaultContract", return_value=mock_contract):
-            from main import cmd_disable_strategy
+            from commands.admin import cmd_disable_strategy
 
-            with patch("main.authorized", return_value=True):
+            with patch("commands.admin.is_admin", return_value=True):
                 mock_telegram_context.args = ["-1"]
                 mock_telegram_update.message.reply_text = AsyncMock()
 
@@ -863,9 +895,9 @@ class TestCmdDisableStrategy:
         })
 
         with patch("contract.VaultContract", return_value=mock_contract):
-            from main import cmd_disable_strategy
+            from commands.admin import cmd_disable_strategy
 
-            with patch("main.authorized", return_value=True):
+            with patch("commands.admin.is_admin", return_value=True):
                 mock_telegram_context.args = ["0"]
                 mock_telegram_update.message.reply_text = AsyncMock()
 
@@ -891,9 +923,9 @@ class TestCmdDisableStrategy:
         })
 
         with patch("contract.VaultContract", return_value=mock_contract):
-            from main import cmd_disable_strategy
+            from commands.admin import cmd_disable_strategy
 
-            with patch("main.authorized", return_value=True):
+            with patch("commands.admin.is_admin", return_value=True):
                 # Multiple args, should use first
                 mock_telegram_context.args = [str(strategy_id), "extra", "args"]
                 mock_telegram_update.message.reply_text = AsyncMock()
@@ -998,15 +1030,17 @@ class TestCmdDisableAll:
         }
 
         with patch("contract.VaultContract", return_value=mock_contract_instance):
-            from main import cmd_disable_all
+            from commands.admin import cmd_disable_all
 
-            with patch("main.authorized", return_value=True), \
-                 patch("main.api") as mock_api:
+            with patch("commands.admin.is_admin", return_value=True), \
+                 patch("commands.admin._get_api") as mock_get_api:
+                mock_api = MagicMock()
                 mock_api.get_strategies = AsyncMock(return_value=[
                     {"strategyId": 1},
                     {"strategyId": 2},
                     {"strategyId": 3},
                 ])
+                mock_get_api.return_value = mock_api
                 mock_telegram_update.message.reply_text = AsyncMock()
 
                 # When
@@ -1035,11 +1069,13 @@ class TestCmdDisableAll:
         }
 
         with patch("contract.VaultContract", return_value=mock_contract_instance):
-            from main import cmd_disable_all
+            from commands.admin import cmd_disable_all
 
-            with patch("main.authorized", return_value=True), \
-                 patch("main.api") as mock_api:
+            with patch("commands.admin.is_admin", return_value=True), \
+                 patch("commands.admin._get_api") as mock_get_api:
+                mock_api = MagicMock()
                 mock_api.get_strategies = AsyncMock(return_value=[])
+                mock_get_api.return_value = mock_api
                 mock_telegram_update.message.reply_text = AsyncMock()
 
                 # When
@@ -1060,16 +1096,18 @@ class TestCmdDisableAll:
         mock_contract = MagicMock()
 
         with patch("contract.VaultContract", return_value=mock_contract):
-            from main import cmd_disable_all
+            from commands.admin import cmd_disable_all
 
-            with patch("main.authorized", return_value=False):
+            with patch("commands.admin.is_admin", return_value=False):
                 mock_telegram_update.message.reply_text = AsyncMock()
 
                 # When
                 await cmd_disable_all(mock_telegram_update, mock_telegram_context)
 
         # Then
-        mock_telegram_update.message.reply_text.assert_called_once_with("未授权")
+        mock_telegram_update.message.reply_text.assert_called_once()
+        call_args = mock_telegram_update.message.reply_text.call_args[0][0]
+        assert "未授权" in call_args
 
     @pytest.mark.asyncio
     async def test_cmd_disable_all_contract_fails(
@@ -1087,11 +1125,13 @@ class TestCmdDisableAll:
         }
 
         with patch("contract.VaultContract", return_value=mock_contract_instance):
-            from main import cmd_disable_all
+            from commands.admin import cmd_disable_all
 
-            with patch("main.authorized", return_value=True), \
-                 patch("main.api") as mock_api:
-                mock_api.get_strategies = AsyncMock(return_value=[{"strategyId": 1}])
+            with patch("commands.admin.is_admin", return_value=True), \
+                 patch("commands.admin._get_api") as mock_get_api:
+                mock_api = MagicMock()
+                mock_api.get_strategies = AsyncMock(return_value=[
+                    {"strategyId": 1},{"strategyId": 1}])
                 mock_telegram_update.message.reply_text = AsyncMock()
 
                 # When
@@ -1235,9 +1275,9 @@ class TestCmdDisableAll:
                 del sys.modules[mod]
 
         try:
-            from main import cmd_start
+            from commands.query import cmd_start
 
-            with patch("main.authorized", return_value=True):
+            with patch("commands.query.authorized", return_value=True):
                 mock_telegram_update.message.reply_text = AsyncMock()
 
                 # When
@@ -1267,11 +1307,13 @@ class TestCmdDisableAll:
         }
 
         with patch("contract.VaultContract", return_value=mock_contract_instance):
-            from main import cmd_disable_all
+            from commands.admin import cmd_disable_all
 
-            with patch("main.authorized", return_value=True), \
-                 patch("main.api") as mock_api:
+            with patch("commands.admin.is_admin", return_value=True), \
+                 patch("commands.admin._get_api") as mock_get_api:
+                mock_api = MagicMock()
                 mock_api.get_strategies = AsyncMock(return_value={"error": "API unavailable"})
+                mock_get_api.return_value = mock_api
                 mock_telegram_update.message.reply_text = AsyncMock()
 
                 # When
@@ -1347,9 +1389,10 @@ class TestCmdAddStrategy:
         mock_contract_instance = MagicMock()
         mock_contract_instance.add_strategy = AsyncMock(return_value=mock_contract_result)
 
-        with patch("main.is_admin", return_value=True), \
-             patch("main.contract", return_value=mock_contract_instance):
-            from main import cmd_add_strategy
+        with patch("commands.admin.is_admin", return_value=True), \
+             patch("commands.admin._get_contract") as mock_get_contract:
+            mock_get_contract.return_value = mock_contract_instance
+            from commands.admin import cmd_add_strategy
 
             # When
             mock_telegram_context.args = ["当", "ETH", "跌破", "3000", "时买入"]
@@ -1379,9 +1422,10 @@ class TestCmdAddStrategy:
         mock_contract_instance = MagicMock()
         mock_contract_instance.add_strategy = AsyncMock()
 
-        with patch("main.is_admin", return_value=False), \
-             patch("main.contract", return_value=mock_contract_instance):
-            from main import cmd_add_strategy
+        with patch("commands.admin.is_admin", return_value=False), \
+             patch("commands.admin._get_contract") as mock_get_contract:
+            mock_get_contract.return_value = mock_contract_instance
+            from commands.admin import cmd_add_strategy
 
             # When
             mock_telegram_context.args = ["test strategy"]
@@ -1408,8 +1452,8 @@ class TestCmdAddStrategy:
         # Given - admin user but no args
         mock_telegram_update.effective_user.id = 123456789  # Admin user
 
-        with patch("main.is_admin", return_value=True):
-            from main import cmd_add_strategy
+        with patch("commands.admin.is_admin", return_value=True):
+            from commands.admin import cmd_add_strategy
 
             # When
             mock_telegram_context.args = None  # No args
@@ -1434,8 +1478,8 @@ class TestCmdAddStrategy:
         # Given - admin user with empty args
         mock_telegram_update.effective_user.id = 123456789  # Admin user
 
-        with patch("main.is_admin", return_value=True):
-            from main import cmd_add_strategy
+        with patch("commands.admin.is_admin", return_value=True):
+            from commands.admin import cmd_add_strategy
 
             # When
             mock_telegram_context.args = []  # Empty list
@@ -1469,9 +1513,10 @@ class TestCmdAddStrategy:
         mock_contract_instance = MagicMock()
         mock_contract_instance.add_strategy = AsyncMock(return_value=mock_contract_result)
 
-        with patch("main.is_admin", return_value=True), \
-             patch("main.contract", return_value=mock_contract_instance):
-            from main import cmd_add_strategy
+        with patch("commands.admin.is_admin", return_value=True), \
+             patch("commands.admin._get_contract") as mock_get_contract:
+            mock_get_contract.return_value = mock_contract_instance
+            from commands.admin import cmd_add_strategy
 
             # When
             mock_telegram_context.args = ["new strategy"]
@@ -1505,9 +1550,10 @@ class TestCmdAddStrategy:
         mock_contract_instance = MagicMock()
         mock_contract_instance.add_strategy = AsyncMock(return_value=mock_contract_result)
 
-        with patch("main.is_admin", return_value=True), \
-             patch("main.contract", return_value=mock_contract_instance):
-            from main import cmd_add_strategy
+        with patch("commands.admin.is_admin", return_value=True), \
+             patch("commands.admin._get_contract") as mock_get_contract:
+            mock_get_contract.return_value = mock_contract_instance
+            from commands.admin import cmd_add_strategy
 
             # When
             mock_telegram_context.args = ["test strategy"]
@@ -1622,9 +1668,9 @@ class TestCmdAddStrategy:
                 del sys.modules[mod]
 
         try:
-            from main import cmd_start
+            from commands.query import cmd_start
 
-            with patch("main.authorized", return_value=True):
+            with patch("commands.query.authorized", return_value=True):
                 mock_telegram_update.message.reply_text = AsyncMock()
 
                 # When
@@ -1654,9 +1700,10 @@ class TestCmdAddStrategy:
         mock_contract_instance = MagicMock()
         mock_contract_instance.add_strategy = AsyncMock()
 
-        with patch("main.is_admin", return_value=True), \
-             patch("main.contract", return_value=mock_contract_instance):
-            from main import cmd_add_strategy
+        with patch("commands.admin.is_admin", return_value=True), \
+             patch("commands.admin._get_contract") as mock_get_contract:
+            mock_get_contract.return_value = mock_contract_instance
+            from commands.admin import cmd_add_strategy
 
             # When - args contain only whitespace
             mock_telegram_context.args = ["   ", "  "]
@@ -1689,9 +1736,10 @@ class TestCmdAddStrategy:
         # Content longer than 500 chars
         long_content = "a" * 501
 
-        with patch("main.is_admin", return_value=True), \
-             patch("main.contract", return_value=mock_contract_instance):
-            from main import cmd_add_strategy
+        with patch("commands.admin.is_admin", return_value=True), \
+             patch("commands.admin._get_contract") as mock_get_contract:
+            mock_get_contract.return_value = mock_contract_instance
+            from commands.admin import cmd_add_strategy
 
             # When
             mock_telegram_context.args = [long_content]
@@ -1728,9 +1776,10 @@ class TestCmdAddStrategy:
         mock_contract_instance = MagicMock()
         mock_contract_instance.add_strategy = AsyncMock(return_value=mock_contract_result)
 
-        with patch("main.is_admin", return_value=True), \
-             patch("main.contract", return_value=mock_contract_instance):
-            from main import cmd_add_strategy
+        with patch("commands.admin.is_admin", return_value=True), \
+             patch("commands.admin._get_contract") as mock_get_contract:
+            mock_get_contract.return_value = mock_contract_instance
+            from commands.admin import cmd_add_strategy
 
             # When
             mock_telegram_context.args = ["test strategy"]

@@ -4,30 +4,8 @@ Helper utilities for testing dx-terminal-monitor.
 
 from typing import Any
 
-
-def format_eth(wei: str) -> str:
-    """Convert wei to ETH string."""
-    try:
-        return f"{float(wei) / 1e18:.6f}"
-    except (ValueError, TypeError):
-        return wei
-
-
-def format_usd(value: Any) -> str:
-    """Format value as USD string."""
-    try:
-        return f"${float(value):.2f}"
-    except (ValueError, TypeError):
-        return str(value)
-
-
-def format_percent(value: Any) -> str:
-    """Format value as percentage string."""
-    try:
-        sign = "+" if float(value) > 0 else ""
-        return f"{sign}{float(value):.2f}%"
-    except (ValueError, TypeError):
-        return str(value)
+# Import formatters from utils module (avoid duplication)
+from utils.formatters import format_eth, format_usd, format_percent, format_time
 
 
 def assert_valid_position(position: dict) -> None:

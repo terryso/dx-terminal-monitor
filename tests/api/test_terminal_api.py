@@ -3,11 +3,20 @@ API tests for Terminal Markets API integration.
 
 These tests verify the external API endpoints.
 Mark with @pytest.mark.api and run separately with: pytest -m api
+
+Note: These tests require network access to api.terminal.markets.
+They will be skipped if the API is unreachable.
 """
 
 import pytest
+import aiohttp
 
 from api import TerminalAPI
+
+
+def pytest_configure(config):
+    """Register custom markers."""
+    config.addinivalue_line("markers", "api: marks tests as API integration tests (deselect with '-m \"not api\"')")
 
 
 @pytest.mark.api
@@ -24,7 +33,10 @@ class TestTerminalAPI:
     async def test_get_positions_returns_data(self, api_client: TerminalAPI) -> None:
         """Test that get_positions returns valid data structure."""
         # When
-        data = await api_client.get_positions()
+        try:
+            data = await api_client.get_positions()
+        except aiohttp.client_exceptions.ClientConnectorError:
+            pytest.skip("API unreachable - network or server issue")
 
         # Then
         assert data is not None
@@ -37,7 +49,10 @@ class TestTerminalAPI:
     async def test_get_vault_returns_data(self, api_client: TerminalAPI) -> None:
         """Test that get_vault returns valid data structure."""
         # When
-        data = await api_client.get_vault()
+        try:
+            data = await api_client.get_vault()
+        except aiohttp.client_exceptions.ClientConnectorError:
+            pytest.skip("API unreachable - network or server issue")
 
         # Then
         assert data is not None
@@ -49,7 +64,10 @@ class TestTerminalAPI:
     async def test_get_activity_returns_data(self, api_client: TerminalAPI) -> None:
         """Test that get_activity returns valid data structure."""
         # When
-        data = await api_client.get_activity(limit=5)
+        try:
+            data = await api_client.get_activity(limit=5)
+        except aiohttp.client_exceptions.ClientConnectorError:
+            pytest.skip("API unreachable - network or server issue")
 
         # Then
         assert data is not None
@@ -62,7 +80,10 @@ class TestTerminalAPI:
     async def test_get_swaps_returns_data(self, api_client: TerminalAPI) -> None:
         """Test that get_swaps returns valid data structure."""
         # When
-        data = await api_client.get_swaps(limit=5)
+        try:
+            data = await api_client.get_swaps(limit=5)
+        except aiohttp.client_exceptions.ClientConnectorError:
+            pytest.skip("API unreachable - network or server issue")
 
         # Then
         assert data is not None
@@ -74,7 +95,10 @@ class TestTerminalAPI:
     async def test_get_strategies_returns_data(self, api_client: TerminalAPI) -> None:
         """Test that get_strategies returns valid data structure."""
         # When
-        data = await api_client.get_strategies()
+        try:
+            data = await api_client.get_strategies()
+        except aiohttp.client_exceptions.ClientConnectorError:
+            pytest.skip("API unreachable - network or server issue")
 
         # Then
         # Strategies can be empty list or list of strategy objects
@@ -103,7 +127,10 @@ class TestTerminalAPIPerformance:
         import time
 
         start = time.time()
-        await api_client.get_positions()
+        try:
+            await api_client.get_positions()
+        except aiohttp.client_exceptions.ClientConnectorError:
+            pytest.skip("API unreachable - network or server issue")
         elapsed = time.time() - start
 
         # API should respond within 5 seconds

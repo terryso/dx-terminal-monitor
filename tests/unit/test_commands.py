@@ -18,8 +18,8 @@ class TestAuthorizedFunction:
         update.effective_user.id = 999
 
         # When allowed_users is empty, should return True
-        with patch("main.ALLOWED_USERS", []):
-            from main import authorized
+        with patch("utils.permissions.ALLOWED_USERS", []):
+            from utils.permissions import authorized
             result = authorized(update)
 
         # Then
@@ -31,8 +31,8 @@ class TestAuthorizedFunction:
         update = MagicMock()
         update.effective_user.id = 123456789
 
-        with patch("main.ALLOWED_USERS", [123456789]):
-            from main import authorized
+        with patch("utils.permissions.ALLOWED_USERS", [123456789]):
+            from utils.permissions import authorized
             result = authorized(update)
 
         # Then
@@ -45,8 +45,8 @@ class TestAuthorizedFunction:
         update.effective_user.id = 999999
 
         # Patch where the function is defined (main module)
-        with patch("main.ALLOWED_USERS", [123456789]):
-            from main import authorized
+        with patch("utils.permissions.ALLOWED_USERS", [123456789]):
+            from utils.permissions import authorized
             result = authorized(update)
 
         # Then
@@ -64,10 +64,10 @@ class TestCommandHandlers:
     ) -> None:
         """Test /start command sends help text."""
         # Given
-        from main import cmd_start
+        from commands.query import cmd_start
 
         # When
-        with patch("main.authorized", return_value=True):
+        with patch("commands.query.authorized", return_value=True):
             await cmd_start(mock_telegram_update, mock_telegram_context)
 
         # Then
@@ -84,10 +84,10 @@ class TestCommandHandlers:
     ) -> None:
         """Test /start command handles unauthorized user."""
         # Given
-        from main import cmd_start
+        from commands.query import cmd_start
 
         # When
-        with patch("main.authorized", return_value=False):
+        with patch("commands.query.authorized", return_value=False):
             await cmd_start(mock_telegram_update, mock_telegram_context)
 
         # Then

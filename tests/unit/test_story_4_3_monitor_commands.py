@@ -69,9 +69,9 @@ class TestMonitorStatusCommand:
 
         TDD Phase: RED - This test will FAIL until cmd_monitor_status is implemented.
         """
-        with patch('main._monitor_instance', mock_monitor):
-            with patch('main.is_admin', return_value=True):
-                from main import cmd_monitor_status
+        with patch('commands.monitor._monitor_instance', mock_monitor):
+            with patch('commands.monitor.is_admin', return_value=True):
+                from commands.monitor import cmd_monitor_status
 
                 await cmd_monitor_status(mock_update, mock_context)
 
@@ -93,9 +93,9 @@ class TestMonitorStatusCommand:
         mock_monitor.running = False
         mock_monitor.seen_ids = set()
 
-        with patch('main._monitor_instance', mock_monitor):
-            with patch('main.is_admin', return_value=True):
-                from main import cmd_monitor_status
+        with patch('commands.monitor._monitor_instance', mock_monitor):
+            with patch('commands.monitor.is_admin', return_value=True):
+                from commands.monitor import cmd_monitor_status
 
                 await cmd_monitor_status(mock_update, mock_context)
 
@@ -111,9 +111,9 @@ class TestMonitorStatusCommand:
 
         TDD Phase: RED - This test will FAIL until cmd_monitor_status handles None case.
         """
-        with patch('main._monitor_instance', None):
-            with patch('main.is_admin', return_value=True):
-                from main import cmd_monitor_status
+        with patch('commands.monitor._monitor_instance', None):
+            with patch('commands.monitor.is_admin', return_value=True):
+                from commands.monitor import cmd_monitor_status
 
                 await cmd_monitor_status(mock_update, mock_context)
 
@@ -131,9 +131,9 @@ class TestMonitorStatusCommand:
         """
         mock_monitor.poll_interval = 60
 
-        with patch('main._monitor_instance', mock_monitor):
-            with patch('main.is_admin', return_value=True):
-                from main import cmd_monitor_status
+        with patch('commands.monitor._monitor_instance', mock_monitor):
+            with patch('commands.monitor.is_admin', return_value=True):
+                from commands.monitor import cmd_monitor_status
 
                 await cmd_monitor_status(mock_update, mock_context)
 
@@ -152,9 +152,9 @@ class TestMonitorStatusCommand:
         """
         mock_monitor.seen_ids = {f'id{i}' for i in range(10)}
 
-        with patch('main._monitor_instance', mock_monitor):
-            with patch('main.is_admin', return_value=True):
-                from main import cmd_monitor_status
+        with patch('commands.monitor._monitor_instance', mock_monitor):
+            with patch('commands.monitor.is_admin', return_value=True):
+                from commands.monitor import cmd_monitor_status
 
                 await cmd_monitor_status(mock_update, mock_context)
 
@@ -182,9 +182,9 @@ class TestMonitorStartCommand:
         """
         mock_monitor.running = False
 
-        with patch('main._monitor_instance', mock_monitor):
-            with patch('main.is_admin', return_value=True):
-                from main import cmd_monitor_start
+        with patch('commands.monitor._monitor_instance', mock_monitor):
+            with patch('commands.monitor.is_admin', return_value=True):
+                from commands.monitor import cmd_monitor_start
 
                 await cmd_monitor_start(mock_update, mock_context)
 
@@ -204,9 +204,9 @@ class TestMonitorStartCommand:
         """
         mock_monitor.running = True
 
-        with patch('main._monitor_instance', mock_monitor):
-            with patch('main.is_admin', return_value=True):
-                from main import cmd_monitor_start
+        with patch('commands.monitor._monitor_instance', mock_monitor):
+            with patch('commands.monitor.is_admin', return_value=True):
+                from commands.monitor import cmd_monitor_start
 
                 await cmd_monitor_start(mock_update, mock_context)
 
@@ -223,9 +223,9 @@ class TestMonitorStartCommand:
 
         TDD Phase: RED - This test will FAIL until cmd_monitor_start handles None case.
         """
-        with patch('main._monitor_instance', None):
-            with patch('main.is_admin', return_value=True):
-                from main import cmd_monitor_start
+        with patch('commands.monitor._monitor_instance', None):
+            with patch('commands.monitor.is_admin', return_value=True):
+                from commands.monitor import cmd_monitor_start
 
                 await cmd_monitor_start(mock_update, mock_context)
 
@@ -243,9 +243,9 @@ class TestMonitorStartCommand:
         """
         mock_monitor.running = False
 
-        with patch('main._monitor_instance', mock_monitor):
-            with patch('main.is_admin', return_value=True):
-                from main import cmd_monitor_start
+        with patch('commands.monitor._monitor_instance', mock_monitor):
+            with patch('commands.monitor.is_admin', return_value=True):
+                from commands.monitor import cmd_monitor_start
 
                 await cmd_monitor_start(mock_update, mock_context)
 
@@ -271,9 +271,9 @@ class TestMonitorStopCommand:
         """
         mock_monitor.running = True
 
-        with patch('main._monitor_instance', mock_monitor):
-            with patch('main.is_admin', return_value=True):
-                from main import cmd_monitor_stop
+        with patch('commands.monitor._monitor_instance', mock_monitor):
+            with patch('commands.monitor.is_admin', return_value=True):
+                from commands.monitor import cmd_monitor_stop
 
                 await cmd_monitor_stop(mock_update, mock_context)
 
@@ -293,9 +293,9 @@ class TestMonitorStopCommand:
         """
         mock_monitor.running = False
 
-        with patch('main._monitor_instance', mock_monitor):
-            with patch('main.is_admin', return_value=True):
-                from main import cmd_monitor_stop
+        with patch('commands.monitor._monitor_instance', mock_monitor):
+            with patch('commands.monitor.is_admin', return_value=True):
+                from commands.monitor import cmd_monitor_stop
 
                 await cmd_monitor_stop(mock_update, mock_context)
 
@@ -312,9 +312,9 @@ class TestMonitorStopCommand:
 
         TDD Phase: RED - This test will FAIL until cmd_monitor_stop handles None case.
         """
-        with patch('main._monitor_instance', None):
-            with patch('main.is_admin', return_value=True):
-                from main import cmd_monitor_stop
+        with patch('commands.monitor._monitor_instance', None):
+            with patch('commands.monitor.is_admin', return_value=True):
+                from commands.monitor import cmd_monitor_stop
 
                 await cmd_monitor_stop(mock_update, mock_context)
 
@@ -332,9 +332,9 @@ class TestMonitorStopCommand:
         """
         mock_monitor.running = True
 
-        with patch('main._monitor_instance', mock_monitor):
-            with patch('main.is_admin', return_value=True):
-                from main import cmd_monitor_stop
+        with patch('commands.monitor._monitor_instance', mock_monitor):
+            with patch('commands.monitor.is_admin', return_value=True):
+                from commands.monitor import cmd_monitor_stop
 
                 await cmd_monitor_stop(mock_update, mock_context)
 
@@ -358,9 +358,9 @@ class TestAdminPermissionChecks:
 
         TDD Phase: RED - This test will FAIL until permission check is added.
         """
-        with patch('main._monitor_instance', mock_monitor):
-            with patch('main.is_admin', return_value=False):
-                from main import cmd_monitor_status
+        with patch('commands.monitor._monitor_instance', mock_monitor):
+            with patch('commands.monitor.is_admin', return_value=False):
+                from commands.monitor import cmd_monitor_status
 
                 await cmd_monitor_status(mock_update, mock_context)
 
@@ -379,9 +379,9 @@ class TestAdminPermissionChecks:
         """
         mock_monitor.running = False
 
-        with patch('main._monitor_instance', mock_monitor):
-            with patch('main.is_admin', return_value=False):
-                from main import cmd_monitor_start
+        with patch('commands.monitor._monitor_instance', mock_monitor):
+            with patch('commands.monitor.is_admin', return_value=False):
+                from commands.monitor import cmd_monitor_start
 
                 await cmd_monitor_start(mock_update, mock_context)
 
@@ -401,9 +401,9 @@ class TestAdminPermissionChecks:
         """
         mock_monitor.running = True
 
-        with patch('main._monitor_instance', mock_monitor):
-            with patch('main.is_admin', return_value=False):
-                from main import cmd_monitor_stop
+        with patch('commands.monitor._monitor_instance', mock_monitor):
+            with patch('commands.monitor.is_admin', return_value=False):
+                from commands.monitor import cmd_monitor_stop
 
                 await cmd_monitor_stop(mock_update, mock_context)
 
@@ -421,7 +421,7 @@ class TestAdminPermissionChecks:
 
         TDD Phase: RED - This test will FAIL until all commands have permission checks.
         """
-        from main import cmd_monitor_status, cmd_monitor_start, cmd_monitor_stop
+        from commands.monitor import cmd_monitor_status, cmd_monitor_start, cmd_monitor_stop
 
         commands = [
             cmd_monitor_status,
@@ -432,8 +432,8 @@ class TestAdminPermissionChecks:
         for cmd in commands:
             mock_update.message.reply_text.reset_mock()
 
-            with patch('main._monitor_instance', mock_monitor):
-                with patch('main.is_admin', return_value=False) as mock_admin:
+            with patch('commands.monitor._monitor_instance', mock_monitor):
+                with patch('commands.monitor.is_admin', return_value=False) as mock_admin:
                     await cmd(mock_update, mock_context)
 
                     # Verify is_admin was called
@@ -594,9 +594,9 @@ class TestEdgeCases:
         """
         mock_monitor.seen_ids = set()
 
-        with patch('main._monitor_instance', mock_monitor):
-            with patch('main.is_admin', return_value=True):
-                from main import cmd_monitor_status
+        with patch('commands.monitor._monitor_instance', mock_monitor):
+            with patch('commands.monitor.is_admin', return_value=True):
+                from commands.monitor import cmd_monitor_status
 
                 await cmd_monitor_status(mock_update, mock_context)
 
@@ -617,9 +617,9 @@ class TestEdgeCases:
             side_effect=lambda: setattr(mock_monitor, 'running', True)
         )
 
-        with patch('main._monitor_instance', mock_monitor):
-            with patch('main.is_admin', return_value=True):
-                from main import cmd_monitor_start
+        with patch('commands.monitor._monitor_instance', mock_monitor):
+            with patch('commands.monitor.is_admin', return_value=True):
+                from commands.monitor import cmd_monitor_start
 
                 await cmd_monitor_start(mock_update, mock_context)
 
@@ -640,9 +640,9 @@ class TestEdgeCases:
             side_effect=lambda: setattr(mock_monitor, 'running', False)
         )
 
-        with patch('main._monitor_instance', mock_monitor):
-            with patch('main.is_admin', return_value=True):
-                from main import cmd_monitor_stop
+        with patch('commands.monitor._monitor_instance', mock_monitor):
+            with patch('commands.monitor.is_admin', return_value=True):
+                from commands.monitor import cmd_monitor_stop
 
                 await cmd_monitor_stop(mock_update, mock_context)
 
@@ -660,9 +660,9 @@ class TestEdgeCases:
         """
         mock_monitor.seen_ids = {f'id{i}' for i in range(1500)}
 
-        with patch('main._monitor_instance', mock_monitor):
-            with patch('main.is_admin', return_value=True):
-                from main import cmd_monitor_status
+        with patch('commands.monitor._monitor_instance', mock_monitor):
+            with patch('commands.monitor.is_admin', return_value=True):
+                from commands.monitor import cmd_monitor_status
 
                 await cmd_monitor_status(mock_update, mock_context)
 

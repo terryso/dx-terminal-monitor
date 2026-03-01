@@ -299,11 +299,13 @@ class TestCmdUpdateSettings:
             'slippage': 50
         }
 
-        with patch("main.is_admin", return_value=True), \
-             patch("main.contract", return_value=mock_contract), \
-             patch("main.api", return_value=mock_api), \
-             patch("main.logger") as mock_logger:
-            from main import cmd_update_settings
+        with patch("commands.admin.is_admin", return_value=True), \
+             patch("commands.admin._get_contract") as mock_get_contract, \
+             patch("commands.admin._get_api") as mock_get_api, \
+             patch("commands.admin.logger") as mock_logger:
+            mock_get_contract.return_value = mock_contract
+            mock_get_api.return_value = mock_api
+            from commands.admin import cmd_update_settings
 
             # When
             ctx = MagicMock()
@@ -351,10 +353,12 @@ class TestCmdUpdateSettings:
             'slippage': 50
         }
 
-        with patch("main.is_admin", return_value=True), \
-             patch("main.contract", return_value=mock_contract), \
-             patch("main.api", return_value=mock_api):
-            from main import cmd_update_settings
+        with patch("commands.admin.is_admin", return_value=True), \
+             patch("commands.admin._get_contract") as mock_get_contract, \
+             patch("commands.admin._get_api") as mock_get_api:
+            mock_get_contract.return_value = mock_contract
+            mock_get_api.return_value = mock_api
+            from commands.admin import cmd_update_settings
 
             # When
             ctx = MagicMock()
@@ -391,10 +395,12 @@ class TestCmdUpdateSettings:
             'slippage': 50
         }
 
-        with patch("main.is_admin", return_value=True), \
-             patch("main.contract", return_value=mock_contract), \
-             patch("main.api", return_value=mock_api):
-            from main import cmd_update_settings
+        with patch("commands.admin.is_admin", return_value=True), \
+             patch("commands.admin._get_contract") as mock_get_contract, \
+             patch("commands.admin._get_api") as mock_get_api:
+            mock_get_contract.return_value = mock_contract
+            mock_get_api.return_value = mock_api
+            from commands.admin import cmd_update_settings
 
             # When
             ctx = MagicMock()
@@ -419,8 +425,8 @@ class TestCmdUpdateSettings:
         # Given
         mock_telegram_update.effective_user.id = 99999  # Non-admin
 
-        with patch("main.is_admin", return_value=False):
-            from main import cmd_update_settings
+        with patch("commands.admin.is_admin", return_value=False):
+            from commands.admin import cmd_update_settings
 
             # When
             ctx = MagicMock()
@@ -447,8 +453,8 @@ class TestCmdUpdateSettings:
         # Given
         mock_telegram_update.effective_user.id = 12345
 
-        with patch("main.is_admin", return_value=True):
-            from main import cmd_update_settings
+        with patch("commands.admin.is_admin", return_value=True):
+            from commands.admin import cmd_update_settings
 
             # When
             ctx = MagicMock()
@@ -478,8 +484,8 @@ class TestCmdUpdateSettings:
         # Given
         mock_telegram_update.effective_user.id = 12345
 
-        with patch("main.is_admin", return_value=True):
-            from main import cmd_update_settings
+        with patch("commands.admin.is_admin", return_value=True):
+            from commands.admin import cmd_update_settings
 
             # When
             ctx = MagicMock()
@@ -517,10 +523,12 @@ class TestCmdUpdateSettings:
             'slippage': 50
         }
 
-        with patch("main.is_admin", return_value=True), \
-             patch("main.contract", return_value=mock_contract), \
-             patch("main.api", return_value=mock_api):
-            from main import cmd_update_settings
+        with patch("commands.admin.is_admin", return_value=True), \
+             patch("commands.admin._get_contract") as mock_get_contract, \
+             patch("commands.admin._get_api") as mock_get_api:
+            mock_get_contract.return_value = mock_contract
+            mock_get_api.return_value = mock_api
+            from commands.admin import cmd_update_settings
 
             # When
             ctx = MagicMock()
@@ -559,11 +567,13 @@ class TestCmdUpdateSettings:
             'slippage': 50
         }
 
-        with patch("main.is_admin", return_value=True), \
-             patch("main.contract", return_value=mock_contract), \
-             patch("main.api", return_value=mock_api), \
-             patch("main.logger") as mock_logger:
-            from main import cmd_update_settings
+        with patch("commands.admin.is_admin", return_value=True), \
+             patch("commands.admin._get_contract") as mock_get_contract, \
+             patch("commands.admin._get_api") as mock_get_api, \
+             patch("commands.admin.logger") as mock_logger:
+            mock_get_contract.return_value = mock_contract
+            mock_get_api.return_value = mock_api
+            from commands.admin import cmd_update_settings
 
             # When
             ctx = MagicMock()
@@ -602,11 +612,13 @@ class TestCmdUpdateSettings:
             'slippage': 50
         }
 
-        with patch("main.is_admin", return_value=True) as mock_is_admin, \
-             patch("main.authorized") as mock_authorized, \
-             patch("main.contract", return_value=mock_contract), \
-             patch("main.api", return_value=mock_api):
-            from main import cmd_update_settings
+        with patch("commands.admin.is_admin", return_value=True) as mock_is_admin, \
+             patch("utils.permissions.authorized") as mock_authorized, \
+             patch("commands.admin._get_contract") as mock_get_contract, \
+             patch("commands.admin._get_api") as mock_get_api:
+            mock_get_contract.return_value = mock_contract
+            mock_get_api.return_value = mock_api
+            from commands.admin import cmd_update_settings
 
             # When
             ctx = MagicMock()
@@ -693,7 +705,7 @@ class TestCommandRegistration:
         Then: Help text includes /update_settings command description
         """
         # Given
-        from main import cmd_start
+        from commands.query import cmd_start
 
         mock_update = MagicMock()
         mock_update.effective_user.id = 12345
@@ -701,7 +713,7 @@ class TestCommandRegistration:
 
         mock_context = MagicMock()
 
-        with patch("main.authorized", return_value=True):
+        with patch("commands.query.authorized", return_value=True):
             # When
             await cmd_start(mock_update, mock_context)
 

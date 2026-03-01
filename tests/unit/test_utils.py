@@ -1,12 +1,13 @@
 """
-Unit tests for utility functions in main.py.
+Unit tests for utility functions in utils/formatters.py.
 """
 
 
-from tests.support.helpers import (
+from utils.formatters import (
     format_eth,
     format_percent,
     format_usd,
+    format_time,
 )
 
 

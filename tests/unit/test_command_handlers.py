@@ -30,10 +30,12 @@ class TestCmdBalance:
             "overallPnlPercent": "4.5",
         }
 
-        with patch("main.authorized", return_value=True), \
-             patch("main.api") as mock_api:
+        with patch("commands.query.authorized", return_value=True), \
+             patch("commands.query._get_api") as mock_get_api:
+            mock_api = MagicMock()
             mock_api.get_positions = AsyncMock(return_value=mock_api_response)
-            from main import cmd_balance
+            mock_get_api.return_value = mock_api
+            from commands.query import cmd_balance
 
             # When
             await cmd_balance(mock_telegram_update, mock_telegram_context)
@@ -61,10 +63,12 @@ class TestCmdBalance:
             "overallPnlPercent": "-5.0",
         }
 
-        with patch("main.authorized", return_value=True), \
-             patch("main.api") as mock_api:
+        with patch("commands.query.authorized", return_value=True), \
+             patch("commands.query._get_api") as mock_get_api:
+            mock_api = MagicMock()
             mock_api.get_positions = AsyncMock(return_value=mock_api_response)
-            from main import cmd_balance
+            mock_get_api.return_value = mock_api
+            from commands.query import cmd_balance
 
             # When
             await cmd_balance(mock_telegram_update, mock_telegram_context)
@@ -84,10 +88,12 @@ class TestCmdBalance:
         # Given
         mock_api_response = {"error": "Connection timeout"}
 
-        with patch("main.authorized", return_value=True), \
-             patch("main.api") as mock_api:
+        with patch("commands.query.authorized", return_value=True), \
+             patch("commands.query._get_api") as mock_get_api:
+            mock_api = MagicMock()
             mock_api.get_positions = AsyncMock(return_value=mock_api_response)
-            from main import cmd_balance
+            mock_get_api.return_value = mock_api
+            from commands.query import cmd_balance
 
             # When
             await cmd_balance(mock_telegram_update, mock_telegram_context)
@@ -104,8 +110,8 @@ class TestCmdBalance:
         mock_telegram_context: MagicMock,
     ) -> None:
         """Test /balance rejects unauthorized users."""
-        with patch("main.authorized", return_value=False):
-            from main import cmd_balance
+        with patch("commands.query.authorized", return_value=False):
+            from commands.query import cmd_balance
 
             # When
             await cmd_balance(mock_telegram_update, mock_telegram_context)
@@ -128,10 +134,12 @@ class TestCmdBalance:
             "overallPnlPercent": "0",
         }
 
-        with patch("main.authorized", return_value=True), \
-             patch("main.api") as mock_api:
+        with patch("commands.query.authorized", return_value=True), \
+             patch("commands.query._get_api") as mock_get_api:
+            mock_api = MagicMock()
             mock_api.get_positions = AsyncMock(return_value=mock_api_response)
-            from main import cmd_balance
+            mock_get_api.return_value = mock_api
+            from commands.query import cmd_balance
 
             # When
             await cmd_balance(mock_telegram_update, mock_telegram_context)
@@ -174,10 +182,12 @@ class TestCmdPositions:
             ]
         }
 
-        with patch("main.authorized", return_value=True), \
-             patch("main.api") as mock_api:
+        with patch("commands.query.authorized", return_value=True), \
+             patch("commands.query._get_api") as mock_get_api:
+            mock_api = MagicMock()
             mock_api.get_positions = AsyncMock(return_value=mock_api_response)
-            from main import cmd_positions
+            mock_get_api.return_value = mock_api
+            from commands.query import cmd_positions
 
             # When
             await cmd_positions(mock_telegram_update, mock_telegram_context)
@@ -199,10 +209,12 @@ class TestCmdPositions:
         # Given
         mock_api_response = {"positions": []}
 
-        with patch("main.authorized", return_value=True), \
-             patch("main.api") as mock_api:
+        with patch("commands.query.authorized", return_value=True), \
+             patch("commands.query._get_api") as mock_get_api:
+            mock_api = MagicMock()
             mock_api.get_positions = AsyncMock(return_value=mock_api_response)
-            from main import cmd_positions
+            mock_get_api.return_value = mock_api
+            from commands.query import cmd_positions
 
             # When
             await cmd_positions(mock_telegram_update, mock_telegram_context)
@@ -222,10 +234,12 @@ class TestCmdPositions:
         # Given
         mock_api_response = {"error": "Rate limit exceeded"}
 
-        with patch("main.authorized", return_value=True), \
-             patch("main.api") as mock_api:
+        with patch("commands.query.authorized", return_value=True), \
+             patch("commands.query._get_api") as mock_get_api:
+            mock_api = MagicMock()
             mock_api.get_positions = AsyncMock(return_value=mock_api_response)
-            from main import cmd_positions
+            mock_get_api.return_value = mock_api
+            from commands.query import cmd_positions
 
             # When
             await cmd_positions(mock_telegram_update, mock_telegram_context)
@@ -242,8 +256,8 @@ class TestCmdPositions:
         mock_telegram_context: MagicMock,
     ) -> None:
         """Test /positions rejects unauthorized users."""
-        with patch("main.authorized", return_value=False):
-            from main import cmd_positions
+        with patch("commands.query.authorized", return_value=False):
+            from commands.query import cmd_positions
 
             # When
             await cmd_positions(mock_telegram_update, mock_telegram_context)
@@ -263,10 +277,12 @@ class TestCmdPositions:
         position = position_factory.create(token_symbol="WBTC")
         mock_api_response = {"positions": [position]}
 
-        with patch("main.authorized", return_value=True), \
-             patch("main.api") as mock_api:
+        with patch("commands.query.authorized", return_value=True), \
+             patch("commands.query._get_api") as mock_get_api:
+            mock_api = MagicMock()
             mock_api.get_positions = AsyncMock(return_value=mock_api_response)
-            from main import cmd_positions
+            mock_get_api.return_value = mock_api
+            from commands.query import cmd_positions
 
             # When
             await cmd_positions(mock_telegram_update, mock_telegram_context)
@@ -314,10 +330,12 @@ class TestCmdPnl:
             ],
         }
 
-        with patch("main.authorized", return_value=True), \
-             patch("main.api") as mock_api:
+        with patch("commands.query.authorized", return_value=True), \
+             patch("commands.query._get_api") as mock_get_api:
+            mock_api = MagicMock()
             mock_api.get_positions = AsyncMock(return_value=mock_api_response)
-            from main import cmd_pnl
+            mock_get_api.return_value = mock_api
+            from commands.query import cmd_pnl
 
             # When
             await cmd_pnl(mock_telegram_update, mock_telegram_context)
@@ -355,10 +373,12 @@ class TestCmdPnl:
             ],
         }
 
-        with patch("main.authorized", return_value=True), \
-             patch("main.api") as mock_api:
+        with patch("commands.query.authorized", return_value=True), \
+             patch("commands.query._get_api") as mock_get_api:
+            mock_api = MagicMock()
             mock_api.get_positions = AsyncMock(return_value=mock_api_response)
-            from main import cmd_pnl
+            mock_get_api.return_value = mock_api
+            from commands.query import cmd_pnl
 
             # When
             await cmd_pnl(mock_telegram_update, mock_telegram_context)
@@ -378,10 +398,12 @@ class TestCmdPnl:
         # Given
         mock_api_response = {"error": "Service unavailable"}
 
-        with patch("main.authorized", return_value=True), \
-             patch("main.api") as mock_api:
+        with patch("commands.query.authorized", return_value=True), \
+             patch("commands.query._get_api") as mock_get_api:
+            mock_api = MagicMock()
             mock_api.get_positions = AsyncMock(return_value=mock_api_response)
-            from main import cmd_pnl
+            mock_get_api.return_value = mock_api
+            from commands.query import cmd_pnl
 
             # When
             await cmd_pnl(mock_telegram_update, mock_telegram_context)
@@ -398,8 +420,8 @@ class TestCmdPnl:
         mock_telegram_context: MagicMock,
     ) -> None:
         """Test /pnl rejects unauthorized users."""
-        with patch("main.authorized", return_value=False):
-            from main import cmd_pnl
+        with patch("commands.query.authorized", return_value=False):
+            from commands.query import cmd_pnl
 
             # When
             await cmd_pnl(mock_telegram_update, mock_telegram_context)
@@ -422,10 +444,12 @@ class TestCmdPnl:
             "positions": [],
         }
 
-        with patch("main.authorized", return_value=True), \
-             patch("main.api") as mock_api:
+        with patch("commands.query.authorized", return_value=True), \
+             patch("commands.query._get_api") as mock_get_api:
+            mock_api = MagicMock()
             mock_api.get_positions = AsyncMock(return_value=mock_api_response)
-            from main import cmd_pnl
+            mock_get_api.return_value = mock_api
+            from commands.query import cmd_pnl
 
             # When
             await cmd_pnl(mock_telegram_update, mock_telegram_context)

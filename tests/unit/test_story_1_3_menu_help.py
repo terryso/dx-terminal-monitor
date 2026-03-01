@@ -124,9 +124,9 @@ class TestCmdStartStory13:
         mock_update.message = AsyncMock()
         mock_context = MagicMock()
 
-        # Mock ALLOWED_USERS to include our test user
-        with patch("main.ALLOWED_USERS", [123456789]):
-            from main import cmd_start
+        # Mock authorized() to return True for this test
+        with patch("commands.query.authorized", return_value=True):
+            from commands.query import cmd_start
 
             # When
             await cmd_start(mock_update, mock_context)
@@ -146,9 +146,9 @@ class TestCmdStartStory13:
         mock_update.message = AsyncMock()
         mock_context = MagicMock()
 
-        # Mock ALLOWED_USERS to include our test user
-        with patch("main.ALLOWED_USERS", [123456789]):
-            from main import cmd_start
+        # Mock authorized() to return True for this test
+        with patch("commands.query.authorized", return_value=True):
+            from commands.query import cmd_start
 
             # When
             await cmd_start(mock_update, mock_context)
@@ -167,9 +167,9 @@ class TestCmdStartStory13:
         mock_update.message = AsyncMock()
         mock_context = MagicMock()
 
-        # Mock ALLOWED_USERS to include our test user
-        with patch("main.ALLOWED_USERS", [123456789]):
-            from main import cmd_start
+        # Mock authorized() to return True for this test
+        with patch("commands.query.authorized", return_value=True):
+            from commands.query import cmd_start
 
             # When
             await cmd_start(mock_update, mock_context)
