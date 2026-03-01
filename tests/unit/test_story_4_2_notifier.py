@@ -323,7 +323,7 @@ class TestMessageContent:
             "swap": {"side": "BUY"}
         }
         message = format_activity_message(activity)
-        assert "类型" in message or "type" in message.lower()
+        assert "Type" in message
 
     def test_message_contains_timestamp(self):
         """消息应该包含时间戳"""
@@ -334,7 +334,8 @@ class TestMessageContent:
             "swap": {"side": "BUY"}
         }
         message = format_activity_message(activity)
-        assert "时间" in message or "2026" in message
+        assert "Time" in message
+        assert "2026" in message
 
     def test_message_contains_tx_link(self):
         """消息应该包含交易链接"""
@@ -430,3 +431,144 @@ class TestHelperFunctions:
         """format_timestamp 应该处理无效输入"""
         result = format_timestamp("invalid")
         assert result == "invalid"
+
+    def test_format_timestamp_handles_unix_timestamp(self):
+        """format_timestamp 应该处理 Unix 时间戳（整数）"""
+        # 1772368631 is around 2026-03-01 (user's actual data)
+        result = format_timestamp(1772368631)
+        # Should format as date string, not return raw number
+        assert "-" in result  # Contains date separator
+        assert ":" in result  # Contains time separator
+
+    def test_format_timestamp_handles_unix_timestamp_string(self):
+        """format_timestamp should handle Unix timestamp (string)"""
+        result = format_timestamp("1772368631")
+        # Should format as date string, not return raw number
+        assert "-" in result  # Contains date separator
+        assert ":" in result  # Contains time separator
+
+    def test_format_timestamp_returns_utc(self):
+        """format_timestamp should return UTC suffix"""
+        result = format_timestamp("2026-03-01T12:00:00Z")
+        assert "UTC" in result
+
+
+class TestPriceFallback:
+    """Test price field fallback logic"""
+
+    def test_price_uses_effectivePriceUsd(self):
+        """Should use effectivePriceUsd when available"""
+        activity = {
+            "id": "0xabc123",
+            "type": "swap",
+            "timestamp": "2026-03-01T12:00:00Z",
+            "swap": {
+                "side": "BUY",
+                "tokenSymbol": "USDC",
+                "ethAmount": "500000000000000000",
+                "effectivePriceUsd": "3000.00",
+                "priceUsd": "2000.00",
+            }
+        }
+        message = format_activity_message(activity)
+        assert "3,000" in message or "3000" in message
+
+    def test_price_falls_back_to_priceUsd(self):
+        """Should fall back to priceUsd when effectivePriceUsd is missing"""
+        activity = {
+            "id": "0xabc123",
+            "type": "swap",
+            "timestamp": "2026-03-01T12:00:00Z",
+            "swap": {
+                "side": "BUY",
+                "tokenSymbol": "USDC",
+                "ethAmount": "500000000000000000",
+                "priceUsd": "2500.00",
+            }
+        }
+        message = format_activity_message(activity)
+        assert "2,500" in message or "2500" in message
+
+    def test_price_falls_back_to_avgPriceUsd(self):
+        """Should fall back to avgPriceUsd when other price fields are missing"""
+        activity = {
+            "id": "0xabc123",
+            "type": "swap",
+            "timestamp": "2026-03-01T12:00:00Z",
+            "swap": {
+                "side": "BUY",
+                "tokenSymbol": "USDC",
+                "ethAmount": "500000000000000000",
+                "avgPriceUsd": "2800.00",
+            }
+        }
+        message = format_activity_message(activity)
+        assert "2,800" in message or "2800" in message
+
+    def test_price_shows_zero_when_all_missing(self):
+        """Should show $0.00 when all price fields are missing"""
+        activity = {
+            "id": "0xabc123",
+            "type": "swap",
+            "timestamp": "2026-03-01T12:00:00Z",
+            "swap": {
+                "side": "BUY",
+                "tokenSymbol": "USDC",
+                "ethAmount": "500000000000000000",
+            }
+        }
+        message = format_activity_message(activity)
+        assert "$0.00" in message
+
+
+class TestTokenQuantity:
+    """Test token quantity display"""
+
+    def test_shows_tokenAmount_when_available(self):
+        """Should show token quantity when tokenAmount is available"""
+        activity = {
+            "id": "0xabc123",
+            "type": "swap",
+            "timestamp": "2026-03-01T12:00:00Z",
+            "swap": {
+                "side": "BUY",
+                "tokenSymbol": "HOLE",
+                "ethAmount": "500000000000000000",
+                "tokenAmount": "1000.5",
+            }
+        }
+        message = format_activity_message(activity)
+        assert "Token Qty" in message
+        assert "1000.5" in message
+
+    def test_shows_quantity_when_tokenAmount_missing(self):
+        """Should show quantity field when tokenAmount is missing"""
+        activity = {
+            "id": "0xabc123",
+            "type": "swap",
+            "timestamp": "2026-03-01T12:00:00Z",
+            "swap": {
+                "side": "BUY",
+                "tokenSymbol": "HOLE",
+                "ethAmount": "500000000000000000",
+                "quantity": "500",
+            }
+        }
+        message = format_activity_message(activity)
+        assert "Token Qty" in message
+        assert "500" in message
+
+    def test_no_token_qty_when_both_missing(self):
+        """Should not show Token Qty line when both fields are missing"""
+        activity = {
+            "id": "0xabc123",
+            "type": "swap",
+            "timestamp": "2026-03-01T12:00:00Z",
+            "swap": {
+                "side": "BUY",
+                "tokenSymbol": "HOLE",
+                "ethAmount": "500000000000000000",
+            }
+        }
+        message = format_activity_message(activity)
+        assert "Token Qty" not in message

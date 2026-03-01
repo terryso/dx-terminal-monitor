@@ -1,7 +1,7 @@
 """
-Telegram 通知模块 for Story 4-2
+Telegram Notification Module for Story 4-2
 
-实现活动消息格式化和 Telegram 推送功能。
+Implements activity message formatting and Telegram push functionality.
 """
 
 import logging
@@ -14,7 +14,7 @@ from config import ADMIN_USERS, ALLOWED_USERS, CHAIN_ID, NOTIFY_USERS
 
 logger = logging.getLogger(__name__)
 
-# Etherscan 基础 URL (根据链 ID)
+# Etherscan base URLs (by chain ID)
 ETHERSCAN_BASE_URLS = {
     1: "https://etherscan.io/tx",
     11155111: "https://sepolia.etherscan.io/tx",
@@ -23,13 +23,13 @@ ETHERSCAN_BASE_URLS = {
 
 
 def format_eth(wei: str) -> str:
-    """将 Wei 格式化为 ETH。
+    """Convert Wei to ETH string.
 
     Args:
-        wei: Wei 数量的字符串表示
+        wei: Wei amount as string
 
     Returns:
-        格式化的 ETH 字符串 (6 位小数)
+        Formatted ETH string (6 decimal places)
     """
     try:
         return f"{float(wei) / 1e18:.6f}"
@@ -38,13 +38,13 @@ def format_eth(wei: str) -> str:
 
 
 def format_usd(value: str | float) -> str:
-    """将数值格式化为 USD。
+    """Format value as USD string.
 
     Args:
-        value: 数值 (字符串或数字)
+        value: Numeric value (string or number)
 
     Returns:
-        格式化的 USD 字符串 (带千位分隔符)
+        Formatted USD string (with thousand separators)
     """
     try:
         return f"${float(value):,.2f}"
@@ -52,56 +52,59 @@ def format_usd(value: str | float) -> str:
         return str(value)
 
 
-def format_timestamp(ts: str) -> str:
-    """格式化 ISO 时间戳为可读格式。
+def format_timestamp(ts: str | int) -> str:
+    """Format timestamp to readable format.
 
     Args:
-        ts: ISO 格式时间戳字符串
+        ts: ISO format timestamp string or Unix timestamp (seconds)
 
     Returns:
-        格式化的时间字符串 (YYYY-MM-DD HH:MM:SS)
+        Formatted time string (YYYY-MM-DD HH:MM:SS UTC)
     """
     try:
+        # Handle Unix timestamp (integer or numeric string)
+        if isinstance(ts, int) or (isinstance(ts, str) and ts.isdigit()):
+            dt = datetime.utcfromtimestamp(int(ts))
+            return dt.strftime('%Y-%m-%d %H:%M:%S') + ' UTC'
+        # Handle ISO format string
         dt = datetime.fromisoformat(ts.replace('Z', '+00:00'))
-        return dt.strftime('%Y-%m-%d %H:%M:%S')
+        return dt.strftime('%Y-%m-%d %H:%M:%S') + ' UTC'
     except Exception:
-        return ts
+        return str(ts)
 
 
 def get_tx_url(tx_hash: str) -> str:
-    """生成交易浏览器链接。
-
-    根据配置的 CHAIN_ID 生成对应链的交易链接。
+    """Generate transaction explorer URL.
 
     Args:
-        tx_hash: 交易哈希
+        tx_hash: Transaction hash
 
     Returns:
-        Etherscan 交易链接
+        Etherscan transaction URL
     """
     base_url = ETHERSCAN_BASE_URLS.get(CHAIN_ID, ETHERSCAN_BASE_URLS[1])
     return f"{base_url}/{tx_hash}"
 
 
 def format_activity_message(activity: Dict[str, Any]) -> str:
-    """格式化活动为 Telegram 消息。
+    """Format activity as Telegram message.
 
-    支持 Swap/Deposit/Withdrawal 三种活动类型。
+    Supports Swap/Deposit/Withdrawal activity types.
 
     Args:
-        activity: 活动字典，包含 type, timestamp, id 等字段
+        activity: Activity dict with type, timestamp, id fields
 
     Returns:
-        格式化的 Telegram 消息字符串
+        Formatted Telegram message string
     """
     activity_type = activity.get('type', 'unknown')
     timestamp = format_timestamp(activity.get('timestamp', ''))
     activity_id = activity.get('id', '')
 
     lines = [
-        "🔔 Agent 操作通知\n",
-        f"类型: {activity_type.upper()}",
-        f"时间: {timestamp}",
+        "🔔 Agent Activity Notification\n",
+        f"Type: {activity_type.upper()}",
+        f"Time: {timestamp}",
     ]
 
     if activity_type == 'swap':
@@ -109,72 +112,88 @@ def format_activity_message(activity: Dict[str, Any]) -> str:
         side = swap.get('side', '?').upper()
         token = swap.get('tokenSymbol', '?')
         eth_amt = format_eth(swap.get('ethAmount', '0'))
-        price = format_usd(swap.get('effectivePriceUsd', '0'))
+
+        # Try multiple price fields: effectivePriceUsd, priceUsd, avgPriceUsd
+        price_val = (
+            swap.get('effectivePriceUsd') or
+            swap.get('priceUsd') or
+            swap.get('avgPriceUsd') or
+            '0'
+        )
+        price = format_usd(price_val)
+
+        # Try to get token quantity if available
+        token_qty = swap.get('tokenAmount') or swap.get('quantity')
 
         lines.extend([
-            f"方向: {side}",
-            f"代币: {token}",
-            f"数量: {eth_amt} ETH",
-            f"价格: {price}",
+            f"Side: {side}",
+            f"Token: {token}",
+            f"ETH Amount: {eth_amt} ETH",
         ])
+
+        # Add token quantity if available
+        if token_qty:
+            lines.append(f"Token Qty: {token_qty}")
+
+        lines.append(f"Price: {price}")
 
     elif activity_type == 'deposit':
         deposit = activity.get('deposit', {})
         amt = format_eth(deposit.get('amountWei', '0'))
-        lines.append(f"金额: {amt} ETH")
+        lines.append(f"Amount: {amt} ETH")
 
     elif activity_type == 'withdrawal':
         withdrawal = activity.get('withdrawal', {})
         amt = format_eth(withdrawal.get('amountWei', '0'))
-        lines.append(f"金额: {amt} ETH")
+        lines.append(f"Amount: {amt} ETH")
 
-    # 添加交易链接
+    # Add transaction link
     if activity_id:
-        lines.append(f"查看: {get_tx_url(activity_id)}")
+        lines.append(f"View: {get_tx_url(activity_id)}")
 
     return '\n'.join(lines)
 
 
 class TelegramNotifier:
-    """Telegram 通知推送器。
+    """Telegram notification sender.
 
-    将活动消息推送到授权用户的 Telegram。
+    Pushes activity messages to authorized users via Telegram.
 
     Attributes:
-        bot: Telegram Bot 实例
-        notify_users: 接收通知的用户 ID 列表
+        bot: Telegram Bot instance
+        notify_users: List of user IDs to receive notifications
     """
 
     def __init__(self, bot: Bot, notify_users: List[int] = None):
-        """初始化通知器。
+        """Initialize notifier.
 
         Args:
-            bot: Telegram Bot 实例
-            notify_users: 接收通知的用户 ID 列表，默认使用 NOTIFY_USERS 配置
+            bot: Telegram Bot instance
+            notify_users: List of user IDs to notify, defaults to NOTIFY_USERS config
         """
         self.bot = bot
         self.notify_users = notify_users or []
 
-        # 如果没有指定用户，使用配置中的用户 (优先级: NOTIFY_USERS > ADMIN_USERS > ALLOWED_USERS)
+        # If no users specified, use config (priority: NOTIFY_USERS > ADMIN_USERS > ALLOWED_USERS)
         if not self.notify_users:
             self.notify_users = NOTIFY_USERS if NOTIFY_USERS else (ADMIN_USERS if ADMIN_USERS else ALLOWED_USERS)
 
         logger.info(f"TelegramNotifier initialized for users: {self.notify_users}")
 
     async def send_notification(self, activity: Dict[str, Any]) -> None:
-        """发送活动通知到所有授权用户。
+        """Send activity notification to all authorized users.
 
         Args:
-            activity: 活动字典
+            activity: Activity dictionary
         """
         if not self.notify_users:
             logger.warning("No notify users configured, skipping notification")
             return
 
-        # 格式化消息
+        # Format message
         message = format_activity_message(activity)
 
-        # 发送到每个用户
+        # Send to each user
         for user_id in self.notify_users:
             try:
                 await self.bot.send_message(chat_id=user_id, text=message)
