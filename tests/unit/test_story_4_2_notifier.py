@@ -539,11 +539,13 @@ class TestTokenQuantity:
                 "tokenSymbol": "HOLE",
                 "ethAmount": "500000000000000000",
                 "tokenAmount": "1000.5",
+                "effectivePriceUsd": "0.00022",
             }
         }
         message = format_activity_message(activity)
         assert "Token Qty" in message
-        assert "1000.5" in message
+        # 1000.5 >= 1000, so formatted as 1.00K
+        assert "1.00K" in message
 
     def test_shows_quantity_when_tokenAmount_missing(self):
         """Should show quantity field when tokenAmount is missing"""

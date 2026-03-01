@@ -44,12 +44,62 @@ def format_usd(value: str | float) -> str:
         value: Numeric value (string or number)
 
     Returns:
-        Formatted USD string (with thousand separators)
+        Formatted USD string (with appropriate decimal places)
     """
     try:
-        return f"${float(value):,.2f}"
+        num = float(value)
+        # For very small values, use more decimal places or scientific notation
+        if num == 0:
+            return "$0.00"
+        elif num < 0.01:
+            # Use scientific notation for very small values
+            return f"${num:.6f}".rstrip('0').rstrip('.')
+        else:
+            return f"${num:,.2f}"
     except (ValueError, TypeError):
         return str(value)
+
+
+def format_token_amount(amount: str, decimals: int = 18) -> str:
+    """Format token amount from wei-like string to human readable.
+
+    Args:
+        amount: Token amount in smallest unit (wei-like) or already formatted
+        decimals: Token decimals (default 18 for most ERC20)
+
+    Returns:
+        Formatted token amount string
+    """
+    try:
+        num = float(amount)
+        # If already a small number or contains decimal point, assume it's already formatted
+        if '.' in str(amount) or num < 1e15:
+            # Already formatted, just apply K/M suffix if needed
+            if num >= 1_000_000:
+                return f"{num / 1_000_000:.2f}M"
+            elif num >= 1_000:
+                return f"{num / 1_000:.2f}K"
+            elif num >= 1:
+                return f"{num:.2f}"
+            elif num > 0:
+                return f"{num:.6f}".rstrip('0').rstrip('.')
+            else:
+                return "0"
+        else:
+            # Wei-like format, need to divide by decimals
+            num = num / (10 ** decimals)
+            if num >= 1_000_000:
+                return f"{num / 1_000_000:.2f}M"
+            elif num >= 1_000:
+                return f"{num / 1_000:.2f}K"
+            elif num >= 1:
+                return f"{num:.2f}"
+            elif num > 0:
+                return f"{num:.6f}".rstrip('0').rstrip('.')
+            else:
+                return "0"
+    except (ValueError, TypeError):
+        return str(amount)
 
 
 def format_timestamp(ts: str | int) -> str:
@@ -123,7 +173,8 @@ def format_activity_message(activity: dict[str, Any]) -> str:
         price = format_usd(price_val)
 
         # Try to get token quantity if available
-        token_qty = swap.get('tokenAmount') or swap.get('quantity')
+        token_qty_raw = swap.get('tokenAmount') or swap.get('quantity')
+        token_qty = format_token_amount(token_qty_raw) if token_qty_raw else None
 
         lines.extend([
             f"Side: {side}",
