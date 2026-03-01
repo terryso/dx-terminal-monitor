@@ -315,7 +315,7 @@ class TestCmdUpdateSettings:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert ("✅" in call_args or "设置已更新" in call_args)
+        assert "Settings updated" in call_args or "updated" in call_args.lower()
         assert "2000" in call_args
         assert "100" in call_args
         assert "0xabc123def456" in call_args
@@ -537,7 +537,7 @@ class TestCmdUpdateSettings:
 
         # Then
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "失败" in call_args or "error" in call_args.lower()
+        assert "failed" in call_args.lower() or "error" in call_args.lower()
         assert "Transaction reverted" in call_args
 
     @pytest.mark.asyncio
@@ -586,7 +586,7 @@ class TestCmdUpdateSettings:
         log_call_args = str(mock_logger.info.call_args)
         assert "12345" in log_call_args  # Admin ID logged
         # Check for "updat" instead of "update" due to Python 3.14 bug where "update" not in "updating"
-        assert "updat" in log_call_args.lower() or "设置" in log_call_args
+        assert "updat" in log_call_args.lower()
 
     @pytest.mark.asyncio
     async def test_update_settings_uses_is_admin_not_authorized(

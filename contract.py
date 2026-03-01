@@ -401,7 +401,7 @@ class VaultContract:
             if amount_wei <= 0:
                 return {
                     'success': False,
-                    'error': '提取金额必须大于 0'
+                    'error': 'Withdrawal amount must be greater than 0'
                 }
 
             tx_func = self.contract.functions.withdrawETH(amount_wei)

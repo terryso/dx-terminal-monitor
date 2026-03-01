@@ -1,4 +1,4 @@
-"""监控命令模块 - 监控服务控制命令。"""
+"""Monitor commands module - monitoring service control commands."""
 import logging
 
 from telegram import Update
@@ -13,51 +13,51 @@ _monitor_instance = None
 
 
 def set_monitor_instance(instance):
-    """由 main.py 在 post_init 中调用，注入 monitor 实例。"""
+    """Set monitor instance, called by main.py in post_init."""
     global _monitor_instance
     _monitor_instance = instance
 
 
 async def cmd_monitor_status(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    """查看监控服务状态。"""
+    """Check monitor service status."""
     # Admin permission check
     if not is_admin(update.effective_user.id):
-        await update.message.reply_text("未授权: 仅管理员可查看监控状态")
+        await update.message.reply_text("Unauthorized: Admin only")
         return
 
     # Check if monitor is initialized
     if _monitor_instance is None:
-        await update.message.reply_text("监控服务未初始化")
+        await update.message.reply_text("Monitor not initialized")
         return
 
     # Get status
-    status = "运行中" if _monitor_instance.running else "已停止"
+    status = "Running" if _monitor_instance.running else "Stopped"
     interval = _monitor_instance.poll_interval
     seen_count = len(_monitor_instance.seen_ids)
 
     await update.message.reply_text(
-        f"监控服务状态\n\n"
-        f"状态: {status}\n"
-        f"轮询间隔: {interval} 秒\n"
-        f"已处理活动: {seen_count} 个"
+        f"Monitor Status\n\n"
+        f"State: {status}\n"
+        f"Poll Interval: {interval}s\n"
+        f"Activities Processed: {seen_count}"
     )
 
 
 async def cmd_monitor_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    """启动监控服务。"""
+    """Start monitor service."""
     # Admin permission check
     if not is_admin(update.effective_user.id):
-        await update.message.reply_text("未授权: 仅管理员可启动监控")
+        await update.message.reply_text("Unauthorized: Admin only")
         return
 
     # Check if monitor is initialized
     if _monitor_instance is None:
-        await update.message.reply_text("监控服务未初始化，请重启 Bot")
+        await update.message.reply_text("Monitor not initialized, please restart Bot")
         return
 
     # Check if already running
     if _monitor_instance.running:
-        await update.message.reply_text("监控服务已在运行中")
+        await update.message.reply_text("Monitor already running")
         return
 
     # Start monitor
@@ -65,30 +65,30 @@ async def cmd_monitor_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     logger.info(f"Admin {update.effective_user.id} started activity monitor")
 
     await update.message.reply_text(
-        f"监控服务已启动\n"
-        f"轮询间隔: {_monitor_instance.poll_interval} 秒"
+        f"Monitor started\n"
+        f"Poll interval: {_monitor_instance.poll_interval}s"
     )
 
 
 async def cmd_monitor_stop(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    """停止监控服务。"""
+    """Stop monitor service."""
     # Admin permission check
     if not is_admin(update.effective_user.id):
-        await update.message.reply_text("未授权: 仅管理员可停止监控")
+        await update.message.reply_text("Unauthorized: Admin only")
         return
 
     # Check if monitor is initialized
     if _monitor_instance is None:
-        await update.message.reply_text("监控服务未初始化")
+        await update.message.reply_text("Monitor not initialized")
         return
 
     # Check if already stopped
     if not _monitor_instance.running:
-        await update.message.reply_text("监控服务已处于停止状态")
+        await update.message.reply_text("Monitor already stopped")
         return
 
     # Stop monitor
     _monitor_instance.stop()
     logger.info(f"Admin {update.effective_user.id} stopped activity monitor")
 
-    await update.message.reply_text("监控服务已停止")
+    await update.message.reply_text("Monitor stopped")

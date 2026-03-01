@@ -1,4 +1,4 @@
-"""提款命令模块 - 带对话流程的 ETH 提款功能。"""
+"""Withdraw command module - ETH withdrawal with confirmation flow."""
 import logging
 
 from telegram import Update
@@ -20,31 +20,31 @@ _pending_withdrawals = {}
 
 
 def _get_api():
-    """延迟导入 api 避免循环导入。"""
+    """Lazy import api to avoid circular imports."""
     from main import api
     return api
 
 
 def _get_contract():
-    """延迟导入 contract 避免循环导入。"""
+    """Lazy import contract to avoid circular imports."""
     from main import contract
     return contract()
 
 
 async def cmd_withdraw(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    """提款命令入口 - 请求确认。"""
+    """Withdraw command entry - request confirmation."""
     # Admin permission check (high-risk operation)
     if not is_admin(update.effective_user.id):
-        await update.message.reply_text("未授权: 仅管理员可提取资金")
+        await update.message.reply_text("Unauthorized: Admin only")
         return END
 
     # Parse arguments
     args = ctx.args or []
     if len(args) == 0:
         await update.message.reply_text(
-            "用法: /withdraw <amount>\n"
-            "示例: /withdraw 0.5\n"
-            "说明: 提取指定数量的 ETH 到管理员钱包"
+            "Usage: /withdraw <amount>\n"
+            "Example: /withdraw 0.5\n"
+            "Info: Withdraw specified ETH amount to admin wallet"
         )
         return END
 
@@ -52,14 +52,14 @@ async def cmd_withdraw(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     try:
         amount_eth = float(args[0])
         if amount_eth <= 0:
-            await update.message.reply_text("金额必须大于 0")
+            await update.message.reply_text("Amount must be greater than 0")
             return END
         # Validate precision (max 6 decimal places for ETH)
         if len(args[0].split('.')[-1]) > 6 if '.' in args[0] else False:
-            await update.message.reply_text("金额精度过高，最多支持 6 位小数")
+            await update.message.reply_text("Amount precision too high (max 6 decimals)")
             return END
     except ValueError:
-        await update.message.reply_text("无效的金额格式，请输入数字如: 0.5")
+        await update.message.reply_text("Invalid amount format. Enter a number like: 0.5")
         return END
 
     api = _get_api()
@@ -75,8 +75,8 @@ async def cmd_withdraw(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     # Balance check
     if balance_eth is not None and amount_eth > balance_eth:
         await update.message.reply_text(
-            f"余额不足，当前可用: {balance_eth:.4f} ETH\n"
-            f"请求提取: {amount_eth} ETH"
+            f"Insufficient balance. Available: {balance_eth:.4f} ETH\n"
+            f"Requested: {amount_eth} ETH"
         )
         return END
 
@@ -86,32 +86,32 @@ async def cmd_withdraw(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
     # Confirmation
     await update.message.reply_text(
-        f"确认提取 {amount_eth} ETH 到你的钱包？\n"
-        f"[Y] 确认\n"
-        f"[N] 取消"
+        f"Confirm withdrawal of {amount_eth} ETH to your wallet?\n"
+        f"[Y] Confirm\n"
+        f"[N] Cancel"
     )
     return WAITING_CONFIRMATION
 
 
 async def handle_withdraw_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    """处理提款确认。"""
+    """Handle withdrawal confirmation."""
     user_id = update.effective_user.id
     response = update.message.text.strip().upper()
 
     if response not in ('Y', 'N', 'YES', 'NO'):
-        await update.message.reply_text("请回复 Y 确认或 N 取消")
+        await update.message.reply_text("Please reply Y to confirm or N to cancel")
         return WAITING_CONFIRMATION
 
     if response in ('N', 'NO'):
         # Cancel operation
         _pending_withdrawals.pop(user_id, None)
-        await update.message.reply_text("已取消提取")
+        await update.message.reply_text("Withdrawal cancelled")
         return END
 
     # Confirm withdrawal
     amount_eth = _pending_withdrawals.pop(user_id, None)
     if amount_eth is None:
-        await update.message.reply_text("会话已过期，请重新执行 /withdraw 命令")
+        await update.message.reply_text("Session expired. Please run /withdraw again")
         return END
 
     # Convert to Wei
@@ -127,26 +127,26 @@ async def handle_withdraw_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE
         tx_hash = result.get("transactionHash", "")
         logger.info(f"Withdrawal confirmed: {amount_eth} ETH by user {user_id}, tx: {tx_hash}")
         await update.message.reply_text(
-            f"已提取 {amount_eth} ETH\n"
-            f"交易哈希: {tx_hash}"
+            f"Withdrawn {amount_eth} ETH\n"
+            f"TX: {tx_hash}"
         )
     else:
-        error = result.get("error", "未知错误")
-        await update.message.reply_text(f"提取失败: {error}")
+        error = result.get("error", "Unknown error")
+        await update.message.reply_text(f"Withdrawal failed: {error}")
 
     return END
 
 
 async def handle_withdraw_cancel(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    """处理提款取消（通过 /cancel 命令）。"""
+    """Handle withdrawal cancellation via /cancel command."""
     user_id = update.effective_user.id
     _pending_withdrawals.pop(user_id, None)
-    await update.message.reply_text("已取消提取")
+    await update.message.reply_text("Withdrawal cancelled")
     return END
 
 
 def create_withdraw_handler() -> ConversationHandler:
-    """创建提款对话处理器。"""
+    """Create withdrawal conversation handler."""
     return ConversationHandler(
         entry_points=[CommandHandler("withdraw", cmd_withdraw)],
         states={

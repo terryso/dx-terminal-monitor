@@ -1,4 +1,4 @@
-"""命令模块 - 集中导出所有命令处理器和注册函数。"""
+"""Commands module - centralized export of all command handlers and registration."""
 from telegram.ext import CommandHandler
 
 from .query import (
@@ -17,8 +17,8 @@ from .withdraw import create_withdraw_handler
 
 
 def register_handlers(app):
-    """注册所有命令处理器到 Application。"""
-    # 查询命令
+    """Register all command handlers to Application."""
+    # Query commands
     app.add_handler(CommandHandler("start", cmd_start))
     app.add_handler(CommandHandler("help", cmd_start))
     app.add_handler(CommandHandler("balance", cmd_balance))
@@ -29,7 +29,7 @@ def register_handlers(app):
     app.add_handler(CommandHandler("strategies", cmd_strategies))
     app.add_handler(CommandHandler("vault", cmd_vault))
 
-    # 管理命令
+    # Admin commands
     app.add_handler(CommandHandler("add_strategy", cmd_add_strategy))
     app.add_handler(CommandHandler("disable_strategy", cmd_disable_strategy))
     app.add_handler(CommandHandler("disable_all", cmd_disable_all))
@@ -37,12 +37,12 @@ def register_handlers(app):
     app.add_handler(CommandHandler("resume", cmd_resume))
     app.add_handler(CommandHandler("update_settings", cmd_update_settings))
 
-    # 监控命令
+    # Monitor commands
     app.add_handler(CommandHandler("monitor_status", cmd_monitor_status))
     app.add_handler(CommandHandler("monitor_start", cmd_monitor_start))
     app.add_handler(CommandHandler("monitor_stop", cmd_monitor_stop))
 
-    # 提款对话（ConversationHandler）
+    # Withdraw conversation handler
     app.add_handler(create_withdraw_handler())
 
 

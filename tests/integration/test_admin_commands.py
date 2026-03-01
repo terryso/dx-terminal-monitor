@@ -33,7 +33,7 @@ class TestCmdPauseRefactored:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "未授权" in call_args
+        assert "Unauthorized" in call_args
 
     @pytest.mark.integration
     @pytest.mark.asyncio
@@ -64,7 +64,7 @@ class TestCmdPauseRefactored:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "已暂停" in call_args
+        assert "paused" in call_args.lower()
 
     @pytest.mark.integration
     @pytest.mark.asyncio
@@ -95,7 +95,7 @@ class TestCmdPauseRefactored:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "失败" in call_args
+        assert "failed" in call_args.lower()
 
 
 class TestCmdResumeRefactored:
@@ -119,7 +119,7 @@ class TestCmdResumeRefactored:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "未授权" in call_args
+        assert "Unauthorized" in call_args
 
     @pytest.mark.integration
     @pytest.mark.asyncio
@@ -150,7 +150,7 @@ class TestCmdResumeRefactored:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "已恢复" in call_args
+        assert "resumed" in call_args.lower()
 
 
 class TestCmdAddStrategyRefactored:
@@ -174,7 +174,7 @@ class TestCmdAddStrategyRefactored:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "未授权" in call_args
+        assert "Unauthorized" in call_args
 
 
 class TestCmdDisableStrategyRefactored:
@@ -199,7 +199,7 @@ class TestCmdDisableStrategyRefactored:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "未授权" in call_args
+        assert "Unauthorized" in call_args
 
 
 class TestCmdDisableAllRefactored:
@@ -223,7 +223,7 @@ class TestCmdDisableAllRefactored:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "未授权" in call_args
+        assert "Unauthorized" in call_args
 
 
 class TestCmdUpdateSettingsRefactored:
@@ -248,7 +248,7 @@ class TestCmdUpdateSettingsRefactored:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "未授权" in call_args
+        assert "Unauthorized" in call_args
 
     @pytest.mark.integration
     @pytest.mark.asyncio
@@ -280,4 +280,4 @@ class TestCmdUpdateSettingsRefactored:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "失败" in call_args or "error" in call_args.lower()
+        assert "failed" in call_args.lower() or "error" in call_args.lower()

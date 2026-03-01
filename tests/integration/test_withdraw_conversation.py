@@ -63,7 +63,7 @@ class TestCmdWithdrawRefactored:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "未授权" in call_args or "unauthorized" in call_args.lower()
+        assert "Unauthorized" in call_args or "unauthorized" in call_args.lower()
 
     @pytest.mark.integration
     @pytest.mark.asyncio
@@ -85,7 +85,7 @@ class TestCmdWithdrawRefactored:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "用法" in call_args
+        assert "Usage" in call_args
 
 
 # =============================================================================

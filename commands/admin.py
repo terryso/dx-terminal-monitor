@@ -1,4 +1,4 @@
-"""管理命令模块 - 需要管理员权限的写入操作。"""
+"""Admin commands module - write operations requiring admin privileges."""
 import logging
 import re
 from telegram import Update
@@ -10,47 +10,47 @@ logger = logging.getLogger(__name__)
 
 
 def _get_api():
-    """延迟导入 api 避免循环导入。"""
+    """Lazy import api to avoid circular imports."""
     from main import api
     return api
 
 
 def _get_contract():
-    """延迟导入 contract 避免循环导入。"""
+    """Lazy import contract to avoid circular imports."""
     from main import contract
     return contract()
 
 
 async def cmd_disable_strategy(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    """禁用单个策略。"""
+    """Disable a single strategy."""
     if not is_admin(update.effective_user.id):
-        await update.message.reply_text("未授权: 仅管理员可禁用策略")
+        await update.message.reply_text("Unauthorized: Admin only")
         return
     args = ctx.args or []
     if len(args) == 0:
-        await update.message.reply_text("用法: /disable_strategy <id>")
+        await update.message.reply_text("Usage: /disable_strategy <id>")
         return
     try:
         strategy_id = int(args[0])
     except ValueError:
-        await update.message.reply_text("错误: 策略 ID 必须是数字")
+        await update.message.reply_text("Error: Strategy ID must be a number")
         return
     result = await _get_contract().disable_strategy(strategy_id)
     if result.get("success"):
         tx_hash = result.get("transactionHash", "")
-        await update.message.reply_text(f"策略 #{strategy_id} 已禁用，交易哈希: {tx_hash}")
+        await update.message.reply_text(f"Strategy #{strategy_id} disabled\nTX: {tx_hash}")
     else:
-        error = result.get("error", "未知错误")
+        error = result.get("error", "Unknown error")
         if "doesn't exist" in error.lower() or "not active" in error.lower():
-            await update.message.reply_text(f"策略 #{strategy_id} 不存在或已禁用")
+            await update.message.reply_text(f"Strategy #{strategy_id} not found or already disabled")
         else:
-            await update.message.reply_text(f"交易失败: {error}")
+            await update.message.reply_text(f"Transaction failed: {error}")
 
 
 async def cmd_disable_all(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    """禁用所有活跃策略。"""
+    """Disable all active strategies."""
     if not is_admin(update.effective_user.id):
-        await update.message.reply_text("未授权: 仅管理员可禁用策略")
+        await update.message.reply_text("Unauthorized: Admin only")
         return
     api = _get_api()
     async def get_active_count() -> int:
@@ -63,34 +63,34 @@ async def cmd_disable_all(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     if result.get("success"):
         disabled_count = result.get("disabledCount", -1)
         if result.get("message") == "no_active_strategies" or disabled_count == 0:
-            await update.message.reply_text("没有活跃策略")
+            await update.message.reply_text("No active strategies")
         elif disabled_count == -1:
             tx_hash = result.get("transactionHash", "")
-            await update.message.reply_text(f"已禁用所有策略，交易哈希: {tx_hash}")
+            await update.message.reply_text(f"All strategies disabled\nTX: {tx_hash}")
         else:
             tx_hash = result.get("transactionHash", "")
-            await update.message.reply_text(f"已禁用 {disabled_count} 个策略，交易哈希: {tx_hash}")
+            await update.message.reply_text(f"Disabled {disabled_count} strategies\nTX: {tx_hash}")
     else:
-        error = result.get("error", "未知错误")
-        await update.message.reply_text(f"交易失败: {error}")
+        error = result.get("error", "Unknown error")
+        await update.message.reply_text(f"Transaction failed: {error}")
 
 
 async def cmd_add_strategy(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    """添加新交易策略。"""
+    """Add a new trading strategy."""
     if not is_admin(update.effective_user.id):
-        await update.message.reply_text("未授权: 仅管理员可添加策略")
+        await update.message.reply_text("Unauthorized: Admin only")
         return
     args = ctx.args or []
     if len(args) == 0:
-        await update.message.reply_text("用法: /add_strategy <策略内容>")
+        await update.message.reply_text("Usage: /add_strategy <strategy_content>")
         return
     content = " ".join(args)
     if not content.strip():
-        await update.message.reply_text("错误: 策略内容不能为空")
+        await update.message.reply_text("Error: Strategy content cannot be empty")
         return
     MAX_STRATEGY_LENGTH = 500
     if len(content) > MAX_STRATEGY_LENGTH:
-        await update.message.reply_text(f"错误: 策略内容过长（最多 {MAX_STRATEGY_LENGTH} 字符）")
+        await update.message.reply_text(f"Error: Strategy too long (max {MAX_STRATEGY_LENGTH} chars)")
         return
     logger.info(f"Admin {update.effective_user.id} adding strategy: {content[:50]}...")
     result = await _get_contract().add_strategy(content)
@@ -99,69 +99,69 @@ async def cmd_add_strategy(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         tx_hash = result.get("transactionHash", "")
         if strategy_id is None:
             await update.message.reply_text(
-                f"策略已添加，但无法解析策略 ID\n交易哈希: {tx_hash}\n请查看交易详情获取策略 ID")
+                f"Strategy added but could not parse ID\nTX: {tx_hash}\nCheck transaction for strategy ID")
         else:
-            await update.message.reply_text(f"策略已添加，ID: #{strategy_id}\n交易哈希: {tx_hash}")
+            await update.message.reply_text(f"Strategy added, ID: #{strategy_id}\nTX: {tx_hash}")
     else:
-        error = result.get("error", "未知错误")
+        error = result.get("error", "Unknown error")
         if "max" in error.lower() or "limit" in error.lower() or "8" in error:
-            await update.message.reply_text("错误: 已达到策略数量上限 (最多 8 个)")
+            await update.message.reply_text("Error: Strategy limit reached (max 8)")
         else:
-            await update.message.reply_text(f"添加失败: {error}")
+            await update.message.reply_text(f"Failed to add: {error}")
 
 
 async def cmd_pause(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    """暂停 Agent 交易。"""
+    """Pause Agent trading."""
     if not is_admin(update.effective_user.id):
-        await update.message.reply_text("未授权: 仅管理员可暂停交易")
+        await update.message.reply_text("Unauthorized: Admin only")
         return
     api = _get_api()
     vault_data = await api.get_vault()
     if isinstance(vault_data, dict) and vault_data.get("paused") is True:
-        await update.message.reply_text("Agent 已经处于暂停状态")
+        await update.message.reply_text("Agent is already paused")
         return
     logger.info(f"Admin {update.effective_user.id} pausing vault")
     result = await _get_contract().pause_vault(True)
     if result.get("success"):
         tx_hash = result.get("transactionHash", "")
-        await update.message.reply_text(f"Agent 已暂停，将不会执行任何交易\n交易哈希: {tx_hash}")
+        await update.message.reply_text(f"Agent paused, no trades will execute\nTX: {tx_hash}")
     else:
-        error = result.get("error", "未知错误")
-        await update.message.reply_text(f"暂停失败: {error}")
+        error = result.get("error", "Unknown error")
+        await update.message.reply_text(f"Pause failed: {error}")
 
 
 async def cmd_resume(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    """恢复 Agent 交易。"""
+    """Resume Agent trading."""
     if not is_admin(update.effective_user.id):
-        await update.message.reply_text("未授权: 仅管理员可恢复交易")
+        await update.message.reply_text("Unauthorized: Admin only")
         return
     api = _get_api()
     vault_data = await api.get_vault()
     if isinstance(vault_data, dict) and vault_data.get("paused") is False:
-        await update.message.reply_text("Agent 已经处于运行状态")
+        await update.message.reply_text("Agent is already running")
         return
     logger.info(f"Admin {update.effective_user.id} resuming vault")
     result = await _get_contract().pause_vault(False)
     if result.get("success"):
         tx_hash = result.get("transactionHash", "")
-        await update.message.reply_text(f"Agent 已恢复，将继续执行交易\n交易哈希: {tx_hash}")
+        await update.message.reply_text(f"Agent resumed, trading enabled\nTX: {tx_hash}")
     else:
-        error = result.get("error", "未知错误")
-        await update.message.reply_text(f"恢复失败: {error}")
+        error = result.get("error", "Unknown error")
+        await update.message.reply_text(f"Resume failed: {error}")
 
 
 async def cmd_update_settings(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    """更新 Vault 交易设置。"""
+    """Update Vault trading settings."""
     if not is_admin(update.effective_user.id):
-        await update.message.reply_text("未授权: 仅管理员可更新设置")
+        await update.message.reply_text("Unauthorized: Admin only")
         return
     args = ctx.args or []
     if len(args) == 0:
         await update.message.reply_text(
-            "用法: /update_settings max_trade=1000 slippage=50\n"
-            "参数说明:\n"
-            "  max_trade: 最大交易金额 (BPS, 500-10000, 如 1000=10%)\n"
-            "  slippage: 滑点容忍度 (BPS, 10-5000, 如 50=0.5%)")
+            "Usage: /update_settings max_trade=1000 slippage=50\n"
+            "Parameters:\n"
+            "  max_trade: Max trade amount (BPS, 500-10000, e.g. 1000=10%)\n"
+            "  slippage: Slippage tolerance (BPS, 10-5000, e.g. 50=0.5%)")
         return
     params = {}
     for arg in args:
@@ -173,10 +173,10 @@ async def cmd_update_settings(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     invalid_keys = set(params.keys()) - valid_keys
     if invalid_keys:
         await update.message.reply_text(
-            f"未知参数: {', '.join(invalid_keys)}\n支持的参数: max_trade, slippage")
+            f"Unknown params: {', '.join(invalid_keys)}\nSupported: max_trade, slippage")
         return
     if not params:
-        await update.message.reply_text("请至少提供一个参数\n用法: /update_settings max_trade=1000 slippage=50")
+        await update.message.reply_text("Provide at least one parameter\nUsage: /update_settings max_trade=1000 slippage=50")
         return
     api = _get_api()
     try:
@@ -194,10 +194,10 @@ async def cmd_update_settings(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     if result.get("success"):
         tx_hash = result.get("transactionHash", "")
         await update.message.reply_text(
-            f"设置已更新\n"
+            f"Settings updated\n"
             f"max_trade: {max_trade_bps} BPS ({max_trade_bps/100:.1f}%)\n"
             f"slippage: {slippage_bps} BPS ({slippage_bps/100:.1f}%)\n"
-            f"交易哈希: {tx_hash}")
+            f"TX: {tx_hash}")
     else:
-        error = result.get("error", "未知错误")
-        await update.message.reply_text(f"更新失败: {error}")
+        error = result.get("error", "Unknown error")
+        await update.message.reply_text(f"Update failed: {error}")

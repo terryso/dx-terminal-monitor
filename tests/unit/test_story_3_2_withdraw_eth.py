@@ -225,7 +225,7 @@ class TestCmdWithdraw:
         # Then
         assert result == -1  # END
         call_args = mock_update.message.reply_text.call_args[0][0]
-        assert "未授权" in call_args
+        assert "Unauthorized" in call_args
 
     @pytest.mark.asyncio
     async def test_withdraw_cancel_confirmation(self, mock_update, mock_context, web3_test_env, mock_vault_with_balance):
@@ -255,7 +255,7 @@ class TestCmdWithdraw:
         # Then
         assert result == -1  # END
         call_args = mock_update.message.reply_text.call_args[0][0]
-        assert "取消" in call_args
+        assert "cancelled" in call_args.lower()
 
     @pytest.mark.asyncio
     async def test_withdraw_invalid_amount(self, mock_update, mock_context, web3_test_env):
@@ -273,7 +273,7 @@ class TestCmdWithdraw:
         # Then
         assert result == -1  # END
         call_args = mock_update.message.reply_text.call_args[0][0]
-        assert "无效" in call_args or "数字" in call_args
+        assert "invalid" in call_args.lower() or "number" in call_args.lower()
 
     @pytest.mark.asyncio
     async def test_withdraw_missing_amount(self, mock_update, mock_context, web3_test_env):
@@ -309,7 +309,7 @@ class TestCmdWithdraw:
         # Then
         assert result == -1  # END
         call_args = mock_update.message.reply_text.call_args[0][0]
-        assert "大于 0" in call_args or "必须" in call_args
+        assert "greater than 0" in call_args.lower() or "must" in call_args.lower()
 
     @pytest.mark.asyncio
     async def test_withdraw_excessive_precision(self, mock_update, mock_context, web3_test_env):
@@ -327,7 +327,7 @@ class TestCmdWithdraw:
         # Then
         assert result == -1  # END
         call_args = mock_update.message.reply_text.call_args[0][0]
-        assert "精度" in call_args or "小数" in call_args
+        assert "precision" in call_args.lower() or "decimal" in call_args.lower()
 
     @pytest.mark.asyncio
     async def test_withdraw_session_expired(self, mock_update, mock_context, web3_test_env, mock_vault_with_balance):
@@ -360,7 +360,7 @@ class TestCmdWithdraw:
         # Then
         assert result == -1  # END
         call_args = mock_update.message.reply_text.call_args[0][0]
-        assert "过期" in call_args or "重新" in call_args
+        assert "expired" in call_args.lower() or "again" in call_args.lower()
 
     @pytest.mark.asyncio
     async def test_withdraw_contract_failure(self, mock_update, mock_context, web3_test_env, mock_web3_components, mock_vault_with_balance):
@@ -397,7 +397,7 @@ class TestCmdWithdraw:
         # Then
         assert result == -1  # END
         call_args = mock_update.message.reply_text.call_args[0][0]
-        assert "失败" in call_args
+        assert "failed" in call_args.lower()
 
 
 # ============================================================================
@@ -436,7 +436,7 @@ class TestContractWithdrawEth:
 
         # Then
         assert result["success"] is False
-        assert "大于 0" in result["error"]
+        assert "greater than 0" in result["error"].lower()
 
     @pytest.mark.asyncio
     async def test_withdraw_eth_negative_amount(self, web3_test_env, mock_web3_components):
@@ -449,7 +449,7 @@ class TestContractWithdrawEth:
 
         # Then
         assert result["success"] is False
-        assert "大于 0" in result["error"]
+        assert "greater than 0" in result["error"].lower()
 
     @pytest.mark.asyncio
     async def test_withdraw_eth_contract_error(self, web3_test_env, mock_web3_components):

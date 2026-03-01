@@ -1,4 +1,4 @@
-"""查询命令模块 - 只读数据查询命令。"""
+"""Query commands module - read-only data query commands."""
 from telegram import Update
 from telegram.ext import ContextTypes
 
@@ -7,13 +7,13 @@ from utils.formatters import format_eth, format_usd, format_percent, format_time
 
 
 def _get_api():
-    """延迟导入 api 避免循环导入。"""
+    """Lazy import api to avoid circular imports."""
     from main import api
     return api
 
 
 async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    """显示帮助信息。"""
+    """Show help information."""
     if not authorized(update):
         await update.message.reply_text("Unauthorized")
         return
@@ -43,7 +43,7 @@ Commands:
 
 
 async def cmd_balance(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    """查询余额。"""
+    """Query balance."""
     if not authorized(update):
         return
     api = _get_api()
@@ -66,7 +66,7 @@ Total PnL: {pnl} ({pct})
 
 
 async def cmd_positions(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    """查询持仓。"""
+    """Query positions."""
     if not authorized(update):
         return
     api = _get_api()
@@ -90,7 +90,7 @@ async def cmd_positions(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
 
 async def cmd_pnl(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    """查询盈亏。"""
+    """Query PnL."""
     if not authorized(update):
         return
     api = _get_api()
@@ -116,7 +116,7 @@ async def cmd_pnl(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
 
 async def cmd_activity(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    """查询最近活动。"""
+    """Query recent activity."""
     if not authorized(update):
         return
     api = _get_api()
@@ -152,7 +152,7 @@ async def cmd_activity(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
 
 async def cmd_swaps(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    """查询最近交易。"""
+    """Query recent swaps."""
     if not authorized(update):
         return
     api = _get_api()
@@ -178,7 +178,7 @@ async def cmd_swaps(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
 
 async def cmd_strategies(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    """查询活跃策略。"""
+    """Query active strategies."""
     if not authorized(update):
         return
     api = _get_api()
@@ -200,7 +200,7 @@ async def cmd_strategies(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
 
 async def cmd_vault(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    """查询 Vault 信息。"""
+    """Query Vault info."""
     if not authorized(update):
         return
     api = _get_api()

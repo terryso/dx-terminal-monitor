@@ -653,7 +653,7 @@ class TestCmdDisableStrategy:
                 mock_contract_instance.disable_strategy.assert_called_once_with(strategy_id)
                 mock_telegram_update.message.reply_text.assert_called_once()
                 call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-                assert f"策略 #{strategy_id} 已禁用" in call_args
+                assert f"Strategy #{strategy_id} disabled" in call_args
                 assert mock_tx_hash in call_args
 
     @pytest.mark.asyncio
@@ -679,7 +679,7 @@ class TestCmdDisableStrategy:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "用法" in call_args
+        assert "Usage" in call_args
 
     @pytest.mark.asyncio
     async def test_cmd_disable_strategy_invalid_id(
@@ -704,7 +704,7 @@ class TestCmdDisableStrategy:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "数字" in call_args
+        assert "number" in call_args.lower()
 
     @pytest.mark.asyncio
     async def test_cmd_disable_strategy_contract_fails_not_exist(
@@ -734,7 +734,7 @@ class TestCmdDisableStrategy:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert f"策略 #{strategy_id} 不存在或已禁用" in call_args
+        assert f"Strategy #{strategy_id} not found or already disabled" in call_args
 
     @pytest.mark.asyncio
     async def test_cmd_disable_strategy_contract_fails_not_active(
@@ -764,7 +764,7 @@ class TestCmdDisableStrategy:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert f"策略 #{strategy_id} 不存在或已禁用" in call_args
+        assert f"Strategy #{strategy_id} not found or already disabled" in call_args
 
     @pytest.mark.asyncio
     async def test_cmd_disable_strategy_contract_fails_generic_error(
@@ -795,7 +795,7 @@ class TestCmdDisableStrategy:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "交易失败" in call_args
+        assert "Transaction failed" in call_args
         assert error_msg in call_args
 
     @pytest.mark.asyncio
@@ -821,7 +821,7 @@ class TestCmdDisableStrategy:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "未授权" in call_args
+        assert "Unauthorized" in call_args
 
     @pytest.mark.asyncio
     async def test_cmd_disable_strategy_authorized_user_proceeds(
@@ -1049,7 +1049,7 @@ class TestCmdDisableAll:
                 # Then
                 mock_contract_instance.disable_all_strategies.assert_called_once()
                 call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-                assert "已禁用" in call_args
+                assert "disabled" in call_args.lower()
                 assert str(disabled_count) in call_args
                 assert mock_tx_hash in call_args
 
@@ -1083,7 +1083,7 @@ class TestCmdDisableAll:
 
                 # Then
                 call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-                assert "没有活跃策略" in call_args
+                assert "No active strategies" in call_args
 
     @pytest.mark.asyncio
     async def test_cmd_disable_all_unauthorized(
@@ -1107,7 +1107,7 @@ class TestCmdDisableAll:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "未授权" in call_args
+        assert "Unauthorized" in call_args
 
     @pytest.mark.asyncio
     async def test_cmd_disable_all_contract_fails(
@@ -1139,7 +1139,7 @@ class TestCmdDisableAll:
 
         # Then
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "交易失败" in call_args
+        assert "Transaction failed" in call_args
         assert error_msg in call_args
 
     @pytest.mark.asyncio
@@ -1321,7 +1321,7 @@ class TestCmdDisableAll:
 
                 # Then
                 call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-                assert "已禁用所有策略" in call_args
+                assert "All strategies disabled" in call_args
                 assert mock_tx_hash in call_args
 
     @pytest.mark.asyncio
@@ -1401,7 +1401,7 @@ class TestCmdAddStrategy:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "策略已添加" in call_args
+        assert "Strategy added" in call_args
         assert "#4" in call_args
 
     @pytest.mark.asyncio
@@ -1434,7 +1434,7 @@ class TestCmdAddStrategy:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "未授权" in call_args or "unauthorized" in call_args.lower()
+        assert "Unauthorized" in call_args or "unauthorized" in call_args.lower()
         # Verify contract was NOT called for non-admin
         mock_contract_instance.add_strategy.assert_not_called()
 
@@ -1462,7 +1462,7 @@ class TestCmdAddStrategy:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "用法" in call_args
+        assert "Usage" in call_args
 
     @pytest.mark.asyncio
     async def test_add_strategy_empty_args(
@@ -1488,7 +1488,7 @@ class TestCmdAddStrategy:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "用法" in call_args
+        assert "Usage" in call_args
 
     @pytest.mark.asyncio
     async def test_add_strategy_max_limit_reached(
@@ -1525,7 +1525,7 @@ class TestCmdAddStrategy:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "上限" in call_args or "limit" in call_args.lower()
+        assert "limit" in call_args.lower()
 
     @pytest.mark.asyncio
     async def test_add_strategy_contract_failure(
@@ -1562,7 +1562,7 @@ class TestCmdAddStrategy:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "失败" in call_args or "error" in call_args.lower()
+        assert "failed" in call_args.lower() or "error" in call_args.lower()
 
     @pytest.mark.asyncio
     async def test_add_strategy_registers_command_handler(self) -> None:

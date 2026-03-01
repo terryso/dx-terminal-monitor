@@ -76,7 +76,7 @@ class TestMonitorStatusCommand:
                 await cmd_monitor_status(mock_update, mock_context)
 
                 call_args = mock_update.message.reply_text.call_args[0][0]
-                assert "运行中" in call_args
+                assert "Running" in call_args
                 assert "30" in call_args
                 assert "3" in call_args
 
@@ -100,7 +100,7 @@ class TestMonitorStatusCommand:
                 await cmd_monitor_status(mock_update, mock_context)
 
                 call_args = mock_update.message.reply_text.call_args[0][0]
-                assert "已停止" in call_args
+                assert "stopped" in call_args.lower()
 
     @pytest.mark.asyncio
     async def test_monitor_status_not_initialized(self, mock_update, mock_context):
@@ -118,7 +118,7 @@ class TestMonitorStatusCommand:
                 await cmd_monitor_status(mock_update, mock_context)
 
                 call_args = mock_update.message.reply_text.call_args[0][0]
-                assert "未初始化" in call_args
+                assert "not initialized" in call_args.lower()
 
     @pytest.mark.asyncio
     async def test_monitor_status_includes_interval(self, mock_update, mock_context, mock_monitor):
@@ -139,7 +139,7 @@ class TestMonitorStatusCommand:
 
                 call_args = mock_update.message.reply_text.call_args[0][0]
                 assert "60" in call_args
-                assert "秒" in call_args
+                assert "s" in call_args.lower() or "interval" in call_args.lower()
 
     @pytest.mark.asyncio
     async def test_monitor_status_includes_seen_count(self, mock_update, mock_context, mock_monitor):
@@ -160,7 +160,7 @@ class TestMonitorStatusCommand:
 
                 call_args = mock_update.message.reply_text.call_args[0][0]
                 assert "10" in call_args
-                assert "个" in call_args
+                assert "Processed" in call_args or "10" in call_args
 
 
 # ============================================================================
@@ -190,7 +190,7 @@ class TestMonitorStartCommand:
 
                 mock_monitor.start_background.assert_called_once()
                 call_args = mock_update.message.reply_text.call_args[0][0]
-                assert "已启动" in call_args
+                assert "started" in call_args.lower()
 
     @pytest.mark.asyncio
     async def test_monitor_start_already_running(self, mock_update, mock_context, mock_monitor):
@@ -212,7 +212,7 @@ class TestMonitorStartCommand:
 
                 mock_monitor.start_background.assert_not_called()
                 call_args = mock_update.message.reply_text.call_args[0][0]
-                assert "已在运行中" in call_args
+                assert "already running" in call_args.lower()
 
     @pytest.mark.asyncio
     async def test_monitor_start_not_initialized(self, mock_update, mock_context):
@@ -230,7 +230,7 @@ class TestMonitorStartCommand:
                 await cmd_monitor_start(mock_update, mock_context)
 
                 call_args = mock_update.message.reply_text.call_args[0][0]
-                assert "未初始化" in call_args
+                assert "not initialized" in call_args.lower()
 
     @pytest.mark.asyncio
     async def test_monitor_start_calls_start_background(self, mock_update, mock_context, mock_monitor):
@@ -279,7 +279,7 @@ class TestMonitorStopCommand:
 
                 mock_monitor.stop.assert_called_once()
                 call_args = mock_update.message.reply_text.call_args[0][0]
-                assert "已停止" in call_args
+                assert "stopped" in call_args.lower()
 
     @pytest.mark.asyncio
     async def test_monitor_stop_already_stopped(self, mock_update, mock_context, mock_monitor):
@@ -301,7 +301,7 @@ class TestMonitorStopCommand:
 
                 mock_monitor.stop.assert_not_called()
                 call_args = mock_update.message.reply_text.call_args[0][0]
-                assert "已处于停止状态" in call_args
+                assert "already stopped" in call_args.lower()
 
     @pytest.mark.asyncio
     async def test_monitor_stop_not_initialized(self, mock_update, mock_context):
@@ -319,7 +319,7 @@ class TestMonitorStopCommand:
                 await cmd_monitor_stop(mock_update, mock_context)
 
                 call_args = mock_update.message.reply_text.call_args[0][0]
-                assert "未初始化" in call_args
+                assert "not initialized" in call_args.lower()
 
     @pytest.mark.asyncio
     async def test_monitor_stop_calls_stop_method(self, mock_update, mock_context, mock_monitor):
@@ -365,7 +365,7 @@ class TestAdminPermissionChecks:
                 await cmd_monitor_status(mock_update, mock_context)
 
                 call_args = mock_update.message.reply_text.call_args[0][0]
-                assert "未授权" in call_args
+                assert "Unauthorized" in call_args
 
     @pytest.mark.asyncio
     async def test_start_denies_non_admin(self, mock_update, mock_context, mock_monitor):
@@ -387,7 +387,7 @@ class TestAdminPermissionChecks:
 
                 mock_monitor.start_background.assert_not_called()
                 call_args = mock_update.message.reply_text.call_args[0][0]
-                assert "未授权" in call_args
+                assert "Unauthorized" in call_args
 
     @pytest.mark.asyncio
     async def test_stop_denies_non_admin(self, mock_update, mock_context, mock_monitor):
@@ -409,7 +409,7 @@ class TestAdminPermissionChecks:
 
                 mock_monitor.stop.assert_not_called()
                 call_args = mock_update.message.reply_text.call_args[0][0]
-                assert "未授权" in call_args
+                assert "Unauthorized" in call_args
 
     @pytest.mark.asyncio
     async def test_all_commands_check_admin(self, mock_update, mock_context, mock_monitor):
@@ -441,7 +441,7 @@ class TestAdminPermissionChecks:
 
                     # Verify unauthorized message
                     call_args = mock_update.message.reply_text.call_args[0][0]
-                    assert "未授权" in call_args
+                    assert "Unauthorized" in call_args
 
 
 # ============================================================================

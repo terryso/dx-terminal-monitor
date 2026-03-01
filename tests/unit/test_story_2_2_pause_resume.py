@@ -255,7 +255,7 @@ class TestCmdPause:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "暂停" in call_args
+        assert "paused" in call_args.lower()
         assert "0xabc123def456" in call_args
         mock_contract.pause_vault.assert_called_once_with(True)
 
@@ -318,7 +318,7 @@ class TestCmdPause:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "失败" in call_args or "error" in call_args.lower()
+        assert "failed" in call_args.lower() or "error" in call_args.lower()
         assert "Insufficient gas" in call_args
 
     @pytest.mark.asyncio
@@ -380,7 +380,7 @@ class TestCmdPause:
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
         assert "已经" in call_args or "already" in call_args.lower()
-        assert "暂停" in call_args
+        assert "paused" in call_args.lower()
 
 
 # =============================================================================
@@ -423,7 +423,7 @@ class TestCmdResume:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "恢复" in call_args
+        assert "resumed" in call_args.lower()
         assert "0xxyz789abc" in call_args
         mock_contract.pause_vault.assert_called_once_with(False)
 
@@ -486,7 +486,7 @@ class TestCmdResume:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "失败" in call_args or "error" in call_args.lower()
+        assert "failed" in call_args.lower() or "error" in call_args.lower()
         assert "Transaction reverted" in call_args
 
     @pytest.mark.asyncio
@@ -548,7 +548,7 @@ class TestCmdResume:
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
         assert "已经" in call_args or "already" in call_args.lower()
-        assert "运行" in call_args
+        assert "running" in call_args.lower()
 
 
 # =============================================================================

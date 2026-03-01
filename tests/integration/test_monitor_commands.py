@@ -41,7 +41,7 @@ class TestCmdMonitorStatusRefactored:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "运行" in call_args
+        assert "Running" in call_args
 
     @pytest.mark.integration
     @pytest.mark.asyncio
@@ -67,7 +67,7 @@ class TestCmdMonitorStatusRefactored:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "停止" in call_args
+        assert "Stopped" in call_args
 
     @pytest.mark.integration
     @pytest.mark.asyncio
@@ -142,7 +142,7 @@ class TestCmdMonitorStartRefactored:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "未授权" in call_args or "unauthorized" in call_args.lower()
+        assert "Unauthorized" in call_args or "unauthorized" in call_args.lower()
 
 
 # =============================================================================
@@ -194,7 +194,7 @@ class TestCmdMonitorStopRefactored:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "未授权" in call_args or "unauthorized" in call_args.lower()
+        assert "Unauthorized" in call_args or "unauthorized" in call_args.lower()
 
 
 # =============================================================================
