@@ -226,13 +226,16 @@ class TestTelegramNotifierUserSelection:
         mock_bot = MagicMock()
         monkeypatch.setenv("ADMIN_USERS", "111222333")
 
-        # 需要重新导入 config 以获取新的环境变量
+        # 需要重新导入 config 和 notifier 以获取新的环境变量
         import importlib
 
         import config
-        importlib.reload(config)
+        import notifier as notifier_mod
 
-        notifier = TelegramNotifier(mock_bot)
+        importlib.reload(config)
+        importlib.reload(notifier_mod)
+
+        notifier = notifier_mod.TelegramNotifier(mock_bot)
 
         # ADMIN_USERS 应该被使用
         assert len(notifier.notify_users) > 0

@@ -520,6 +520,14 @@ class TestCommandRegistration:
 
         TDD Phase: RED - This test will FAIL until commands are registered.
         """
+        import os
+
+        os.environ['TELEGRAM_BOT_TOKEN'] = '123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11'
+        os.environ['RPC_URL'] = 'https://eth-test.example.com'
+        os.environ['PRIVATE_KEY'] = '0x' + 'a' * 64
+        os.environ['CHAIN_ID'] = '1'
+        os.environ['VAULT_ADDRESS'] = '0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C'
+
         from main import create_app
 
         # This is a structural test - verify the command handlers are registered
@@ -544,6 +552,14 @@ class TestCommandRegistration:
 
         TDD Phase: RED - This test will FAIL until handler is registered.
         """
+        import os
+
+        os.environ['TELEGRAM_BOT_TOKEN'] = '123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11'
+        os.environ['RPC_URL'] = 'https://eth-test.example.com'
+        os.environ['PRIVATE_KEY'] = '0x' + 'a' * 64
+        os.environ['CHAIN_ID'] = '1'
+        os.environ['VAULT_ADDRESS'] = '0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C'
+
         from main import create_app
 
         app = create_app()
@@ -565,6 +581,14 @@ class TestCommandRegistration:
 
         TDD Phase: RED - This test will FAIL until handler is registered.
         """
+        import os
+
+        os.environ['TELEGRAM_BOT_TOKEN'] = '123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11'
+        os.environ['RPC_URL'] = 'https://eth-test.example.com'
+        os.environ['PRIVATE_KEY'] = '0x' + 'a' * 64
+        os.environ['CHAIN_ID'] = '1'
+        os.environ['VAULT_ADDRESS'] = '0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C'
+
         from main import create_app
 
         app = create_app()

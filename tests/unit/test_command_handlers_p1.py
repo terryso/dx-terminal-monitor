@@ -1192,6 +1192,7 @@ class TestCmdDisableAll:
         os.environ['PRIVATE_KEY'] = '0x' + 'a' * 64
         os.environ['CHAIN_ID'] = '1'
         os.environ['VAULT_ADDRESS'] = '0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C'
+        os.environ['TELEGRAM_BOT_TOKEN'] = '123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11'
 
         for mod in ['main', 'contract', 'config']:
             if mod in sys.modules:
@@ -1231,6 +1232,7 @@ class TestCmdDisableAll:
         os.environ['PRIVATE_KEY'] = '0x' + 'a' * 64
         os.environ['CHAIN_ID'] = '1'
         os.environ['VAULT_ADDRESS'] = '0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C'
+        os.environ['TELEGRAM_BOT_TOKEN'] = '123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11'
 
         for mod in ['main', 'contract', 'config']:
             if mod in sys.modules:
@@ -1274,6 +1276,7 @@ class TestCmdDisableAll:
         os.environ['PRIVATE_KEY'] = '0x' + 'a' * 64
         os.environ['CHAIN_ID'] = '1'
         os.environ['VAULT_ADDRESS'] = '0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C'
+        os.environ['TELEGRAM_BOT_TOKEN'] = '123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11'
 
         for mod in ['main', 'contract', 'config']:
             if mod in sys.modules:
@@ -1582,6 +1585,7 @@ class TestCmdAddStrategy:
         os.environ['PRIVATE_KEY'] = '0x' + 'a' * 64
         os.environ['CHAIN_ID'] = '1'
         os.environ['VAULT_ADDRESS'] = '0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C'
+        os.environ['TELEGRAM_BOT_TOKEN'] = '123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11'
 
         for mod in ['main', 'contract', 'config']:
             if mod in sys.modules:
@@ -1621,6 +1625,7 @@ class TestCmdAddStrategy:
         os.environ['PRIVATE_KEY'] = '0x' + 'a' * 64
         os.environ['CHAIN_ID'] = '1'
         os.environ['VAULT_ADDRESS'] = '0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C'
+        os.environ['TELEGRAM_BOT_TOKEN'] = '123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11'
 
         for mod in ['main', 'contract', 'config']:
             if mod in sys.modules:
@@ -1667,6 +1672,7 @@ class TestCmdAddStrategy:
         os.environ['PRIVATE_KEY'] = '0x' + 'a' * 64
         os.environ['CHAIN_ID'] = '1'
         os.environ['VAULT_ADDRESS'] = '0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C'
+        os.environ['TELEGRAM_BOT_TOKEN'] = '123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11'
 
         for mod in ['main', 'contract', 'config']:
             if mod in sys.modules:
