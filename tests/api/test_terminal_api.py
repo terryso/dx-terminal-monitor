@@ -129,7 +129,8 @@ class TestTerminalAPIPerformance:
         start = time.time()
         try:
             await api_client.get_positions()
-        except aiohttp.client_exceptions.ClientConnectorError:
+        except (aiohttp.client_exceptions.ClientConnectorError,
+                aiohttp.client_exceptions.ConnectionTimeoutError):
             pytest.skip("API unreachable - network or server issue")
         elapsed = time.time() - start
 

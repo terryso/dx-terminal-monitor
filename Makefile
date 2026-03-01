@@ -19,9 +19,9 @@ test-integration:
 test-api:
 	pytest -m api -v
 
-# Run tests with coverage report
+# Run tests with coverage report (excludes API tests that need network)
 test-cov:
-	pytest --cov=. --cov-report=html --cov-report=term
+	pytest -m "not api" --cov=. --cov-report=html --cov-report=term
 	@echo "Coverage report: htmlcov/index.html"
 
 # Quick test: skip slow and API tests
