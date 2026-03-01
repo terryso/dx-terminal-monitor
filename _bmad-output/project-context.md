@@ -294,6 +294,57 @@ contract.py
 
 ---
 
+## API 参考文档
+
+### Terminal Markets 官方文档
+
+| 文档 | URL | 用途 |
+|------|-----|------|
+| Agent Vault Contract API | https://docs.terminal.markets/resources/agent-vault-contract-api | 合约函数说明、权限模型 |
+| REST API Swagger | https://api.terminal.markets/swagger/doc.json | 完整 API 端点定义 |
+
+### AgentVault 合约函数速查
+
+**Owner-only 函数（需要私钥签名）：**
+
+| 函数 | 参数 | 用途 |
+|------|------|------|
+| `updateSettings(settings_)` | AgentSettings tuple | 更新交易偏好设置 |
+| `addStrategy(strategy, expiry, prio)` | string, uint64, uint8 | 添加策略（最多8个） |
+| `disableStrategy(id)` | uint256 | 禁用单个策略 |
+| `disableAllActiveStrategies()` | - | 禁用所有活跃策略 |
+| `depositETH()` | payable | 存入 ETH（转为 WETH） |
+| `withdrawETH(amount_)` | uint256 | 提取 ETH（从 WETH 转回） |
+| `recoverEth(amount_)` | uint256 | 提取强制转入的原始 ETH |
+| `pauseVault(paused_)` | bool | 暂停/恢复 operator 交换执行 |
+
+**AgentSettings 字段约束：**
+
+| 字段 | 类型 | 范围 | 说明 |
+|------|------|------|------|
+| maxTradeAmount | uint256 | 500-10000 | BPS (5%-100%) |
+| slippageBps | uint256 | 10-5000 | BPS (0.1%-50%) |
+| tradingActivity | uint8 | 1-5 | 滑块值 |
+| assetRiskPreference | uint8 | 1-5 | 滑块值 |
+| tradeSize | uint8 | 1-5 | 滑块值 |
+| holdingStyle | uint8 | 1-5 | 滑块值 |
+| diversification | uint8 | 1-5 | 滑块值 |
+
+**策略优先级枚举：**
+- `0 = Low`
+- `1 = Med`
+- `2 = High`
+
+**VaultOperator 权限限制：**
+- ✅ 可调用 `swapV4(...)`
+- ✅ 可在 owner 发起后调用 `finalizeVaultClosure()`
+- ❌ 不能调用资金管理函数
+- ❌ 不能提取 ETH/WETH/tokens
+- ❌ 不能调用 `xcall(...)`
+- ❌ 不能更改设置、策略或所有权
+
+---
+
 ## 当前开发状态
 
 ### 已完成 ✅

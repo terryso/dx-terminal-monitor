@@ -27,6 +27,9 @@ inputDocuments:
 | FR4 | 暂停/恢复 Agent 自动交易 | P1 |
 | FR5 | 更新 Vault 交易设置 | P2 |
 | FR6 | 提取 ETH | P2 |
+| FR7 | 监控 Agent 操作活动 | P3 |
+| FR8 | 推送操作日志到 TG | P3 |
+| FR9 | 控制监控服务 | P3 |
 
 > **注意**: 合约不支持恢复已禁用的策略，如需恢复需通过 `addStrategy` 重新添加。
 
@@ -43,18 +46,21 @@ inputDocuments:
 
 ## 需求覆盖矩阵
 
-| 需求 | Epic 1 | Epic 2 | Epic 3 |
-|------|--------|--------|--------|
-| FR1 - 禁用指定策略 | ✅ Story 1.1 | - | - |
-| FR2 - 禁用所有策略 | ✅ Story 1.2 | - | - |
-| FR3 - 添加新策略 | - | ✅ Story 2.1 | - |
-| FR4 - 暂停/恢复交易 | - | ✅ Story 2.2 | - |
-| FR5 - 更新设置 | - | - ✅ Story 3.1 |
-| FR6 - 提取 ETH | - | - ✅ Story 3.2 |
-| NFR1 - 私钥安全 | ✅ Story 1.0 | - | - |
-| NFR2 - 错误提示 | ✅ All | ✅ All | ✅ All |
-| NFR3 - 权限确认 | - | ✅ Story 2.x | ✅ Story 3.x |
-| NFR4 - Gas 限制 | ✅ All | ✅ All | ✅ All |
+| 需求 | Epic 1 | Epic 2 | Epic 3 | Epic 4 |
+|------|--------|--------|--------|--------|
+| FR1 - 禁用指定策略 | ✅ Story 1.1 | - | - | - |
+| FR2 - 禁用所有策略 | ✅ Story 1.2 | - | - | - |
+| FR3 - 添加新策略 | - | ✅ Story 2.1 | - | - |
+| FR4 - 暂停/恢复交易 | - | ✅ Story 2.2 | - | - |
+| FR5 - 更新设置 | - | - | ✅ Story 3.1 | - |
+| FR6 - 提取 ETH | - | - | ✅ Story 3.2 | - |
+| FR7 - 监控 Agent 活动 | - | - | - | ✅ Story 4.1 |
+| FR8 - 推送 TG 通知 | - | - | - | ✅ Story 4.2 |
+| FR9 - 控制监控服务 | - | - | - | ✅ Story 4.3 |
+| NFR1 - 私钥安全 | ✅ Story 1.0 | - | - | - |
+| NFR2 - 错误提示 | ✅ All | ✅ All | ✅ All | ✅ All |
+| NFR3 - 权限确认 | - | ✅ Story 2.x | ✅ Story 3.x | ✅ Story 4.3 |
+| NFR4 - Gas 限制 | ✅ All | ✅ All | ✅ All | - |
 
 ---
 
@@ -270,6 +276,12 @@ Epic 3 (高级功能)
     └── 依赖 Epic 1 完成
         ├── Story 3.1 (更新设置)
         └── Story 3.2 (提取 ETH)
+
+Epic 4 (操作监控)
+    └── 依赖 Epic 1 完成 (使用 api.py)
+        ├── Story 4.1 (活动监控服务)
+        ├── Story 4.2 (TG 消息推送)
+        └── Story 4.3 (监控控制命令)
 ```
 
 ---
@@ -294,6 +306,113 @@ Epic 3 (高级功能)
 
 ---
 
+## Epic 4: Agent 操作监控与推送
+
+**目标**: 实现 Agent 操作自动监控，实时推送操作日志到 Telegram
+
+### Story 4.1: 活动监控服务
+
+**作为用户，我需要** 系统自动监控 Agent 的交易活动，**以便** 实时了解 Agent 的操作情况。
+
+**验收标准:**
+- [ ] 创建 `monitor.py` 模块
+- [ ] 实现 `ActivityMonitor` 类
+- [ ] 定期轮询 `api.get_activity()` 获取最新活动
+- [ ] 记录已处理的活动 ID，避免重复推送
+- [ ] 支持 .env 配置轮询间隔 (默认 30 秒)
+- [ ] 添加单元测试
+
+**技术说明:**
+```python
+# monitor.py
+class ActivityMonitor:
+    def __init__(self, api: TerminalAPI, callback: Callable):
+        self.api = api
+        self.callback = callback  # 新活动回调
+        self.seen_ids: set[str] = set()
+        self.poll_interval = int(os.getenv('POLL_INTERVAL', '30'))
+
+    async def start(self):
+        while True:
+            activities = await self.api.get_activity(10)
+            new_items = self._filter_new(activities)
+            for item in new_items:
+                await self.callback(item)
+            await asyncio.sleep(self.poll_interval)
+```
+
+**预估复杂度**: 中等
+
+---
+
+### Story 4.2: TG 消息推送
+
+**作为用户，我需要** 当 Agent 执行操作时收到 TG 通知，**以便** 及时了解交易动态。
+
+**验收标准:**
+- [ ] 实现 `format_activity_message()` 格式化活动消息
+- [ ] 支持格式化 Swap/Deposit/Withdrawal 三种类型
+- [ ] 推送到 `.env` 配置的 `ADMIN_USERS` 或 `ALLOWED_USERS`
+- [ ] 消息包含: 操作类型、时间、金额/数量、交易链接
+- [ ] 添加单元测试
+
+**技术说明:**
+```python
+# 消息格式示例
+"""
+🔔 Agent 操作通知
+
+类型: Swap
+方向: BUY
+代币: ETH → USDC
+数量: 0.5 ETH
+价格: $3,000
+时间: 2026-03-01 12:00:00
+查看: https://etherscan.io/tx/0x...
+"""
+```
+
+**预估复杂度**: 低
+
+---
+
+### Story 4.3: 监控控制命令
+
+**作为用户，我需要** 通过命令控制监控服务的开启/关闭，**以便** 灵活管理推送。
+
+**验收标准:**
+- [ ] 实现 `/monitor_start` 命令启动监控
+- [ ] 实现 `/monitor_stop` 命令停止监控
+- [ ] 实现 `/monitor_status` 命令查看状态
+- [ ] 管理员权限检查
+- [ ] Bot 启动时自动开始监控 (可配置)
+- [ ] 添加单元测试
+
+**预估复杂度**: 低
+
+---
+
+## Epic 4 需求覆盖
+
+| 需求 | Story 4.1 | Story 4.2 | Story 4.3 |
+|------|-----------|-----------|-----------|
+| 监控 Agent 活动 | ✅ | - | - |
+| 推送 TG 通知 | - | ✅ | - |
+| 控制监控服务 | - | - | ✅ |
+
+---
+
+## 实现顺序建议
+
+| 阶段 | Epic | Stories | 优先级 |
+|------|------|---------|--------|
+| **Phase 1** | Epic 1 | 1.0, 1.1, 1.2, 1.3 | 🔴 P0 |
+| **Phase 2** | Epic 2 | 2.1, 2.2 | 🟡 P1 |
+| **Phase 3** | Epic 3 | 3.1, 3.2 | 🟢 P2 |
+| **Phase 4** | Epic 4 | 4.1, 4.2, 4.3 | 🔵 P3 |
+
+---
+
 ## 风险与缓解
 
 | 风险 | 缓解措施 |
@@ -302,5 +421,7 @@ Epic 3 (高级功能)
 | 交易失败 | 清晰的错误提示，重试机制 |
 | Gas 费用过高 | 设置 Gas 上限，超限自动中止 |
 | 误操作 | 高风险操作需要管理员权限 |
+| API 限流 | 合理设置轮询间隔，错误重试 |
+| 消息刷屏 | 支持暂停/恢复监控，可配置间隔 |
 
 ---
