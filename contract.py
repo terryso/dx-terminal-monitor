@@ -340,3 +340,43 @@ class VaultContract:
         except Exception as e:
             logger.error(f"Failed to {'pause' if paused else 'resume'} vault: {e}")
             return {"success": False, "error": str(e)}
+
+    async def update_settings(
+        self,
+        max_trade_bps: int,
+        slippage_bps: int
+    ) -> Dict[str, Any]:
+        """
+        Update vault trading settings.
+
+        Args:
+            max_trade_bps: Maximum trade amount in BPS (500-10000)
+            slippage_bps: Slippage tolerance in BPS (10-5000)
+
+        Returns:
+            Dict with keys:
+                - success: bool
+                - transactionHash: str (hex) - on success
+                - status: int - on success
+                - blockNumber: int - on success
+                - error: str - on failure
+        """
+        try:
+            # Validate parameters
+            if not (500 <= max_trade_bps <= 10000):
+                return {
+                    'success': False,
+                    'error': 'max_trade 必须在 500-10000 BPS 之间 (5%-100%)'
+                }
+            if not (10 <= slippage_bps <= 5000):
+                return {
+                    'success': False,
+                    'error': 'slippage 必须在 10-5000 BPS 之间 (0.1%-50%)'
+                }
+
+            tx_func = self.contract.functions.updateSettings(max_trade_bps, slippage_bps)
+            return await self._send_transaction(tx_func)
+
+        except Exception as e:
+            logger.error(f"Failed to update settings: {e}")
+            return {"success": False, "error": str(e)}

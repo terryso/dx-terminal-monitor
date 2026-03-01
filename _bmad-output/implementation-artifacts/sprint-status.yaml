@@ -55,7 +55,7 @@ development_status:
   epic-2-retrospective: optional
 
   # Epic 3: 高级管理与资金操作
-  epic-3: backlog
-  3-1-update-settings: backlog
+  epic-3: in-progress
+  3-1-update-settings: done
   3-2-withdraw-eth: backlog
   epic-3-retrospective: optional

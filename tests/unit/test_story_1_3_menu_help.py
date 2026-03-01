@@ -97,9 +97,10 @@ class TestPostInitStory13:
             "disable_all",       # NEW - Story 1-3
             "pause",             # NEW - Story 2-2
             "resume",            # NEW - Story 2-2
+            "update_settings",   # NEW - Story 3-1
         ]
 
-        assert len(command_names) == 13, f"Expected 13 commands, got {len(command_names)}"
+        assert len(command_names) == 14, f"Expected 14 commands, got {len(command_names)}"
         for expected in expected_commands:
             assert expected in command_names, f"Command '{expected}' should be registered"
 

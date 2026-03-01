@@ -1,4 +1,5 @@
 import logging
+import re
 import time
 from telegram import Update, BotCommand
 from telegram.ext import Application, CommandHandler, ContextTypes
@@ -85,6 +86,7 @@ Commands:
 /disable_all - Disable all active strategies
 /pause - Pause Agent trading
 /resume - Resume Agent trading
+/update_settings - Update vault settings
 """
     await update.message.reply_text(help_text)
 
@@ -268,6 +270,7 @@ async def post_init(app: Application):
         BotCommand("disable_all", "Disable all strategies"),
         BotCommand("pause", "Pause agent trading"),
         BotCommand("resume", "Resume agent trading"),
+        BotCommand("update_settings", "Update vault settings"),
     ]
     await app.bot.set_my_commands(commands)
     logger.info("Commands menu set")
@@ -448,6 +451,87 @@ async def cmd_resume(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"恢复失败: {error}")
 
 
+async def cmd_update_settings(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """Update vault trading settings."""
+    # Admin permission check (high-risk operation)
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text("未授权: 仅管理员可更新设置")
+        return
+
+    # Parse arguments
+    args = ctx.args or []
+    if len(args) == 0:
+        await update.message.reply_text(
+            "用法: /update_settings max_trade=1000 slippage=50\n"
+            "参数说明:\n"
+            "  max_trade: 最大交易金额 (BPS, 500-10000, 如 1000=10%)\n"
+            "  slippage: 滑点容忍度 (BPS, 10-5000, 如 50=0.5%)"
+        )
+        return
+
+    # Parse key=value parameters
+    params = {}
+    for arg in args:
+        match = re.match(r'(\w+)=(\d+)', arg)
+        if match:
+            key, value = match.groups()
+            params[key] = int(value)
+
+    # Validate supported parameters
+    valid_keys = {'max_trade', 'slippage'}
+    invalid_keys = set(params.keys()) - valid_keys
+    if invalid_keys:
+        await update.message.reply_text(
+            f"未知参数: {', '.join(invalid_keys)}\n"
+            f"支持的参数: max_trade, slippage"
+        )
+        return
+
+    # Check if at least one parameter is provided
+    if not params:
+        await update.message.reply_text(
+            "请至少提供一个参数\n用法: /update_settings max_trade=1000 slippage=50"
+        )
+        return
+
+    # Get current settings (as default values for unspecified parameters)
+    try:
+        vault_data = await api.get_vault()
+        current_max_trade = int(vault_data.get('maxTradeAmount', 1000))
+        current_slippage = int(vault_data.get('slippageBps', 50))
+    except Exception as e:
+        logger.warning(f"Failed to fetch current settings: {e}")
+        # Use default values
+        current_max_trade = 1000
+        current_slippage = 50
+
+    # Use provided or current values
+    max_trade_bps = params.get('max_trade', current_max_trade)
+    slippage_bps = params.get('slippage', current_slippage)
+
+    # Log admin action for audit
+    logger.info(
+        f"Admin {update.effective_user.id} updating settings: "
+        f"max_trade={max_trade_bps}, slippage={slippage_bps}"
+    )
+
+    # Call contract
+    result = await contract().update_settings(max_trade_bps, slippage_bps)
+
+    # Handle response
+    if result.get("success"):
+        tx_hash = result.get("transactionHash", "")
+        await update.message.reply_text(
+            f"✅ 设置已更新\n"
+            f"max_trade: {max_trade_bps} BPS ({max_trade_bps/100:.1f}%)\n"
+            f"slippage: {slippage_bps} BPS ({slippage_bps/100:.1f}%)\n"
+            f"交易哈希: {tx_hash}"
+        )
+    else:
+        error = result.get("error", "未知错误")
+        await update.message.reply_text(f"更新失败: {error}")
+
+
 def create_app():
     """Create and configure the Telegram application."""
     app = Application.builder().token(TELEGRAM_BOT_TOKEN).post_init(post_init).build()
@@ -465,6 +549,7 @@ def create_app():
     app.add_handler(CommandHandler("disable_all", cmd_disable_all))
     app.add_handler(CommandHandler("pause", cmd_pause))
     app.add_handler(CommandHandler("resume", cmd_resume))
+    app.add_handler(CommandHandler("update_settings", cmd_update_settings))
     return app
 
 
