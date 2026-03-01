@@ -2,15 +2,28 @@
 
 中文 | [English](README.md)
 
-Terminal Markets Vault 监控 Telegram Bot。
+![Python](https://img.shields.io/badge/Python-3.12%2B-blue)
+![License](https://img.shields.io/badge/License-MIT-green)
+![Tests](https://img.shields.io/badge/Tests-378%20passing-brightgreen)
+![Coverage](https://img.shields.io/badge/Coverage-96%25-green)
+
+Terminal Markets Vault 监控与管理 Telegram Bot。
 
 ## 功能
 
+### 查询命令（所有用户）
 - 查询 Vault 余额和持仓
 - 查看 PnL 盈亏详情
 - 查看最近交易活动
 - 查看活跃策略
 - 实时数据刷新
+
+### 管理员命令
+- 添加/禁用策略
+- 暂停/恢复 Vault 交易
+- 更新交易设置（最大交易、滑点）
+- 更新行为偏好（活跃度、风险、仓位、持仓风格、分散度）
+- 提取 ETH
 
 ## 安装
 
@@ -42,8 +55,17 @@ TELEGRAM_BOT_TOKEN=your_bot_token_here
 # 允许使用的 Telegram 用户 ID (逗号分隔)
 ALLOWED_USERS=your_telegram_user_id
 
+# 管理员用户 ID (逗号分隔)
+ADMIN_USERS=your_telegram_user_id
+
 # Terminal Markets Vault 地址
 VAULT_ADDRESS=your_vault_address
+
+# Ethereum RPC URL
+RPC_URL=your_rpc_url
+
+# 用于签名交易的私钥
+PRIVATE_KEY=your_private_key
 
 # API 基础 URL
 API_BASE_URL=https://api.terminal.markets/api/v1
@@ -63,6 +85,8 @@ python main.py
 
 ## 命令
 
+### 查询命令（所有用户）
+
 | 命令 | 功能 |
 |------|------|
 | `/start` | 显示帮助 |
@@ -72,7 +96,41 @@ python main.py
 | `/activity` | 最近活动 |
 | `/swaps` | 最近交易 |
 | `/strategies` | 活跃策略 |
-| `/vault` | Vault 信息 |
+| `/vault` | Vault 信息和设置 |
+
+### 管理员命令
+
+| 命令 | 功能 |
+|------|------|
+| `/add_strategy <文本>` | 添加新策略 |
+| `/disable_strategy <id>` | 禁用策略 |
+| `/disable_all` | 禁用所有策略 |
+| `/pause` | 暂停 Vault 交易 |
+| `/resume` | 恢复 Vault 交易 |
+| `/update_settings [参数]` | 查看/更新设置 |
+| `/withdraw <数量>` | 提取 ETH |
+| `/monitor_status` | 监控状态 |
+| `/monitor_start` | 启动监控 |
+| `/monitor_stop` | 停止监控 |
+
+### `/update_settings` 参数
+
+| 参数 | 范围 | 说明 |
+|------|------|------|
+| `max_trade` | 500-10000 | 最大交易比例 (BPS, 如 1000=10%) |
+| `slippage` | 10-5000 | 滑点 (BPS, 如 50=0.5%) |
+| `activity` | 1-5 | 交易活跃度 (非常低 → 非常高) |
+| `risk` | 1-5 | 风险偏好 (保守 → 激进) |
+| `size` | 1-5 | 交易大小 (极小 → 巨大) |
+| `holding` | 1-5 | 持仓风格 (短线客 → 钻石手) |
+| `diversification` | 1-5 | 分散度 (集中 → 广泛) |
+
+**示例:**
+```
+/update_settings                           # 查看当前设置
+/update_settings max_trade=2000 slippage=50  # 更新交易设置
+/update_settings activity=3 risk=2           # 更新行为偏好
+```
 
 ## 相关链接
 
