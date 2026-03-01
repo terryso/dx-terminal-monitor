@@ -4,10 +4,10 @@ Unit tests for edge cases and error handling (P2 priority).
 Tests for: format functions error branches, post_init, main retry logic
 """
 
-import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
-from telegram.error import TimedOut, NetworkError, TelegramError
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
+from telegram.error import NetworkError, TelegramError, TimedOut
 
 # =============================================================================
 # Tests for format function error branches
@@ -218,8 +218,8 @@ class TestMainFunction:
 
     def test_main_clears_proxy_env(self) -> None:
         """Test module clears proxy environment variables on import."""
-        import os
         import importlib
+        import os
         import sys
 
         # Set proxy vars

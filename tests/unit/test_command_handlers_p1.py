@@ -4,9 +4,9 @@ Unit tests for Telegram bot command handlers (P1 priority).
 Tests for: cmd_activity, cmd_swaps, cmd_strategies, cmd_vault
 """
 
-import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 
 # =============================================================================
 # Tests for cmd_activity
@@ -498,6 +498,10 @@ class TestCmdVault:
         assert "0xOwner123" in call_args
         assert "active" in call_args
         assert "False" in call_args
+        # Verify settings include BPS values
+        assert "1000" in call_args  # maxTradeAmount BPS
+        assert "50" in call_args  # slippageBps BPS
+        assert "BPS" in call_args  # BPS label
 
     @pytest.mark.asyncio
     async def test_vault_paused(
@@ -947,6 +951,7 @@ class TestCmdDisableStrategy:
 
         # Mock web3 contract function - need to mock at the class level
         from unittest.mock import MagicMock
+
         from contract import VaultContract
 
         # Create a mock instance with proper setup
@@ -1860,8 +1865,9 @@ class TestContractAddStrategy:
 
         Verifies: AC#1
         """
-        from contract import VaultContract
         from unittest.mock import MagicMock
+
+        from contract import VaultContract
 
         mock_vault = MagicMock(spec=VaultContract)
 

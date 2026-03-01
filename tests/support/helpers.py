@@ -2,10 +2,8 @@
 Helper utilities for testing dx-terminal-monitor.
 """
 
-from typing import Any
 
 # Import formatters from utils module (avoid duplication)
-from utils.formatters import format_eth, format_usd, format_percent, format_time
 
 
 def assert_valid_position(position: dict) -> None:

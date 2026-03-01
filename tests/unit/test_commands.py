@@ -2,8 +2,9 @@
 Unit tests for Telegram bot command handlers.
 """
 
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from tests.support.helpers import assert_valid_position
 

@@ -5,10 +5,9 @@ Tests for: contract.pause_vault(), cmd_pause, cmd_resume
 """
 
 import os
-from unittest.mock import MagicMock, AsyncMock, patch, mock_open
+from unittest.mock import AsyncMock, MagicMock, mock_open, patch
 
 import pytest
-
 
 # ============================================================================
 # Test Fixtures
@@ -75,6 +74,7 @@ def mock_web3_components():
 def create_mocked_vault_contract(mock_web3_components):
     """Helper to create VaultContract with mocked dependencies."""
     import importlib
+
     import config
     import contract
 

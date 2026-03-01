@@ -4,6 +4,17 @@ version = "0.1.0"
 description = "Terminal Markets Telegram Bot Monitor"
 requires-python = ">=3.12"
 
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+ignore = ["E402", "E501", "B904"]  # E402: imports not at top, E501: line too long, B904: raise from
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["F401", "F841"]  # Allow unused imports/variables in tests
+
 [tool.pytest.ini_options]
 minversion = "8.0"
 testpaths = ["tests"]

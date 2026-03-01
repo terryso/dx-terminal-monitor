@@ -1,17 +1,24 @@
 """Commands module - centralized export of all command handlers and registration."""
 from telegram.ext import CommandHandler
 
-from .query import (
-    cmd_start, cmd_balance, cmd_positions, cmd_pnl,
-    cmd_activity, cmd_swaps, cmd_strategies, cmd_vault
-)
 from .admin import (
-    cmd_add_strategy, cmd_disable_strategy, cmd_disable_all,
-    cmd_pause, cmd_resume, cmd_update_settings
+    cmd_add_strategy,
+    cmd_disable_all,
+    cmd_disable_strategy,
+    cmd_pause,
+    cmd_resume,
+    cmd_update_settings,
 )
-from .monitor import (
-    cmd_monitor_status, cmd_monitor_start, cmd_monitor_stop,
-    set_monitor_instance
+from .monitor import cmd_monitor_start, cmd_monitor_status, cmd_monitor_stop, set_monitor_instance
+from .query import (
+    cmd_activity,
+    cmd_balance,
+    cmd_pnl,
+    cmd_positions,
+    cmd_start,
+    cmd_strategies,
+    cmd_swaps,
+    cmd_vault,
 )
 from .withdraw import create_withdraw_handler
 

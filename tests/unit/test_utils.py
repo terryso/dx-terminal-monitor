@@ -7,7 +7,6 @@ from utils.formatters import (
     format_eth,
     format_percent,
     format_usd,
-    format_time,
 )
 
 

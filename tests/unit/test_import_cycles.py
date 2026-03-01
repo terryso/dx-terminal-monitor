@@ -6,10 +6,9 @@ Tests for: No circular import errors when importing main
 RED PHASE: These tests will FAIL until refactoring is complete.
 """
 
-import pytest
 import sys
-import importlib
 
+import pytest
 
 # =============================================================================
 # Tests for circular import detection
@@ -18,7 +17,7 @@ import importlib
 class TestImportCycles:
     """Tests for circular import detection."""
 
-    
+
     @pytest.mark.unit
     def test_import_main_no_error(self) -> None:
         """Test that importing main does not raise circular import error."""
@@ -47,7 +46,7 @@ class TestImportCycles:
                 pytest.fail(f"Circular import detected: {e}")
             raise
 
-    
+
     @pytest.mark.unit
     def test_import_commands_query_no_error(self) -> None:
         """Test that importing commands.query does not raise circular import error."""
@@ -66,7 +65,7 @@ class TestImportCycles:
                 pytest.fail(f"Circular import detected: {e}")
             raise
 
-    
+
     @pytest.mark.unit
     def test_import_commands_admin_no_error(self) -> None:
         """Test that importing commands.admin does not raise circular import error."""
@@ -85,7 +84,7 @@ class TestImportCycles:
                 pytest.fail(f"Circular import detected: {e}")
             raise
 
-    
+
     @pytest.mark.unit
     def test_import_commands_monitor_no_error(self) -> None:
         """Test that importing commands.monitor does not raise circular import error."""
@@ -104,7 +103,7 @@ class TestImportCycles:
                 pytest.fail(f"Circular import detected: {e}")
             raise
 
-    
+
     @pytest.mark.unit
     def test_import_commands_withdraw_no_error(self) -> None:
         """Test that importing commands.withdraw does not raise circular import error."""
@@ -123,7 +122,7 @@ class TestImportCycles:
                 pytest.fail(f"Circular import detected: {e}")
             raise
 
-    
+
     @pytest.mark.unit
     def test_import_utils_no_error(self) -> None:
         """Test that importing utils does not raise circular import error."""
@@ -142,7 +141,7 @@ class TestImportCycles:
                 pytest.fail(f"Circular import detected: {e}")
             raise
 
-    
+
     @pytest.mark.unit
     def test_register_handlers_available(self) -> None:
         """Test that register_handlers function is available from commands."""
@@ -158,7 +157,7 @@ class TestImportCycles:
         # Then
         assert callable(register_handlers)
 
-    
+
     @pytest.mark.unit
     def test_set_monitor_instance_available(self) -> None:
         """Test that set_monitor_instance function is available from commands."""

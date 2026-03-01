@@ -7,7 +7,8 @@ Monitors Agent trading activity and triggers callbacks for new activities.
 import asyncio
 import logging
 import os
-from typing import Callable, Dict, Any, List
+from collections.abc import Callable
+from typing import Any
 
 from api import TerminalAPI
 
@@ -35,7 +36,7 @@ class ActivityMonitor:
     def __init__(
         self,
         api: TerminalAPI,
-        callback: Callable[[Dict[str, Any]], Any]
+        callback: Callable[[dict[str, Any]], Any]
     ):
         """初始化活动监控器。
 
@@ -63,7 +64,7 @@ class ActivityMonitor:
             interval = 30
         return max(interval, 10)  # 最小 10 秒
 
-    def _filter_new(self, activities: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _filter_new(self, activities: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """过滤出新活动。
 
         Args:

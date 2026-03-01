@@ -6,9 +6,9 @@ Tests for: authorized function
 RED PHASE: These tests will FAIL until utils/permissions.py is created.
 """
 
-import pytest
 from unittest.mock import MagicMock, patch
 
+import pytest
 
 # =============================================================================
 # Tests for authorized function
@@ -17,7 +17,7 @@ from unittest.mock import MagicMock, patch
 class TestAuthorized:
     """Tests for authorized function."""
 
-    
+
     @pytest.mark.unit
     def test_authorized_user_in_allowed_list(self) -> None:
         """Test authorized returns True when user is in ALLOWED_USERS."""
@@ -33,7 +33,7 @@ class TestAuthorized:
         # Then
         assert result is True
 
-    
+
     @pytest.mark.unit
     def test_authorized_user_not_in_allowed_list(self) -> None:
         """Test authorized returns False when user is not in ALLOWED_USERS."""
@@ -49,7 +49,7 @@ class TestAuthorized:
         # Then
         assert result is False
 
-    
+
     @pytest.mark.unit
     def test_authorized_empty_allowed_users(self) -> None:
         """Test authorized returns True when ALLOWED_USERS is empty."""
@@ -65,7 +65,7 @@ class TestAuthorized:
         # Then
         assert result is True
 
-    
+
     @pytest.mark.unit
     def test_authorized_none_allowed_users(self) -> None:
         """Test authorized returns True when ALLOWED_USERS is None."""
@@ -81,7 +81,7 @@ class TestAuthorized:
         # Then
         assert result is True
 
-    
+
     @pytest.mark.unit
     def test_authorized_single_user_list(self) -> None:
         """Test authorized with single user in ALLOWED_USERS."""

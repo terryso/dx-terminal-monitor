@@ -4,9 +4,9 @@ Integration tests for withdraw conversation handler (AC 6)
 Tests for: commands/withdraw.py ConversationHandler
 """
 
-import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 
 # =============================================================================
 # Tests for cmd_withdraw (AC 6)
@@ -24,7 +24,7 @@ class TestCmdWithdrawRefactored:
     ) -> None:
         """Test /withdraw starts conversation handler (AC 6)."""
         # Given
-        from commands.withdraw import cmd_withdraw, _pending_withdrawals
+        from commands.withdraw import _pending_withdrawals, cmd_withdraw
 
         _pending_withdrawals.clear()
         mock_telegram_context.args = ["1.5"]
@@ -104,7 +104,7 @@ class TestHandleWithdrawConfirmRefactored:
     ) -> None:
         """Test withdraw confirmation executes the withdrawal (AC 6)."""
         # Given
-        from commands.withdraw import handle_withdraw_confirm, _pending_withdrawals
+        from commands.withdraw import _pending_withdrawals, handle_withdraw_confirm
 
         user_id = 123456789
         mock_telegram_update.effective_user.id = user_id
@@ -136,7 +136,7 @@ class TestHandleWithdrawConfirmRefactored:
     ) -> None:
         """Test withdraw cancel cancels the withdrawal."""
         # Given
-        from commands.withdraw import handle_withdraw_confirm, _pending_withdrawals
+        from commands.withdraw import _pending_withdrawals, handle_withdraw_confirm
 
         user_id = 123456789
         mock_telegram_update.effective_user.id = user_id
@@ -168,7 +168,7 @@ class TestHandleWithdrawCancelRefactored:
     ) -> None:
         """Test /cancel clears pending withdrawal."""
         # Given
-        from commands.withdraw import handle_withdraw_cancel, _pending_withdrawals
+        from commands.withdraw import _pending_withdrawals, handle_withdraw_cancel
 
         user_id = 123456789
         mock_telegram_update.effective_user.id = user_id
@@ -195,8 +195,9 @@ class TestCreateWithdrawHandlerRefactored:
     def test_create_withdraw_handler_returns_handler(self) -> None:
         """Test create_withdraw_handler returns ConversationHandler (AC 6)."""
         # Given
-        from commands.withdraw import create_withdraw_handler
         from telegram.ext import ConversationHandler
+
+        from commands.withdraw import create_withdraw_handler
 
         # When
         handler = create_withdraw_handler()

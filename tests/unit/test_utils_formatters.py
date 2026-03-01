@@ -6,9 +6,9 @@ Tests for: format_eth, format_usd, format_percent, format_time
 RED PHASE: These tests will FAIL until utils/formatters.py is created.
 """
 
-import pytest
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
+import pytest
 
 # =============================================================================
 # Tests for format_eth
@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 class TestFormatEth:
     """Tests for format_eth function."""
 
-    
+
     @pytest.mark.unit
     def test_format_eth_whole_number(self) -> None:
         """Test format_eth with whole ETH value."""
@@ -31,7 +31,7 @@ class TestFormatEth:
         # Then
         assert result == "1.000000"
 
-    
+
     @pytest.mark.unit
     def test_format_eth_decimal(self) -> None:
         """Test format_eth with decimal ETH value."""
@@ -45,7 +45,7 @@ class TestFormatEth:
         # Then
         assert result == "1.500000"
 
-    
+
     @pytest.mark.unit
     def test_format_eth_small_value(self) -> None:
         """Test format_eth with small ETH value."""
@@ -59,7 +59,7 @@ class TestFormatEth:
         # Then
         assert result == "0.000500"
 
-    
+
     @pytest.mark.unit
     def test_format_eth_zero(self) -> None:
         """Test format_eth with zero value."""
@@ -73,7 +73,7 @@ class TestFormatEth:
         # Then
         assert result == "0.000000"
 
-    
+
     @pytest.mark.unit
     def test_format_eth_large_value(self) -> None:
         """Test format_eth with large ETH value."""
@@ -95,7 +95,7 @@ class TestFormatEth:
 class TestFormatUsd:
     """Tests for format_usd function."""
 
-    
+
     @pytest.mark.unit
     def test_format_usd_positive(self) -> None:
         """Test format_usd with positive value."""
@@ -109,7 +109,7 @@ class TestFormatUsd:
         # Then
         assert result == "$3500.00"
 
-    
+
     @pytest.mark.unit
     def test_format_usd_negative(self) -> None:
         """Test format_usd with negative value."""
@@ -123,7 +123,7 @@ class TestFormatUsd:
         # Then
         assert result == "$-150.00"
 
-    
+
     @pytest.mark.unit
     def test_format_usd_float_input(self) -> None:
         """Test format_usd with float input."""
@@ -137,7 +137,7 @@ class TestFormatUsd:
         # Then
         assert result == "$1234.56"
 
-    
+
     @pytest.mark.unit
     def test_format_usd_zero(self) -> None:
         """Test format_usd with zero value."""
@@ -159,7 +159,7 @@ class TestFormatUsd:
 class TestFormatPercent:
     """Tests for format_percent function."""
 
-    
+
     @pytest.mark.unit
     def test_format_percent_positive(self) -> None:
         """Test format_percent with positive value."""
@@ -173,7 +173,7 @@ class TestFormatPercent:
         # Then
         assert result == "+4.50%"
 
-    
+
     @pytest.mark.unit
     def test_format_percent_negative(self) -> None:
         """Test format_percent with negative value."""
@@ -187,7 +187,7 @@ class TestFormatPercent:
         # Then
         assert result == "-5.00%"
 
-    
+
     @pytest.mark.unit
     def test_format_percent_zero(self) -> None:
         """Test format_percent with zero value."""
@@ -201,7 +201,7 @@ class TestFormatPercent:
         # Then - 0 should not have + sign
         assert result == "0.00%" or result == "+0.00%"  # Either is acceptable
 
-    
+
     @pytest.mark.unit
     def test_format_percent_float_input(self) -> None:
         """Test format_percent with float input."""
@@ -223,7 +223,7 @@ class TestFormatPercent:
 class TestFormatTime:
     """Tests for format_time function."""
 
-    
+
     @pytest.mark.unit
     def test_format_time_valid_timestamp(self) -> None:
         """Test format_time with valid timestamp."""
@@ -237,13 +237,13 @@ class TestFormatTime:
         # Then - returns formatted date string (relative time for old timestamps)
         assert result is not None and result != "?"
 
-    
+
     @pytest.mark.unit
     def test_format_time_datetime_input(self) -> None:
         """Test format_time with datetime input."""
         # Given
         from utils.formatters import format_time
-        dt = datetime(2024, 3, 1, 12, 30, 45, tzinfo=timezone.utc)
+        dt = datetime(2024, 3, 1, 12, 30, 45, tzinfo=UTC)
 
         # When
         result = format_time(dt)
@@ -251,7 +251,7 @@ class TestFormatTime:
         # Then - datetime input not supported, returns "?" gracefully
         assert result is not None
 
-    
+
     @pytest.mark.unit
     def test_format_time_none_input(self) -> None:
         """Test format_time with None input."""

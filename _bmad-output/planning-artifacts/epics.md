@@ -25,7 +25,7 @@ inputDocuments:
 | FR2 | 禁用所有活跃策略 | P0 |
 | FR3 | 添加新策略 | P1 |
 | FR4 | 暂停/恢复 Agent 自动交易 | P1 |
-| FR5 | 更新 Vault 交易设置 | P2 |
+| FR5 | 查看与更新 Vault 交易设置 | P2 |
 | FR6 | 提取 ETH | P2 |
 | FR7 | 监控 Agent 操作活动 | P3 |
 | FR8 | 推送操作日志到 TG | P3 |
@@ -213,18 +213,38 @@ result = await contract.disable_all_strategies()
 
 **目标**: 实现设置更新和资金提取功能
 
-### Story 3.1: 更新交易设置命令
+### Story 3.1: 查看与更新交易设置命令
 
-**作为用户，我需要** 通过 `/update_settings` 命令调整交易参数，**以便** 根据市场情况优化策略。
+**作为用户，我需要** 通过 `/update_settings` 命令查看或调整交易参数，**以便** 了解当前设置或根据市场情况优化策略。
 
 **验收标准:**
 - [ ] 实现 `contract.update_settings(settings)` 方法
 - [ ] 实现 `cmd_update_settings` 命令处理函数
-- [ ] 命令格式: `/update_settings max_trade=1000 slippage=50`
+- [ ] **无参数调用** `/update_settings` 时显示当前设置（查看模式）
+- [ ] **带参数调用** `/update_settings max_trade=1000 slippage=50` 时更新设置
 - [ ] 参数验证: maxTrade (500-10000 BPS), slippage (10-5000 BPS)
-- [ ] 成功时返回更新后的设置摘要
+- [ ] 查看时返回当前设置摘要
+- [ ] 更新成功时返回新设置摘要
+- [ ] **增强 `/vault` 命令**：显示完整的设置信息（与 `/update_settings` 查看模式一致）
 - [ ] 管理员权限检查
 - [ ] 添加单元测试
+
+**技术说明:**
+```python
+# 查看模式 (无参数)
+async def cmd_update_settings(update, ctx):
+    if not ctx.args:
+        # 显示当前设置
+        data = await api.get_vault()
+        await update.message.reply_text(f"""
+Current Settings
+
+Max Trade: {data.get('maxTradeAmount', 0) / 100}%
+Slippage: {data.get('slippageBps', 0) / 100}%
+""")
+        return
+    # 解析参数并更新...
+```
 
 **预估复杂度**: 中等
 

@@ -8,9 +8,10 @@ Generated: 2026-03-01
 Story: 4-1-activity-monitor-service
 """
 
-import pytest
 import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 
 class TestActivityMonitorInit:
@@ -427,7 +428,7 @@ class TestMonitorStop:
 
         try:
             await asyncio.wait_for(task, timeout=1.0)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             task.cancel()
 
         assert monitor.running is False

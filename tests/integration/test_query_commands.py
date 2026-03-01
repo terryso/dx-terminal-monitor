@@ -4,9 +4,9 @@ Integration tests for query commands module (AC 3, AC 8)
 Tests for: commands/query.py command handlers
 """
 
-import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 
 # =============================================================================
 # Tests for cmd_balance (AC 3, AC 8)

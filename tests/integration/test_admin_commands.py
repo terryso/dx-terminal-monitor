@@ -4,9 +4,9 @@ Integration tests for admin commands module (AC 4, AC 9)
 Tests for: commands/admin.py command handlers
 """
 
-import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 
 # =============================================================================
 # Tests for cmd_pause (AC 4, AC 9)

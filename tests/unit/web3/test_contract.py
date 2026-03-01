@@ -7,10 +7,9 @@ Story: 1.0 - Web3 Infrastructure Setup
 import json
 import os
 from pathlib import Path
-from unittest.mock import MagicMock, patch, mock_open
+from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
-
 
 # ============================================================================
 # Test Fixtures
@@ -77,6 +76,7 @@ def mock_web3_components():
 def create_mocked_vault_contract(mock_web3_components):
     """Helper to create VaultContract with mocked dependencies."""
     import importlib
+
     import config
     import contract
 
@@ -137,7 +137,7 @@ class TestABIFileLoading:
     def test_abi_file_valid_json(self):
         """AgentVault.json should be valid JSON."""
         abi_path = Path(__file__).parent.parent.parent.parent / 'abi' / 'AgentVault.json'
-        with open(abi_path, 'r') as f:
+        with open(abi_path) as f:
             abi_data = json.load(f)
 
         assert isinstance(abi_data, list)
@@ -145,7 +145,7 @@ class TestABIFileLoading:
     def test_abi_contains_required_functions(self):
         """ABI should contain required contract functions."""
         abi_path = Path(__file__).parent.parent.parent.parent / 'abi' / 'AgentVault.json'
-        with open(abi_path, 'r') as f:
+        with open(abi_path) as f:
             abi_data = json.load(f)
 
         function_names = [
@@ -215,6 +215,7 @@ class TestEnvironmentConfiguration:
         os.environ['VAULT_ADDRESS'] = '0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C'
 
         import importlib
+
         import config
         importlib.reload(config)
 
@@ -438,6 +439,7 @@ class TestConfigurationValidation:
         os.environ['CHAIN_ID'] = '1'
 
         import importlib
+
         import config
         import contract
         importlib.reload(config)
@@ -456,6 +458,7 @@ class TestConfigurationValidation:
         os.environ['CHAIN_ID'] = '1'
 
         import importlib
+
         import config
         import contract
         importlib.reload(config)

@@ -8,8 +8,8 @@ Note: These tests require network access to api.terminal.markets.
 They will be skipped if the API is unreachable.
 """
 
-import pytest
 import aiohttp
+import pytest
 
 from api import TerminalAPI
 

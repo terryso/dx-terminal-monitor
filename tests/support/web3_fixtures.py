@@ -6,11 +6,10 @@ without requiring actual blockchain connections.
 """
 
 import os
-from typing import Any, Dict
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
-
 
 # ============================================================================
 # Test Configuration
@@ -83,7 +82,7 @@ def mock_contract() -> MagicMock:
 
 
 @pytest.fixture
-def mock_transaction_receipt() -> Dict[str, Any]:
+def mock_transaction_receipt() -> dict[str, Any]:
     """Create a mock transaction receipt."""
     return {
         'transactionHash': b'\x12\x34' * 16,
@@ -100,7 +99,7 @@ def mock_transaction_receipt() -> Dict[str, Any]:
 
 
 @pytest.fixture
-def mock_failed_receipt() -> Dict[str, Any]:
+def mock_failed_receipt() -> dict[str, Any]:
     """Create a mock failed transaction receipt."""
     return {
         'transactionHash': b'\x12\x34' * 16,
@@ -151,7 +150,7 @@ class Web3DataFactory:
         expiry: int = 0,
         priority: int = 1,
         active: bool = True,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Create a strategy object for testing."""
         return {
             'id': strategy_id,

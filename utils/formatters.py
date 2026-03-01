@@ -1,5 +1,5 @@
 """格式化工具函数模块。"""
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 def format_eth(wei: str) -> str:
@@ -32,8 +32,8 @@ def format_time(timestamp) -> str:
     """格式化 Unix 时间戳为可读时间（相对时间）。"""
     try:
         ts = int(timestamp)
-        dt = datetime.fromtimestamp(ts, tz=timezone.utc)
-        now = datetime.now(timezone.utc)
+        dt = datetime.fromtimestamp(ts, tz=UTC)
+        now = datetime.now(UTC)
         diff = int((now - dt).total_seconds())
 
         if diff < 60:

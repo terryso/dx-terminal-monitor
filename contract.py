@@ -7,14 +7,15 @@ the AgentVault smart contract on Ethereum-compatible networks.
 
 import json
 import logging
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable, Dict, Any, Optional
+from typing import Any
 
 from web3 import Web3
 from web3.contract import Contract
 from web3.exceptions import ContractLogicError
 
-from config import RPC_URL, PRIVATE_KEY, CHAIN_ID, VAULT_ADDRESS
+from config import CHAIN_ID, PRIVATE_KEY, RPC_URL, VAULT_ADDRESS
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +76,7 @@ class VaultContract:
             raise RuntimeError(ERROR_MESSAGES['abi_not_found'])
 
         try:
-            with open(abi_path, "r") as f:
+            with open(abi_path) as f:
                 abi = json.load(f)
         except json.JSONDecodeError as e:
             logger.error(f"Invalid ABI JSON: {e}")
@@ -86,7 +87,7 @@ class VaultContract:
             abi=abi
         )
 
-    async def _send_transaction(self, tx_func: Callable) -> Dict[str, Any]:
+    async def _send_transaction(self, tx_func: Callable) -> dict[str, Any]:
         """
         Sign, send, and wait for transaction confirmation.
 
@@ -165,7 +166,7 @@ class VaultContract:
                 'error': f"{ERROR_MESSAGES['unknown']} ({str(e)})",
             }
 
-    async def disable_strategy(self, strategy_id: int) -> Dict[str, Any]:
+    async def disable_strategy(self, strategy_id: int) -> dict[str, Any]:
         """
         Disable a specific strategy by ID.
 
@@ -196,7 +197,7 @@ class VaultContract:
                 'error': str(e),
             }
 
-    async def disable_all_strategies(self, get_active_count: Optional[Callable[[], int]] = None) -> Dict[str, Any]:
+    async def disable_all_strategies(self, get_active_count: Callable[[], int] | None = None) -> dict[str, Any]:
         """
         Disable all active strategies.
 
@@ -260,7 +261,7 @@ class VaultContract:
         content: str,
         expiry: int = 0,
         priority: int = 1
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Add a new trading strategy.
 
@@ -293,7 +294,7 @@ class VaultContract:
             logger.error(f"Failed to add strategy: {e}")
             return {"success": False, "error": str(e)}
 
-    def _parse_strategy_id_from_logs(self, receipt: Dict) -> Optional[int]:
+    def _parse_strategy_id_from_logs(self, receipt: dict) -> int | None:
         """Parse the newly added strategy ID from transaction receipt logs.
 
         Args:
@@ -319,7 +320,7 @@ class VaultContract:
             logger.warning(f"Failed to parse strategy ID from logs: {e}")
             return None
 
-    async def pause_vault(self, paused: bool = True) -> Dict[str, Any]:
+    async def pause_vault(self, paused: bool = True) -> dict[str, Any]:
         """
         Pause or resume Agent trading.
 
@@ -345,7 +346,7 @@ class VaultContract:
         self,
         max_trade_bps: int,
         slippage_bps: int
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Update vault trading settings.
 
@@ -381,7 +382,7 @@ class VaultContract:
             logger.error(f"Failed to update settings: {e}")
             return {"success": False, "error": str(e)}
 
-    async def withdraw_eth(self, amount_wei: int) -> Dict[str, Any]:
+    async def withdraw_eth(self, amount_wei: int) -> dict[str, Any]:
         """
         Withdraw ETH from the vault to the owner address.
 

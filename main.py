@@ -1,20 +1,23 @@
 """DX Terminal Monitor Bot 入口模块。"""
 import os
+
 # 在任何 import 之前清除代理设置，防止库在导入时读取代理
 for _proxy_var in ['HTTP_PROXY', 'HTTPS_PROXY', 'ALL_PROXY', 'http_proxy', 'https_proxy', 'all_proxy']:
     os.environ.pop(_proxy_var, None)
 
 import logging
 import time
+
 from telegram import BotCommand, Update
+from telegram.error import NetworkError, TelegramError, TimedOut
 from telegram.ext import Application
-from telegram.error import TimedOut, NetworkError, TelegramError
-from config import TELEGRAM_BOT_TOKEN, AUTO_START_MONITOR
+
 from api import TerminalAPI
+from commands import register_handlers, set_monitor_instance
+from config import AUTO_START_MONITOR, TELEGRAM_BOT_TOKEN
 from contract import VaultContract
 from monitor import ActivityMonitor
 from notifier import TelegramNotifier
-from commands import register_handlers, set_monitor_instance
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)

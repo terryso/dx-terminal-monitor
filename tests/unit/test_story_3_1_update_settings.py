@@ -6,10 +6,9 @@ ATDD RED PHASE: All tests are written with test.skip() and will FAIL until imple
 """
 
 import os
-from unittest.mock import MagicMock, AsyncMock, patch, mock_open
+from unittest.mock import AsyncMock, MagicMock, mock_open, patch
 
 import pytest
-
 
 # ============================================================================
 # Test Fixtures
@@ -76,6 +75,7 @@ def mock_web3_components():
 def create_mocked_vault_contract(mock_web3_components):
     """Helper to create VaultContract with mocked dependencies."""
     import importlib
+
     import config
     import contract
 
@@ -439,21 +439,29 @@ class TestCmdUpdateSettings:
         assert "未授权" in call_args or "Unauthorized" in call_args
 
     @pytest.mark.asyncio
-    async def test_update_settings_no_args_shows_help(
+    async def test_update_settings_no_args_shows_current_settings(
         self,
         mock_telegram_update: MagicMock,
         mock_telegram_context: MagicMock,
     ):
-        """Test command shows usage help when no arguments provided.
+        """Test command shows current settings when no arguments provided.
 
         Given: An admin user
         When: /update_settings is executed without any arguments
-        Then: Returns usage help message with parameter descriptions
+        Then: Returns current settings (view mode)
         """
         # Given
         mock_telegram_update.effective_user.id = 12345
 
-        with patch("commands.admin.is_admin", return_value=True):
+        mock_api = AsyncMock()
+        mock_api.get_vault.return_value = {
+            'maxTradeAmount': 1000,
+            'slippageBps': 50
+        }
+
+        with patch("commands.admin.is_admin", return_value=True), \
+             patch("commands.admin._get_api") as mock_get_api:
+            mock_get_api.return_value = mock_api
             from commands.admin import cmd_update_settings
 
             # When
@@ -463,11 +471,11 @@ class TestCmdUpdateSettings:
 
         # Then
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "用法" in call_args or "usage" in call_args.lower()
-        assert "max_trade" in call_args
-        assert "slippage" in call_args
-        assert "500-10000" in call_args
-        assert "10-5000" in call_args
+        assert "Current" in call_args or "current" in call_args.lower()
+        assert "Max Trade" in call_args or "max_trade" in call_args.lower()
+        assert "Slippage" in call_args or "slippage" in call_args.lower()
+        assert "1000" in call_args
+        assert "50" in call_args
 
     @pytest.mark.asyncio
     async def test_update_settings_invalid_parameter(

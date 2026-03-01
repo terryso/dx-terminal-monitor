@@ -6,9 +6,9 @@ Tests for: commands/monitor.py command handlers
 RED PHASE: These tests will FAIL until commands/monitor.py is created.
 """
 
-import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 
 # =============================================================================
 # Tests for cmd_monitor_status (AC 5, AC 10)
@@ -208,7 +208,7 @@ class TestSetMonitorInstance:
     def test_set_monitor_instance_sets_global(self) -> None:
         """Test set_monitor_instance correctly sets global variable."""
         # Given
-        from commands.monitor import set_monitor_instance, _monitor_instance
+        from commands.monitor import set_monitor_instance
 
         mock_monitor = MagicMock()
 

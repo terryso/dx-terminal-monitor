@@ -1,4 +1,5 @@
 import aiohttp
+
 from config import API_BASE_URL, VAULT_ADDRESS
 
 

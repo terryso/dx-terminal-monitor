@@ -1,8 +1,10 @@
 """工具函数模块。"""
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
+
 from telegram import Update
 
-from .formatters import format_eth, format_usd, format_percent, format_time
+from .formatters import format_eth, format_percent, format_time, format_usd
 from .permissions import authorized
 
 # Type annotations for exported functions

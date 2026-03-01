@@ -4,9 +4,9 @@ Unit tests for Telegram bot command handlers (P0 priority).
 Tests for: cmd_balance, cmd_positions, cmd_pnl
 """
 
-import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 
 # =============================================================================
 # Tests for cmd_balance

@@ -6,7 +6,7 @@ Implements activity message formatting and Telegram push functionality.
 
 import logging
 from datetime import datetime
-from typing import Dict, Any, List
+from typing import Any
 
 from telegram import Bot
 
@@ -86,7 +86,7 @@ def get_tx_url(tx_hash: str) -> str:
     return f"{base_url}/{tx_hash}"
 
 
-def format_activity_message(activity: Dict[str, Any]) -> str:
+def format_activity_message(activity: dict[str, Any]) -> str:
     """Format activity as Telegram message.
 
     Supports Swap/Deposit/Withdrawal activity types.
@@ -164,7 +164,7 @@ class TelegramNotifier:
         notify_users: List of user IDs to receive notifications
     """
 
-    def __init__(self, bot: Bot, notify_users: List[int] = None):
+    def __init__(self, bot: Bot, notify_users: list[int] = None):
         """Initialize notifier.
 
         Args:
@@ -180,7 +180,7 @@ class TelegramNotifier:
 
         logger.info(f"TelegramNotifier initialized for users: {self.notify_users}")
 
-    async def send_notification(self, activity: Dict[str, Any]) -> None:
+    async def send_notification(self, activity: dict[str, Any]) -> None:
         """Send activity notification to all authorized users.
 
         Args:

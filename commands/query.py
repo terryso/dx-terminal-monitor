@@ -2,8 +2,8 @@
 from telegram import Update
 from telegram.ext import ContextTypes
 
+from utils.formatters import format_eth, format_percent, format_time, format_usd
 from utils.permissions import authorized
-from utils.formatters import format_eth, format_usd, format_percent, format_time
 
 
 def _get_api():
@@ -208,6 +208,8 @@ async def cmd_vault(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     if "error" in data:
         await update.message.reply_text(f"Error: {data['error']}")
         return
+    max_trade = int(data.get('maxTradeAmount', 0))
+    slippage = int(data.get('slippageBps', 0))
     msg = f"""
 Vault Info
 
@@ -218,7 +220,7 @@ State: {data.get('state', '?')}
 Paused: {data.get('paused', False)}
 
 Settings:
-  Max Trade: {int(data.get('maxTradeAmount', 0)) / 100}%
-  Slippage: {int(data.get('slippageBps', 0)) / 100}%
+  Max Trade: {max_trade} BPS ({max_trade/100:.1f}%)
+  Slippage: {slippage} BPS ({slippage/100:.1f}%)
 """
     await update.message.reply_text(msg)

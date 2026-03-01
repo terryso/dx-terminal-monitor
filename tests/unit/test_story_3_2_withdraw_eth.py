@@ -6,10 +6,10 @@ GREEN PHASE: Tests are now enabled after implementation is complete.
 """
 
 import os
-from unittest.mock import MagicMock, AsyncMock, patch, mock_open
+from unittest.mock import AsyncMock, MagicMock, mock_open, patch
+
 import pytest
 from web3 import Web3
-
 
 # ============================================================================
 # Test Fixtures
@@ -107,6 +107,7 @@ def mock_vault_low_balance():
 def create_mocked_vault_contract(mock_web3_components):
     """Helper to create VaultContract with mocked dependencies."""
     import importlib
+
     import config
     import contract
 
@@ -166,7 +167,11 @@ class TestCmdWithdraw:
              patch("commands.withdraw._get_api") as mock_get_api:
             mock_get_contract.return_value = mock_contract_instance
             mock_get_api.return_value = mock_api
-            from commands.withdraw import cmd_withdraw, handle_withdraw_confirm, _pending_withdrawals
+            from commands.withdraw import (
+                _pending_withdrawals,
+                cmd_withdraw,
+                handle_withdraw_confirm,
+            )
 
             # Clear any pending withdrawals
             _pending_withdrawals.clear()
@@ -240,7 +245,11 @@ class TestCmdWithdraw:
         with patch("commands.withdraw.is_admin", return_value=True), \
              patch("commands.withdraw._get_api") as mock_get_api:
             mock_get_api.return_value = mock_api
-            from commands.withdraw import cmd_withdraw, handle_withdraw_confirm, _pending_withdrawals
+            from commands.withdraw import (
+                _pending_withdrawals,
+                cmd_withdraw,
+                handle_withdraw_confirm,
+            )
 
             # Clear any pending withdrawals
             _pending_withdrawals.clear()
@@ -342,7 +351,11 @@ class TestCmdWithdraw:
         with patch("commands.withdraw.is_admin", return_value=True), \
              patch("commands.withdraw._get_api") as mock_get_api:
             mock_get_api.return_value = mock_api
-            from commands.withdraw import cmd_withdraw, handle_withdraw_confirm, _pending_withdrawals
+            from commands.withdraw import (
+                _pending_withdrawals,
+                cmd_withdraw,
+                handle_withdraw_confirm,
+            )
 
             # Clear any pending withdrawals
             _pending_withdrawals.clear()
@@ -382,7 +395,11 @@ class TestCmdWithdraw:
              patch("commands.withdraw._get_api") as mock_get_api:
             mock_get_contract.return_value = mock_contract_instance
             mock_get_api.return_value = mock_api
-            from commands.withdraw import cmd_withdraw, handle_withdraw_confirm, _pending_withdrawals
+            from commands.withdraw import (
+                _pending_withdrawals,
+                cmd_withdraw,
+                handle_withdraw_confirm,
+            )
 
             # Clear any pending withdrawals
             _pending_withdrawals.clear()
@@ -498,12 +515,11 @@ class TestCommandRegistration:
     def test_withdraw_handler_in_create_app(self, web3_test_env):
         """Test that withdraw handler is added to application."""
         # When
-        from main import create_app
-        from commands import register_handlers
-
         # Note: After refactoring, register_handlers() is called in create_app
         # to add all handlers including the withdraw ConversationHandler
         import inspect
+
+        from main import create_app
         source = inspect.getsource(create_app)
 
         # Then - verify register_handlers is called

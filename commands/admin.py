@@ -1,10 +1,11 @@
 """Admin commands module - write operations requiring admin privileges."""
 import logging
 import re
+
 from telegram import Update
 from telegram.ext import ContextTypes
+
 from config import is_admin
-from utils.formatters import format_eth, format_usd
 
 logger = logging.getLogger(__name__)
 
@@ -151,17 +152,26 @@ async def cmd_resume(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
 
 async def cmd_update_settings(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    """Update Vault trading settings."""
+    """View or update Vault trading settings."""
     if not is_admin(update.effective_user.id):
         await update.message.reply_text("Unauthorized: Admin only")
         return
     args = ctx.args or []
+    api = _get_api()
+
+    # No args: show current settings
     if len(args) == 0:
+        vault_data = await api.get_vault()
+        if "error" in vault_data:
+            await update.message.reply_text(f"Error: {vault_data['error']}")
+            return
+        max_trade = int(vault_data.get('maxTradeAmount', 0))
+        slippage = int(vault_data.get('slippageBps', 0))
         await update.message.reply_text(
-            "Usage: /update_settings max_trade=1000 slippage=50\n"
-            "Parameters:\n"
-            "  max_trade: Max trade amount (BPS, 500-10000, e.g. 1000=10%)\n"
-            "  slippage: Slippage tolerance (BPS, 10-5000, e.g. 50=0.5%)")
+            f"Current Settings\n\n"
+            f"Max Trade: {max_trade} BPS ({max_trade/100:.1f}%)\n"
+            f"Slippage: {slippage} BPS ({slippage/100:.1f}%)\n\n"
+            f"To update: /update_settings max_trade=1000 slippage=50")
         return
     params = {}
     for arg in args:

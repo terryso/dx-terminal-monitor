@@ -15,9 +15,9 @@ Test Coverage:
 - AUTO_START_MONITOR configuration (AC#5)
 """
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 
 # ============================================================================
 # Test Fixtures
@@ -421,7 +421,7 @@ class TestAdminPermissionChecks:
 
         TDD Phase: RED - This test will FAIL until all commands have permission checks.
         """
-        from commands.monitor import cmd_monitor_status, cmd_monitor_start, cmd_monitor_stop
+        from commands.monitor import cmd_monitor_start, cmd_monitor_status, cmd_monitor_stop
 
         commands = [
             cmd_monitor_status,
@@ -463,6 +463,7 @@ class TestAutoStartConfiguration:
         with patch.dict('os.environ', {'AUTO_START_MONITOR': 'true'}):
             # Import fresh to pick up env change
             import importlib
+
             import config
             importlib.reload(config)
 
@@ -479,6 +480,7 @@ class TestAutoStartConfiguration:
         """
         with patch.dict('os.environ', {'AUTO_START_MONITOR': 'false'}):
             import importlib
+
             import config
             importlib.reload(config)
 
@@ -496,6 +498,7 @@ class TestAutoStartConfiguration:
         with patch.dict('os.environ', {}, clear=True):
             # Remove AUTO_START_MONITOR from env if present
             import importlib
+
             import config
             importlib.reload(config)
 

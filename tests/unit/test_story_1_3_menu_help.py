@@ -7,9 +7,9 @@ create_app registers new handlers.
 Priority: P2 (Documentation update, low risk)
 """
 
-import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 
 # =============================================================================
 # Tests for post_init - Story 1-3 AC #2

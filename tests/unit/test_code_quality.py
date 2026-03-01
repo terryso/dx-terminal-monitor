@@ -4,9 +4,9 @@ Unit tests for code quality verification (AC 12, AC 13)
 Tests for: main.py line count, commands/ file sizes
 """
 
-import pytest
 import os
 
+import pytest
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -25,7 +25,7 @@ class TestCodeQualityRefactored:
         main_path = os.path.join(PROJECT_ROOT, "main.py")
 
         # When
-        with open(main_path, "r") as f:
+        with open(main_path) as f:
             line_count = sum(1 for line in f if line.strip())
 
         # Then
@@ -42,7 +42,7 @@ class TestCodeQualityRefactored:
             pytest.skip("commands/query.py not yet created")
 
         # When
-        with open(query_path, "r") as f:
+        with open(query_path) as f:
             line_count = sum(1 for line in f if line.strip())
 
         # Then
@@ -59,7 +59,7 @@ class TestCodeQualityRefactored:
             pytest.skip("commands/admin.py not yet created")
 
         # When
-        with open(admin_path, "r") as f:
+        with open(admin_path) as f:
             line_count = sum(1 for line in f if line.strip())
 
         # Then
@@ -76,7 +76,7 @@ class TestCodeQualityRefactored:
             pytest.skip("commands/monitor.py not yet created")
 
         # When
-        with open(monitor_path, "r") as f:
+        with open(monitor_path) as f:
             line_count = sum(1 for line in f if line.strip())
 
         # Then
@@ -93,7 +93,7 @@ class TestCodeQualityRefactored:
             pytest.skip("commands/withdraw.py not yet created")
 
         # When
-        with open(withdraw_path, "r") as f:
+        with open(withdraw_path) as f:
             line_count = sum(1 for line in f if line.strip())
 
         # Then

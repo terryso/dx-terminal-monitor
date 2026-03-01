@@ -2,9 +2,7 @@
 import logging
 
 from telegram import Update
-from telegram.ext import (
-    ContextTypes, ConversationHandler, CommandHandler, MessageHandler, filters
-)
+from telegram.ext import CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters
 from web3 import Web3
 
 from config import is_admin
