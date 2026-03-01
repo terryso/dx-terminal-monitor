@@ -344,15 +344,25 @@ class VaultContract:
 
     async def update_settings(
         self,
-        max_trade_bps: int,
-        slippage_bps: int
+        max_trade_bps: int = None,
+        slippage_bps: int = None,
+        trading_activity: int = None,
+        asset_risk_preference: int = None,
+        trade_size: int = None,
+        holding_style: int = None,
+        diversification: int = None
     ) -> dict[str, Any]:
         """
-        Update vault trading settings.
+        Update vault trading settings and behavior preferences.
 
         Args:
             max_trade_bps: Maximum trade amount in BPS (500-10000)
             slippage_bps: Slippage tolerance in BPS (10-5000)
+            trading_activity: Trading activity level (1-5)
+            asset_risk_preference: Risk preference level (1-5)
+            trade_size: Trade size level (1-5)
+            holding_style: Holding style level (1-5)
+            diversification: Diversification level (1-5)
 
         Returns:
             Dict with keys:
@@ -363,19 +373,45 @@ class VaultContract:
                 - error: str - on failure
         """
         try:
-            # Validate parameters
-            if not (500 <= max_trade_bps <= 10000):
+            # Validate trading settings
+            if max_trade_bps is not None and not (500 <= max_trade_bps <= 10000):
                 return {
                     'success': False,
-                    'error': 'max_trade 必须在 500-10000 BPS 之间 (5%-100%)'
+                    'error': 'max_trade must be between 500-10000 BPS (5%-100%)'
                 }
-            if not (10 <= slippage_bps <= 5000):
+            if slippage_bps is not None and not (10 <= slippage_bps <= 5000):
                 return {
                     'success': False,
-                    'error': 'slippage 必须在 10-5000 BPS 之间 (0.1%-50%)'
+                    'error': 'slippage must be between 10-5000 BPS (0.1%-50%)'
                 }
 
-            tx_func = self.contract.functions.updateSettings(max_trade_bps, slippage_bps)
+            # Validate behavior preferences (1-5)
+            for name, value in [
+                ('trading_activity', trading_activity),
+                ('asset_risk_preference', asset_risk_preference),
+                ('trade_size', trade_size),
+                ('holding_style', holding_style),
+                ('diversification', diversification)
+            ]:
+                if value is not None and not (1 <= value <= 5):
+                    return {
+                        'success': False,
+                        'error': f'{name} must be between 1-5'
+                    }
+
+            # Build settings tuple (use 0 as placeholder for unchanged values)
+            # Contract expects: (maxTradeAmount, slippageBps, tradingActivity, assetRiskPreference, tradeSize, holdingStyle, diversification)
+            settings = (
+                max_trade_bps if max_trade_bps is not None else 0,
+                slippage_bps if slippage_bps is not None else 0,
+                trading_activity if trading_activity is not None else 0,
+                asset_risk_preference if asset_risk_preference is not None else 0,
+                trade_size if trade_size is not None else 0,
+                holding_style if holding_style is not None else 0,
+                diversification if diversification is not None else 0
+            )
+
+            tx_func = self.contract.functions.updateSettings(settings)
             return await self._send_transaction(tx_func)
 
         except Exception as e:

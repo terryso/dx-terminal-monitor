@@ -40,7 +40,12 @@
       {
         "components": [
           {"internalType": "uint256", "name": "maxTradeAmount", "type": "uint256"},
-          {"internalType": "uint16", "name": "slippageBps", "type": "uint16"}
+          {"internalType": "uint256", "name": "slippageBps", "type": "uint256"},
+          {"internalType": "uint8", "name": "tradingActivity", "type": "uint8"},
+          {"internalType": "uint8", "name": "assetRiskPreference", "type": "uint8"},
+          {"internalType": "uint8", "name": "tradeSize", "type": "uint8"},
+          {"internalType": "uint8", "name": "holdingStyle", "type": "uint8"},
+          {"internalType": "uint8", "name": "diversification", "type": "uint8"}
         ],
         "internalType": "struct Settings",
         "name": "newSettings",

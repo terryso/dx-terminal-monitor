@@ -128,10 +128,10 @@ class TestContractUpdateSettings:
         vault = create_mocked_vault_contract(mock_web3_components)
 
         # When
-        result = await vault.update_settings(2000, 100)
+        result = await vault.update_settings(max_trade_bps=2000, slippage_bps=100)
 
-        # Then
-        mock_contract.functions.updateSettings.assert_called_once_with(2000, 100)
+        # Then - contract is called with tuple (maxTrade, slippage, 5 behavior prefs)
+        mock_contract.functions.updateSettings.assert_called_once_with((2000, 100, 0, 0, 0, 0, 0))
         assert result["success"] is True
         assert "transactionHash" in result
         assert result["status"] == 1
@@ -149,7 +149,7 @@ class TestContractUpdateSettings:
         vault = create_mocked_vault_contract(mock_web3_components)
 
         # When
-        result = await vault.update_settings(499, 100)
+        result = await vault.update_settings(max_trade_bps=499, slippage_bps=100)
 
         # Then
         assert result["success"] is False
@@ -319,7 +319,11 @@ class TestCmdUpdateSettings:
         assert "2000" in call_args
         assert "100" in call_args
         assert "0xabc123def456" in call_args
-        mock_contract.update_settings.assert_called_once_with(2000, 100)
+        mock_contract.update_settings.assert_called_once_with(
+            max_trade_bps=2000, slippage_bps=100,
+            trading_activity=None, asset_risk_preference=None,
+            trade_size=None, holding_style=None, diversification=None
+        )
 
         # Verify audit log
         mock_logger.info.assert_called()
@@ -366,7 +370,11 @@ class TestCmdUpdateSettings:
             await cmd_update_settings(mock_telegram_update, ctx)
 
         # Then
-        mock_contract.update_settings.assert_called_once_with(2000, 50)
+        mock_contract.update_settings.assert_called_once_with(
+            max_trade_bps=2000, slippage_bps=None,
+            trading_activity=None, asset_risk_preference=None,
+            trade_size=None, holding_style=None, diversification=None
+        )
 
     @pytest.mark.asyncio
     async def test_update_settings_only_slippage(
@@ -408,7 +416,11 @@ class TestCmdUpdateSettings:
             await cmd_update_settings(mock_telegram_update, ctx)
 
         # Then
-        mock_contract.update_settings.assert_called_once_with(1000, 100)
+        mock_contract.update_settings.assert_called_once_with(
+            max_trade_bps=None, slippage_bps=100,
+            trading_activity=None, asset_risk_preference=None,
+            trade_size=None, holding_style=None, diversification=None
+        )
 
     @pytest.mark.asyncio
     async def test_update_settings_unauthorized(

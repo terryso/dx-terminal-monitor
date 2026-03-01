@@ -194,43 +194,92 @@ async def cmd_update_settings(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             f"  Trade Size: {trade_size}\n"
             f"  Holding Style: {holding_style}\n"
             f"  Diversification: {diversification}\n\n"
-            f"To update trading: /update_settings max_trade=1000 slippage=50")
+            f"To update:\n"
+            f"  /update_settings max_trade=1000 slippage=50\n"
+            f"  /update_settings activity=3 risk=2 size=3 holding=4 diversification=2")
         return
+
+    # Parse parameters
     params = {}
     for arg in args:
         match = re.match(r'(\w+)=(\d+)', arg)
         if match:
             key, value = match.groups()
             params[key] = int(value)
-    valid_keys = {'max_trade', 'slippage'}
+
+    # Valid parameter keys
+    valid_keys = {
+        'max_trade', 'slippage',
+        'activity', 'risk', 'size', 'holding', 'diversification'
+    }
     invalid_keys = set(params.keys()) - valid_keys
     if invalid_keys:
         await update.message.reply_text(
-            f"Unknown params: {', '.join(invalid_keys)}\nSupported: max_trade, slippage")
+            f"Unknown params: {', '.join(invalid_keys)}\n"
+            f"Supported: max_trade, slippage, activity, risk, size, holding, diversification")
         return
     if not params:
-        await update.message.reply_text("Provide at least one parameter\nUsage: /update_settings max_trade=1000 slippage=50")
+        await update.message.reply_text(
+            "Provide at least one parameter\n"
+            "Trading: /update_settings max_trade=1000 slippage=50\n"
+            "Behavior: /update_settings activity=3 risk=2 size=3 holding=4 diversification=2")
         return
+
+    # Get current values for any unspecified params (only needed for trading settings)
     api = _get_api()
     try:
         vault_data = await api.get_vault()
-        current_max_trade = int(vault_data.get('maxTradeAmount', 1000))
-        current_slippage = int(vault_data.get('slippageBps', 50))
     except Exception as e:
         logger.warning(f"Failed to fetch current settings: {e}")
-        current_max_trade = 1000
-        current_slippage = 50
-    max_trade_bps = params.get('max_trade', current_max_trade)
-    slippage_bps = params.get('slippage', current_slippage)
-    logger.info(f"Admin {update.effective_user.id} updating settings: max_trade={max_trade_bps}, slippage={slippage_bps}")
-    result = await _get_contract().update_settings(max_trade_bps, slippage_bps)
+        vault_data = {}
+
+    # Build update params (None means don't change)
+    max_trade_bps = params.get('max_trade')
+    slippage_bps = params.get('slippage')
+    trading_activity = params.get('activity')
+    asset_risk_preference = params.get('risk')
+    trade_size = params.get('size')
+    holding_style = params.get('holding')
+    diversification = params.get('diversification')
+
+    # Labels for display
+    activity_labels = {1: "Very Low", 2: "Low", 3: "Medium", 4: "High", 5: "Very High"}
+    risk_labels = {1: "Conservative", 2: "Moderate", 3: "Balanced", 4: "Growth", 5: "Aggressive"}
+    size_labels = {1: "Tiny", 2: "Small", 3: "Medium", 4: "Large", 5: "Huge"}
+    style_labels = {1: "Scalper", 2: "Day Trader", 3: "Swing", 4: "Position", 5: "HODL"}
+    diversify_labels = {1: "Concentrated", 2: "Focused", 3: "Balanced", 4: "Diversified", 5: "Wide"}
+
+    logger.info(f"Admin {update.effective_user.id} updating settings: {params}")
+    result = await _get_contract().update_settings(
+        max_trade_bps=max_trade_bps,
+        slippage_bps=slippage_bps,
+        trading_activity=trading_activity,
+        asset_risk_preference=asset_risk_preference,
+        trade_size=trade_size,
+        holding_style=holding_style,
+        diversification=diversification
+    )
+
     if result.get("success"):
         tx_hash = result.get("transactionHash", "")
-        await update.message.reply_text(
-            f"Settings updated\n"
-            f"max_trade: {max_trade_bps} BPS ({max_trade_bps/100:.1f}%)\n"
-            f"slippage: {slippage_bps} BPS ({slippage_bps/100:.1f}%)\n"
-            f"TX: {tx_hash}")
+        # Build response message
+        lines = ["Settings updated\n"]
+        if max_trade_bps:
+            lines.append(f"Max Trade: {max_trade_bps} BPS ({max_trade_bps/100:.1f}%)")
+        if slippage_bps:
+            lines.append(f"Slippage: {slippage_bps} BPS ({slippage_bps/100:.1f}%)")
+        if trading_activity:
+            lines.append(f"Activity: {activity_labels.get(trading_activity, trading_activity)}")
+        if asset_risk_preference:
+            lines.append(f"Risk: {risk_labels.get(asset_risk_preference, asset_risk_preference)}")
+        if trade_size:
+            lines.append(f"Size: {size_labels.get(trade_size, trade_size)}")
+        if holding_style:
+            lines.append(f"Holding: {style_labels.get(holding_style, holding_style)}")
+        if diversification:
+            lines.append(f"Diversification: {diversify_labels.get(diversification, diversification)}")
+        lines.append(f"\nTX: {tx_hash}")
+        await update.message.reply_text("\n".join(lines))
     else:
         error = result.get("error", "Unknown error")
         await update.message.reply_text(f"Update failed: {error}")
