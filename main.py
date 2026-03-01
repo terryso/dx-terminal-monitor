@@ -5,7 +5,7 @@ from telegram import Update, BotCommand
 from telegram.ext import Application, CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters
 from telegram.error import TimedOut, NetworkError, TelegramError
 from web3 import Web3
-from config import TELEGRAM_BOT_TOKEN, ALLOWED_USERS, is_admin
+from config import TELEGRAM_BOT_TOKEN, ALLOWED_USERS, is_admin, AUTO_START_MONITOR
 from api import TerminalAPI
 from contract import VaultContract
 from monitor import ActivityMonitor
@@ -103,6 +103,9 @@ Commands:
 /resume - Resume Agent trading
 /update_settings - Update vault settings
 /withdraw <amount> - Withdraw ETH to wallet
+/monitor_status - Check monitor status
+/monitor_start - Start activity monitor
+/monitor_stop - Stop activity monitor
 """
     await update.message.reply_text(help_text)
 
@@ -288,6 +291,9 @@ async def post_init(app: Application):
         BotCommand("resume", "Resume agent trading"),
         BotCommand("update_settings", "Update vault settings"),
         BotCommand("withdraw", "Withdraw ETH to wallet"),
+        BotCommand("monitor_status", "Check monitor status"),
+        BotCommand("monitor_start", "Start activity monitor"),
+        BotCommand("monitor_stop", "Stop activity monitor"),
     ]
     await app.bot.set_my_commands(commands)
     logger.info("Commands menu set")
@@ -296,8 +302,13 @@ async def post_init(app: Application):
     global _notifier_instance, _monitor_instance
     _notifier_instance = TelegramNotifier(app.bot)
     _monitor_instance = ActivityMonitor(api, _on_new_activity)
-    await _monitor_instance.start_background()
-    logger.info("Activity monitor started with Telegram notifications")
+
+    # Auto-start monitor based on config
+    if AUTO_START_MONITOR:
+        await _monitor_instance.start_background()
+        logger.info("Activity monitor auto-started with Telegram notifications")
+    else:
+        logger.info("Activity monitor initialized but not started (AUTO_START_MONITOR=false)")
 
 
 async def _on_new_activity(activity: dict):
@@ -674,6 +685,82 @@ async def handle_withdraw_cancel(update: Update, ctx: ContextTypes.DEFAULT_TYPE)
     return END
 
 
+async def cmd_monitor_status(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """查看监控服务状态。"""
+    # Admin permission check
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text("未授权: 仅管理员可查看监控状态")
+        return
+
+    # Check if monitor is initialized
+    if _monitor_instance is None:
+        await update.message.reply_text("监控服务未初始化")
+        return
+
+    # Get status
+    status = "运行中" if _monitor_instance.running else "已停止"
+    interval = _monitor_instance.poll_interval
+    seen_count = len(_monitor_instance.seen_ids)
+
+    await update.message.reply_text(
+        f"监控服务状态\n\n"
+        f"状态: {status}\n"
+        f"轮询间隔: {interval} 秒\n"
+        f"已处理活动: {seen_count} 个"
+    )
+
+
+async def cmd_monitor_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """启动监控服务。"""
+    # Admin permission check
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text("未授权: 仅管理员可启动监控")
+        return
+
+    # Check if monitor is initialized
+    if _monitor_instance is None:
+        await update.message.reply_text("监控服务未初始化，请重启 Bot")
+        return
+
+    # Check if already running
+    if _monitor_instance.running:
+        await update.message.reply_text("监控服务已在运行中")
+        return
+
+    # Start monitor
+    await _monitor_instance.start_background()
+    logger.info(f"Admin {update.effective_user.id} started activity monitor")
+
+    await update.message.reply_text(
+        f"监控服务已启动\n"
+        f"轮询间隔: {_monitor_instance.poll_interval} 秒"
+    )
+
+
+async def cmd_monitor_stop(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """停止监控服务。"""
+    # Admin permission check
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text("未授权: 仅管理员可停止监控")
+        return
+
+    # Check if monitor is initialized
+    if _monitor_instance is None:
+        await update.message.reply_text("监控服务未初始化")
+        return
+
+    # Check if already stopped
+    if not _monitor_instance.running:
+        await update.message.reply_text("监控服务已处于停止状态")
+        return
+
+    # Stop monitor
+    _monitor_instance.stop()
+    logger.info(f"Admin {update.effective_user.id} stopped activity monitor")
+
+    await update.message.reply_text("监控服务已停止")
+
+
 def create_app():
     """Create and configure the Telegram application."""
     app = Application.builder().token(TELEGRAM_BOT_TOKEN).post_init(post_init).build()
@@ -692,6 +779,9 @@ def create_app():
     app.add_handler(CommandHandler("pause", cmd_pause))
     app.add_handler(CommandHandler("resume", cmd_resume))
     app.add_handler(CommandHandler("update_settings", cmd_update_settings))
+    app.add_handler(CommandHandler("monitor_status", cmd_monitor_status))
+    app.add_handler(CommandHandler("monitor_start", cmd_monitor_start))
+    app.add_handler(CommandHandler("monitor_stop", cmd_monitor_stop))
 
     # Withdraw handler with confirmation (ConversationHandler)
     withdraw_handler = ConversationHandler(

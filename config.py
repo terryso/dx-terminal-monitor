@@ -36,6 +36,9 @@ NOTIFY_USERS = [
     if x.strip().isdigit()
 ]
 
+# Monitor Control Configuration
+AUTO_START_MONITOR = os.getenv('AUTO_START_MONITOR', 'true').lower() == 'true'
+
 
 def is_admin(user_id: int) -> bool:
     """检查用户是否为管理员（用于高风险操作）

@@ -61,8 +61,8 @@ development_status:
   epic-3-retrospective: optional
 
   # Epic 4: Agent 操作监控与推送
-  epic-4: in-progress
+  epic-4: done
   4-1-activity-monitor-service: done
   4-2-tg-message-push: done
-  4-3-monitor-control-commands: backlog
+  4-3-monitor-control-commands: done
   epic-4-retrospective: optional
