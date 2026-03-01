@@ -208,8 +208,24 @@ async def cmd_vault(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     if "error" in data:
         await update.message.reply_text(f"Error: {data['error']}")
         return
+
+    # Trading settings
     max_trade = int(data.get('maxTradeAmount', 0))
     slippage = int(data.get('slippageBps', 0))
+
+    # Behavior preferences (0-4 scale labels)
+    activity_labels = {0: "Very Low", 1: "Low", 2: "Medium", 3: "High", 4: "Very High"}
+    risk_labels = {0: "Conservative", 1: "Moderate", 2: "Balanced", 3: "Growth", 4: "Aggressive"}
+    size_labels = {0: "Tiny", 1: "Small", 2: "Medium", 3: "Large", 4: "Huge"}
+    style_labels = {0: "Scalper", 1: "Day Trader", 2: "Swing", 3: "Position", 4: "HODL"}
+    diversify_labels = {0: "Concentrated", 1: "Focused", 2: "Balanced", 3: "Diversified", 4: "Wide"}
+
+    trading_activity = activity_labels.get(data.get('tradingActivity', 2), "Medium")
+    risk_pref = risk_labels.get(data.get('assetRiskPreference', 2), "Balanced")
+    trade_size = size_labels.get(data.get('tradeSize', 2), "Medium")
+    holding_style = style_labels.get(data.get('holdingStyle', 2), "Swing")
+    diversification = diversify_labels.get(data.get('diversification', 2), "Balanced")
+
     msg = f"""
 Vault Info
 
@@ -219,8 +235,15 @@ Owner: {data.get('ownerAddress', '?')}
 State: {data.get('state', '?')}
 Paused: {data.get('paused', False)}
 
-Settings:
+Trading Settings:
   Max Trade: {max_trade} BPS ({max_trade/100:.1f}%)
   Slippage: {slippage} BPS ({slippage/100:.1f}%)
+
+Behavior Preferences:
+  Trading Activity: {trading_activity}
+  Risk Preference: {risk_pref}
+  Trade Size: {trade_size}
+  Holding Style: {holding_style}
+  Diversification: {diversification}
 """
     await update.message.reply_text(msg)

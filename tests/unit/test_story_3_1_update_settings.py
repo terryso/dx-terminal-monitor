@@ -456,7 +456,12 @@ class TestCmdUpdateSettings:
         mock_api = AsyncMock()
         mock_api.get_vault.return_value = {
             'maxTradeAmount': 1000,
-            'slippageBps': 50
+            'slippageBps': 50,
+            'tradingActivity': 3,
+            'assetRiskPreference': 2,
+            'tradeSize': 2,
+            'holdingStyle': 1,
+            'diversification': 3
         }
 
         with patch("commands.admin.is_admin", return_value=True), \
@@ -476,6 +481,10 @@ class TestCmdUpdateSettings:
         assert "Slippage" in call_args or "slippage" in call_args.lower()
         assert "1000" in call_args
         assert "50" in call_args
+        # Behavior Preferences
+        assert "Behavior" in call_args or "behavior" in call_args.lower()
+        assert "Trading Activity" in call_args or "trading" in call_args.lower()
+        assert "Risk" in call_args or "risk" in call_args.lower()
 
     @pytest.mark.asyncio
     async def test_update_settings_invalid_parameter(

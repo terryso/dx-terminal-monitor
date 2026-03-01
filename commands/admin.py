@@ -165,13 +165,36 @@ async def cmd_update_settings(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         if "error" in vault_data:
             await update.message.reply_text(f"Error: {vault_data['error']}")
             return
+
+        # Trading settings
         max_trade = int(vault_data.get('maxTradeAmount', 0))
         slippage = int(vault_data.get('slippageBps', 0))
+
+        # Behavior preferences labels
+        activity_labels = {0: "Very Low", 1: "Low", 2: "Medium", 3: "High", 4: "Very High"}
+        risk_labels = {0: "Conservative", 1: "Moderate", 2: "Balanced", 3: "Growth", 4: "Aggressive"}
+        size_labels = {0: "Tiny", 1: "Small", 2: "Medium", 3: "Large", 4: "Huge"}
+        style_labels = {0: "Scalper", 1: "Day Trader", 2: "Swing", 3: "Position", 4: "HODL"}
+        diversify_labels = {0: "Concentrated", 1: "Focused", 2: "Balanced", 3: "Diversified", 4: "Wide"}
+
+        trading_activity = activity_labels.get(vault_data.get('tradingActivity', 2), "Medium")
+        risk_pref = risk_labels.get(vault_data.get('assetRiskPreference', 2), "Balanced")
+        trade_size = size_labels.get(vault_data.get('tradeSize', 2), "Medium")
+        holding_style = style_labels.get(vault_data.get('holdingStyle', 2), "Swing")
+        diversification = diversify_labels.get(vault_data.get('diversification', 2), "Balanced")
+
         await update.message.reply_text(
             f"Current Settings\n\n"
-            f"Max Trade: {max_trade} BPS ({max_trade/100:.1f}%)\n"
-            f"Slippage: {slippage} BPS ({slippage/100:.1f}%)\n\n"
-            f"To update: /update_settings max_trade=1000 slippage=50")
+            f"Trading Settings:\n"
+            f"  Max Trade: {max_trade} BPS ({max_trade/100:.1f}%)\n"
+            f"  Slippage: {slippage} BPS ({slippage/100:.1f}%)\n\n"
+            f"Behavior Preferences:\n"
+            f"  Trading Activity: {trading_activity}\n"
+            f"  Risk Preference: {risk_pref}\n"
+            f"  Trade Size: {trade_size}\n"
+            f"  Holding Style: {holding_style}\n"
+            f"  Diversification: {diversification}\n\n"
+            f"To update trading: /update_settings max_trade=1000 slippage=50")
         return
     params = {}
     for arg in args:
