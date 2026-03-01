@@ -27,6 +27,7 @@ class TestCmdActivity:
             "items": [
                 {
                     "type": "swap",
+                    "timestamp": 1700000000,  # Valid timestamp
                     "swap": {
                         "tokenSymbol": "USDC",
                         "side": "buy",
@@ -46,7 +47,7 @@ class TestCmdActivity:
 
         # Then
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "[Swap]" in call_args
+        assert "Swap" in call_args
         assert "BUY" in call_args
         assert "USDC" in call_args
         assert "0.500000" in call_args
@@ -63,6 +64,7 @@ class TestCmdActivity:
             "items": [
                 {
                     "type": "deposit",
+                    "timestamp": 1700000000,  # Valid timestamp
                     "deposit": {
                         "amountWei": "2000000000000000000",  # 2 ETH
                     },
@@ -80,7 +82,7 @@ class TestCmdActivity:
 
         # Then
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "[Deposit]" in call_args
+        assert "Deposit" in call_args
         assert "2.000000" in call_args
 
     @pytest.mark.asyncio
@@ -95,6 +97,7 @@ class TestCmdActivity:
             "items": [
                 {
                     "type": "withdrawal",
+                    "timestamp": 1700000000,  # Valid timestamp
                     "withdrawal": {
                         "amountWei": "1000000000000000000",  # 1 ETH
                     },
@@ -112,7 +115,7 @@ class TestCmdActivity:
 
         # Then
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "[Withdraw]" in call_args
+        assert "Withdraw" in call_args
         assert "1.000000" in call_args
 
     @pytest.mark.asyncio
@@ -125,9 +128,9 @@ class TestCmdActivity:
         # Given
         mock_api_response = {
             "items": [
-                {"type": "swap", "swap": {"tokenSymbol": "USDC", "side": "sell", "ethAmount": "100000000000000000"}},
-                {"type": "deposit", "deposit": {"amountWei": "500000000000000000"}},
-                {"type": "withdrawal", "withdrawal": {"amountWei": "200000000000000000"}},
+                {"type": "swap", "timestamp": 1700000000, "swap": {"tokenSymbol": "USDC", "side": "sell", "ethAmount": "100000000000000000"}},
+                {"type": "deposit", "timestamp": 1700000100, "deposit": {"amountWei": "500000000000000000"}},
+                {"type": "withdrawal", "timestamp": 1700000200, "withdrawal": {"amountWei": "200000000000000000"}},
             ]
         }
 
@@ -141,9 +144,9 @@ class TestCmdActivity:
 
         # Then
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "[Swap]" in call_args
-        assert "[Deposit]" in call_args
-        assert "[Withdraw]" in call_args
+        assert "Swap" in call_args
+        assert "Deposit" in call_args
+        assert "Withdraw" in call_args
 
     @pytest.mark.asyncio
     async def test_activity_empty(

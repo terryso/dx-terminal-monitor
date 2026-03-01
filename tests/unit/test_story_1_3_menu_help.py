@@ -67,7 +67,7 @@ class TestPostInitStory13:
 
     @pytest.mark.asyncio
     async def test_post_init_registers_all_expected_commands(self) -> None:
-        """Test post_init registers all 10 expected commands."""
+        """Test post_init registers all expected commands."""
         # Given
         mock_app = MagicMock()
         mock_app.bot = AsyncMock()
@@ -82,7 +82,7 @@ class TestPostInitStory13:
         call_args = mock_app.bot.set_my_commands.call_args[0][0]
         command_names = [cmd.command for cmd in call_args]
 
-        # All expected commands including the new ones from Story 1-3, 2-1, and 2-2
+        # All expected commands including the new ones from Story 1-3, 2-1, 2-2, 3-1, 3-2, 4-1
         expected_commands = [
             "start",
             "balance",
@@ -92,16 +92,19 @@ class TestPostInitStory13:
             "swaps",
             "strategies",
             "vault",
-            "add_strategy",      # NEW - Story 2-1
-            "disable_strategy",  # NEW - Story 1-3
-            "disable_all",       # NEW - Story 1-3
-            "pause",             # NEW - Story 2-2
-            "resume",            # NEW - Story 2-2
-            "update_settings",   # NEW - Story 3-1
-            "withdraw",          # NEW - Story 3-2
+            "add_strategy",      # Story 2-1
+            "disable_strategy",  # Story 1-3
+            "disable_all",       # Story 1-3
+            "pause",             # Story 2-2
+            "resume",            # Story 2-2
+            "update_settings",   # Story 3-1
+            "withdraw",          # Story 3-2
+            "monitor_status",    # Story 4-1
+            "monitor_start",     # Story 4-1
+            "monitor_stop",      # Story 4-1
         ]
 
-        assert len(command_names) == 15, f"Expected 15 commands, got {len(command_names)}"
+        assert len(command_names) == len(expected_commands), f"Expected {len(expected_commands)} commands, got {len(command_names)}"
         for expected in expected_commands:
             assert expected in command_names, f"Command '{expected}' should be registered"
 

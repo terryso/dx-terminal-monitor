@@ -289,9 +289,11 @@ class TestMonitorStart:
         from monitor import ActivityMonitor
 
         mock_api = MagicMock()
-        mock_api.get_activity = AsyncMock(return_value={
-            'activities': [{'id': '0xnew', 'type': 'swap'}]
-        })
+        # First call is preload (returns empty), subsequent calls return new activity
+        mock_api.get_activity = AsyncMock(side_effect=[
+            {'items': []},  # Preload - no existing activities
+            {'items': [{'id': '0xnew', 'type': 'swap'}]}  # First poll - new activity
+        ])
         mock_callback = AsyncMock()
 
         monitor = ActivityMonitor(mock_api, mock_callback)
