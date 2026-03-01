@@ -6,6 +6,7 @@
 ![License](https://img.shields.io/badge/License-MIT-green)
 ![Tests](https://img.shields.io/badge/Tests-378%20passing-brightgreen)
 ![Coverage](https://img.shields.io/badge/Coverage-96%25-green)
+[![BMAD](https://bmad-badge.vercel.app/terryso/dx-terminal-monitor.svg)](https://github.com/bmad-code-org/BMAD-METHOD)
 
 A Telegram bot for monitoring and managing Terminal Markets Vault.
 
