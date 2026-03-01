@@ -1,6 +1,10 @@
 """DX Terminal Monitor Bot 入口模块。"""
-import logging
 import os
+# 在任何 import 之前清除代理设置，防止库在导入时读取代理
+for _proxy_var in ['HTTP_PROXY', 'HTTPS_PROXY', 'ALL_PROXY', 'http_proxy', 'https_proxy', 'all_proxy']:
+    os.environ.pop(_proxy_var, None)
+
+import logging
 import time
 from telegram import BotCommand, Update
 from telegram.ext import Application
@@ -80,8 +84,6 @@ def create_app():
 
 def main():
     """Bot 主入口。"""
-    for proxy_var in ['HTTP_PROXY', 'HTTPS_PROXY', 'ALL_PROXY', 'http_proxy', 'https_proxy', 'all_proxy']:
-        os.environ.pop(proxy_var, None)
     if not TELEGRAM_BOT_TOKEN:
         print("Error: TELEGRAM_BOT_TOKEN not set")
         return

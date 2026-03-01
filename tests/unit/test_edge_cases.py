@@ -217,18 +217,23 @@ class TestMainFunction:
             assert mock_app.run_polling.call_count == 1
 
     def test_main_clears_proxy_env(self) -> None:
-        """Test main clears proxy environment variables."""
+        """Test module clears proxy environment variables on import."""
         import os
+        import importlib
+        import sys
 
         # Set proxy vars
         os.environ['HTTP_PROXY'] = 'http://proxy:8080'
         os.environ['HTTPS_PROXY'] = 'https://proxy:8080'
 
+        # Remove main from sys.modules to force re-import
+        sys.modules.pop('main', None)
+
         with patch("main.TELEGRAM_BOT_TOKEN", None), \
              patch("builtins.print"):
-            from main import main
-            main()  # This clears proxy vars and exits
+            import main as main_module
+            importlib.reload(main_module)  # Force re-run of module-level code
 
-        # Proxy vars should be cleared after main() runs
+        # Proxy vars should be cleared on module import
         assert os.environ.get('HTTP_PROXY') is None
         assert os.environ.get('HTTPS_PROXY') is None
