@@ -1,0 +1,64 @@
+{
+  "schemes": ["https"],
+  "swagger": "2.0",
+  "info": {
+    "description": "Trading vault API",
+    "title": "Terminal 2 API",
+    "contact": {},
+    "version": "1.0"
+  },
+  "host": "api.terminal.markets",
+  "basePath": "/api/v1",
+  "paths": {
+    "/activity/{vaultAddress}": {
+      "get": {
+        "description": "Get activity feed for a vault combining swaps, deposits, withdrawals, presale events, reap events, and vault summaries",
+        "summary": "Get activity",
+        "parameters": [
+          {"type": "string", "name": "vaultAddress", "in": "path", "required": true},
+          {"type": "integer", "name": "limit", "in": "query", "required": true},
+          {"type": "string", "name": "order", "in": "query", "required": true},
+          {"type": "string", "name": "cursor", "in": "query", "required": false}
+        ]
+      }
+    },
+    "/balance/{vaultAddress}": {
+      "get": {
+        "description": "Get vault balance including ETH, WETH, and token holdings",
+        "summary": "Get balance"
+      }
+    },
+    "/pnl/{vaultAddress}": {
+      "get": {
+        "description": "Get profit and loss summary for vault",
+        "summary": "Get PnL"
+      }
+    },
+    "/positions/{vaultAddress}": {
+      "get": {
+        "description": "Get current token positions held by vault",
+        "summary": "Get positions"
+      }
+    },
+    "/strategies/{vaultAddress}": {
+      "get": {
+        "description": "Get active strategies for vault",
+        "summary": "Get strategies"
+      }
+    },
+    "/settings/{vaultAddress}": {
+      "get": {
+        "description": "Get agent settings (risk preferences, trading config)",
+        "summary": "Get settings"
+      }
+    },
+    "/vault/{vaultAddress}": {
+      "get": {
+        "description": "Get vault metadata including owner, agent ID, pause state",
+        "summary": "Get vault info"
+      }
+    }
+  },
+  "_note": "This is a summarized version. Full API documentation at: https://api.terminal.markets/swagger/doc.json",
+  "_contract_docs": "https://docs.terminal.markets/resources/agent-vault-contract-api"
+}
