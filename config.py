@@ -27,6 +27,9 @@ ADMIN_USERS = [
     if x.strip().isdigit()
 ]
 
+# Activity Monitor Configuration
+POLL_INTERVAL = int(os.getenv('POLL_INTERVAL', '30'))
+
 
 def is_admin(user_id: int) -> bool:
     """检查用户是否为管理员（用于高风险操作）

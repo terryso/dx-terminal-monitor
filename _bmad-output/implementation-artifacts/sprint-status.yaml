@@ -41,7 +41,7 @@ story_location: _bmad-output/implementation-artifacts
 
 development_status:
   # Epic 1: Web3 基础设施与策略禁用
-  epic-1: in-progress
+  epic-1: done
   1-0-web3-infrastructure: done
   1-1-disable-strategy: done
   1-2-disable-all-strategies: done
@@ -49,13 +49,20 @@ development_status:
   epic-1-retrospective: optional
 
   # Epic 2: 策略管理与交易控制
-  epic-2: in-progress
+  epic-2: done
   2-1-add-strategy: done
   2-2-pause-resume-agent: done
   epic-2-retrospective: optional
 
   # Epic 3: 高级管理与资金操作
-  epic-3: in-progress
+  epic-3: done
   3-1-update-settings: done
   3-2-withdraw-eth: done
   epic-3-retrospective: optional
+
+  # Epic 4: Agent 操作监控与推送
+  epic-4: in-progress
+  4-1-activity-monitor-service: done
+  4-2-tg-message-push: backlog
+  4-3-monitor-control-commands: backlog
+  epic-4-retrospective: optional
