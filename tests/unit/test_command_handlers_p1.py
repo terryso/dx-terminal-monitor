@@ -1192,8 +1192,6 @@ class TestCmdDisableAll:
                 del sys.modules[mod]
 
         try:
-            from telegram import BotCommand
-
             # Mock the bot
             mock_bot = MagicMock()
             mock_bot.set_my_commands = AsyncMock()
@@ -1578,8 +1576,6 @@ class TestCmdAddStrategy:
                 del sys.modules[mod]
 
         try:
-            from telegram import BotCommand
-
             # Mock the bot
             mock_bot = MagicMock()
             mock_bot.set_my_commands = AsyncMock()
@@ -1802,7 +1798,7 @@ class TestContractAddStrategy:
         mock_vault.contract.functions.addStrategy.return_value = mock_contract_func
 
         # When - call without expiry/priority (should use defaults)
-        result = await VaultContract.add_strategy(mock_vault, "test strategy")
+        await VaultContract.add_strategy(mock_vault, "test strategy")
 
         # Then - verify default params were used
         mock_vault.contract.functions.addStrategy.assert_called_once_with(

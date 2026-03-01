@@ -16,7 +16,6 @@ Test Coverage:
 """
 
 import pytest
-import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 
@@ -519,7 +518,6 @@ class TestCommandRegistration:
         TDD Phase: RED - This test will FAIL until commands are registered.
         """
         from main import create_app
-        import asyncio
 
         # This is a structural test - verify the command handlers are registered
         # We'll check that the handlers exist in the app

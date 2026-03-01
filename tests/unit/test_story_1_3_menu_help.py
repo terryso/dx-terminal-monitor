@@ -9,7 +9,6 @@ Priority: P2 (Documentation update, low risk)
 
 import pytest
 from unittest.mock import MagicMock, AsyncMock, patch
-from telegram import BotCommand
 
 
 # =============================================================================

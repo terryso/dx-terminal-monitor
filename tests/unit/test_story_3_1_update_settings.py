@@ -7,7 +7,6 @@ ATDD RED PHASE: All tests are written with test.skip() and will FAIL until imple
 
 import os
 from unittest.mock import MagicMock, AsyncMock, patch, mock_open
-import re
 
 import pytest
 
