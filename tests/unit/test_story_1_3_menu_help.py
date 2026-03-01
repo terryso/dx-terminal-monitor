@@ -98,9 +98,10 @@ class TestPostInitStory13:
             "pause",             # NEW - Story 2-2
             "resume",            # NEW - Story 2-2
             "update_settings",   # NEW - Story 3-1
+            "withdraw",          # NEW - Story 3-2
         ]
 
-        assert len(command_names) == 14, f"Expected 14 commands, got {len(command_names)}"
+        assert len(command_names) == 15, f"Expected 15 commands, got {len(command_names)}"
         for expected in expected_commands:
             assert expected in command_names, f"Command '{expected}' should be registered"
 
@@ -196,6 +197,20 @@ class TestCmdStartStory13:
 class TestCreateAppStory13:
     """Tests for create_app function - Story 1-3 handler registration."""
 
+    def _extract_handler_commands(self, handlers) -> list:
+        """Extract commands from handlers, handling both CommandHandler and ConversationHandler."""
+        handler_commands = []
+        for handler in handlers:
+            # CommandHandler has 'commands' attribute
+            if hasattr(handler, 'commands'):
+                handler_commands.extend(handler.commands)
+            # ConversationHandler has 'entry_points' with CommandHandlers inside
+            elif hasattr(handler, 'entry_points'):
+                for entry_point in handler.entry_points:
+                    if hasattr(entry_point, 'commands'):
+                        handler_commands.extend(entry_point.commands)
+        return handler_commands
+
     @pytest.mark.asyncio
     async def test_create_app_registers_disable_strategy_handler(self) -> None:
         """Test create_app registers disable_strategy command handler."""
@@ -208,10 +223,7 @@ class TestCreateAppStory13:
 
             # Then - CommandHandler.commands returns a list/tuple of command strings
             handlers = app.handlers[0]  # CommandHandler group
-            # Collect all commands from handlers (commands is a tuple/list)
-            handler_commands = []
-            for handler in handlers:
-                handler_commands.extend(handler.commands)
+            handler_commands = self._extract_handler_commands(handlers)
 
             assert "disable_strategy" in handler_commands, "disable_strategy handler should be registered"
 
@@ -227,9 +239,7 @@ class TestCreateAppStory13:
 
             # Then
             handlers = app.handlers[0]  # CommandHandler group
-            handler_commands = []
-            for handler in handlers:
-                handler_commands.extend(handler.commands)
+            handler_commands = self._extract_handler_commands(handlers)
 
             assert "disable_all" in handler_commands, "disable_all handler should be registered"
 
@@ -245,9 +255,7 @@ class TestCreateAppStory13:
 
             # Then
             handlers = app.handlers[0]  # CommandHandler group
-            handler_commands = []
-            for handler in handlers:
-                handler_commands.extend(handler.commands)
+            handler_commands = self._extract_handler_commands(handlers)
 
             # Verify all expected handlers are registered
             expected_handlers = [

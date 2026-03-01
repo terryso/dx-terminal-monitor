@@ -656,7 +656,13 @@ class TestCommandRegistration:
             handlers = app.handlers[0]  # CommandHandler group
             handler_commands = []
             for handler in handlers:
-                handler_commands.extend(handler.commands)
+                # Handle both CommandHandler and ConversationHandler
+                if hasattr(handler, 'commands'):
+                    handler_commands.extend(handler.commands)
+                elif hasattr(handler, 'entry_points'):
+                    for entry_point in handler.entry_points:
+                        if hasattr(entry_point, 'commands'):
+                            handler_commands.extend(entry_point.commands)
 
             assert "pause" in handler_commands, "pause handler should be registered"
             assert "resume" in handler_commands, "resume handler should be registered"

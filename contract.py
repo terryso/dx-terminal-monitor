@@ -380,3 +380,33 @@ class VaultContract:
         except Exception as e:
             logger.error(f"Failed to update settings: {e}")
             return {"success": False, "error": str(e)}
+
+    async def withdraw_eth(self, amount_wei: int) -> Dict[str, Any]:
+        """
+        Withdraw ETH from the vault to the owner address.
+
+        Args:
+            amount_wei: Amount to withdraw in Wei
+
+        Returns:
+            Dict with keys:
+                - success: bool
+                - transactionHash: str (hex) - on success
+                - status: int - on success
+                - blockNumber: int - on success
+                - error: str - on failure
+        """
+        try:
+            # Validate amount
+            if amount_wei <= 0:
+                return {
+                    'success': False,
+                    'error': '提取金额必须大于 0'
+                }
+
+            tx_func = self.contract.functions.withdrawETH(amount_wei)
+            return await self._send_transaction(tx_func)
+
+        except Exception as e:
+            logger.error(f"Failed to withdraw ETH: {e}")
+            return {"success": False, "error": str(e)}
