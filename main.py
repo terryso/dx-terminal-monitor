@@ -1,6 +1,7 @@
 import logging
 import re
 import time
+from datetime import datetime, timezone
 from telegram import Update, BotCommand
 from telegram.ext import Application, CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters
 from telegram.error import TimedOut, NetworkError, TelegramError
@@ -73,6 +74,26 @@ def format_percent(value) -> str:
         return f"{sign}{float(value):.2f}%"
     except (ValueError, TypeError):
         return str(value)
+
+
+def format_time(timestamp) -> str:
+    """格式化 Unix 时间戳为可读时间（相对时间）。"""
+    try:
+        ts = int(timestamp)
+        dt = datetime.fromtimestamp(ts, tz=timezone.utc)
+        now = datetime.now(timezone.utc)
+        diff = int((now - dt).total_seconds())
+
+        if diff < 60:
+            return f"{diff}s ago"
+        elif diff < 3600:
+            return f"{diff // 60}m ago"
+        elif diff < 86400:
+            return f"{diff // 3600}h ago"
+        else:
+            return dt.strftime("%m-%d %H:%M")
+    except (ValueError, TypeError):
+        return "?"
 
 
 def authorized(update: Update) -> bool:
@@ -191,20 +212,23 @@ async def cmd_activity(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     lines = ["Recent Activity:\n"]
     for item in items[:5]:
         t = item.get("type", "?")
+        ts = format_time(item.get("timestamp"))
         if t == "swap":
             s = item.get("swap", {})
             sym = s.get("tokenSymbol", "?")
             side = s.get("side", "?").upper()
             eth = format_eth(s.get("ethAmount", "0"))
-            lines.append(f"[Swap] {side} {sym}: {eth} ETH")
+            lines.append(f"[{ts}] Swap {side} {sym}: {eth} ETH")
         elif t == "deposit":
             d = item.get("deposit", {})
             amt = format_eth(d.get("amountWei", "0"))
-            lines.append(f"[Deposit] {amt} ETH")
+            lines.append(f"[{ts}] Deposit {amt} ETH")
         elif t == "withdrawal":
             w = item.get("withdrawal", {})
             amt = format_eth(w.get("amountWei", "0"))
-            lines.append(f"[Withdraw] {amt} ETH")
+            lines.append(f"[{ts}] Withdraw {amt} ETH")
+        elif t == "vault_summary":
+            lines.append(f"[{ts}] Vault Summary")
     await update.message.reply_text("\n".join(lines))
 
 
@@ -221,11 +245,12 @@ async def cmd_swaps(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         return
     lines = ["Recent Swaps:\n"]
     for s in items:
+        ts = format_time(s.get("timestamp"))
         sym = s.get("tokenSymbol", "?")
         side = s.get("side", "?").upper()
         eth = format_eth(s.get("ethAmount", "0"))
         price = s.get("effectivePriceUsd", "?")
-        lines.append(f"{side} {sym}")
+        lines.append(f"[{ts}] {side} {sym}")
         lines.append(f"  ETH: {eth}")
         lines.append(f"  Price: ${price}\n")
     await update.message.reply_text("\n".join(lines))
