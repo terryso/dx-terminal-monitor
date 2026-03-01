@@ -30,6 +30,12 @@ ADMIN_USERS = [
 # Activity Monitor Configuration
 POLL_INTERVAL = int(os.getenv('POLL_INTERVAL', '30'))
 
+# Notification Configuration
+NOTIFY_USERS = [
+    int(x) for x in os.getenv('NOTIFY_USERS', '').split(',')
+    if x.strip().isdigit()
+]
+
 
 def is_admin(user_id: int) -> bool:
     """检查用户是否为管理员（用于高风险操作）

@@ -8,6 +8,8 @@ from web3 import Web3
 from config import TELEGRAM_BOT_TOKEN, ALLOWED_USERS, is_admin
 from api import TerminalAPI
 from contract import VaultContract
+from monitor import ActivityMonitor
+from notifier import TelegramNotifier
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -45,6 +47,10 @@ END = ConversationHandler.END
 
 # Temporary storage for pending withdrawals (production should use Redis)
 _pending_withdrawals = {}
+
+# Monitor and notifier instances
+_monitor_instance = None
+_notifier_instance = None
 
 
 def format_eth(wei: str) -> str:
@@ -285,6 +291,19 @@ async def post_init(app: Application):
     ]
     await app.bot.set_my_commands(commands)
     logger.info("Commands menu set")
+
+    # Initialize notifier and monitor for activity notifications
+    global _notifier_instance, _monitor_instance
+    _notifier_instance = TelegramNotifier(app.bot)
+    _monitor_instance = ActivityMonitor(api, _on_new_activity)
+    await _monitor_instance.start_background()
+    logger.info("Activity monitor started with Telegram notifications")
+
+
+async def _on_new_activity(activity: dict):
+    """ActivityMonitor callback - send TG notification for new activities."""
+    if _notifier_instance:
+        await _notifier_instance.send_notification(activity)
 
 
 async def cmd_disable_strategy(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
