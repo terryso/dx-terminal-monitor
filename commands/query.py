@@ -390,13 +390,11 @@ async def cmd_price(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"Error: {data['error']}")
         return
 
-    price = format_usd(data.get("price", "0"))
-    change = format_percent(data.get("change24h", "0"))
+    price = format_usd(data.get("priceUsd", "0"))
 
     msg = f"""
 ETH Price
 
 Current: {price}
-24h Change: {change}
 """
     await update.message.reply_text(msg)
