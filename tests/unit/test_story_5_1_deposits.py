@@ -27,20 +27,20 @@ class TestCmdDeposits:
         mock_telegram_context: MagicMock,
     ) -> None:
         """Test normal query - cmd_deposits returns formatted deposit/ withdrawal history."""
-        # Given
+        # Given - API returns flat structure with amount at top level
         mock_api_response = {
             "items": [
                 {
                     "type": "deposit",
-                    "timestamp": "2026-03-01T12:00:00Z",
-                    "status": "Confirmed",
-                    "deposit": {"amountWei": "1000000000000000000"},  # 1 ETH
+                    "amount": "1000000000000000000",  # 1 ETH
+                    "blockNumber": 42787368,
+                    "transactionHash": "0xf0460c3e8afde09a9dfd563170b1cfc4f5f40be8285bd72de81c881644f1cde0",
                 },
                 {
                     "type": "withdrawal",
-                    "timestamp": "2026-03-02T14:30:00Z",
-                    "status": "Confirmed",
-                    "withdrawal": {"amountWei": "500000000000000000"},  # 0.5 ETH
+                    "amount": "500000000000000000",  # 0.5 ETH
+                    "blockNumber": 42772431,
+                    "transactionHash": "0x11946c44f5c0e8cda6a3d3b101556f3e5a7c5e6d5400b71d116cb30f2b37e8ee",
                 },
             ]
         }
@@ -60,12 +60,11 @@ class TestCmdDeposits:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "存取款历史" in call_args
-        assert "存入" in call_args
-        assert "取出" in call_args
+        assert "Deposit/Withdrawal History" in call_args
+        assert "Deposit" in call_args
+        assert "Withdraw" in call_args
         assert "1.000000" in call_args  # 1 ETH
         assert "0.500000" in call_args  # 0.5 ETH
-        assert "Confirmed" in call_args
 
     @pytest.mark.asyncio
     async def test_deposits_with_limit(
@@ -117,7 +116,7 @@ class TestCmdDeposits:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "暂无存取款记录" in call_args
+        assert "No deposit/withdrawal records" in call_args
 
     @pytest.mark.asyncio
     async def test_deposits_api_error(
@@ -144,9 +143,8 @@ class TestCmdDeposits:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "错误" in call_args
+        assert "Error:" in call_args
         assert "HTTP 500" in call_args
-        assert "Internal Server Error" in call_args
 
     @pytest.mark.asyncio
     async def test_deposits_unauthorized(

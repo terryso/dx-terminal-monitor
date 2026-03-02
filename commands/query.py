@@ -260,31 +260,34 @@ async def cmd_deposits(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
     # Handle API error
     if "error" in data:
-        await update.message.reply_text(f"错误: {data['error']}")
+        await update.message.reply_text(f"Error: {data['error']}")
         return
 
     # Get items list
     items = data.get("items", [])
     if not items:
-        await update.message.reply_text("暂无存取款记录")
+        await update.message.reply_text("No deposit/withdrawal records")
         return
 
-    # Format output
-    lines = [f"存取款历史 (最近 {len(items)} 条):\n"]
+    # Format output (API returns: amount, type, blockNumber, transactionHash)
+    lines = [f"Deposit/Withdrawal History (Last {len(items)}):\n"]
     for item in items:
-        ts = format_time(item.get("timestamp"))
         t = item.get("type", "?")
-        status = item.get("status", "?")
+        amt = format_eth(item.get("amount", "0"))
+        tx_hash = item.get("transactionHash", "")
+        block = item.get("blockNumber", "?")
 
         if t == "deposit":
-            d = item.get("deposit", {})
-            amt = format_eth(d.get("amountWei", "0"))
-            lines.append(f"[{ts}] 存入 {amt} ETH")
+            lines.append(f"Deposit {amt} ETH")
         elif t == "withdrawal":
-            w = item.get("withdrawal", {})
-            amt = format_eth(w.get("amountWei", "0"))
-            lines.append(f"[{ts}] 取出 {amt} ETH")
+            lines.append(f"Withdraw {amt} ETH")
+        else:
+            lines.append(f"{t.upper()} {amt} ETH")
 
-        lines.append(f"  状态: {status}\n")
+        lines.append(f"  Block: {block}")
+        if tx_hash:
+            lines.append(f"  Tx: {tx_hash[:16]}...\n")
+        else:
+            lines.append("")
 
     await update.message.reply_text("\n".join(lines))
