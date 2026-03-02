@@ -87,7 +87,7 @@ class VaultContract:
             abi=abi
         )
 
-    async def _send_transaction(self, tx_func: Callable) -> dict[str, Any]:
+    async def _send_transaction(self, tx_func: Callable, value: int = 0) -> dict[str, Any]:
         """
         Sign, send, and wait for transaction confirmation.
 
@@ -99,6 +99,7 @@ class VaultContract:
 
         Args:
             tx_func: Callable that returns transaction builder (e.g., contract.functions.method())
+            value: Amount of ETH to send with transaction (in Wei), for payable functions
 
         Returns:
             Dict with keys:
@@ -111,7 +112,10 @@ class VaultContract:
         try:
             # Estimate gas
             try:
-                gas_estimate = tx_func.estimate_gas({'from': self.account.address})
+                gas_estimate = tx_func.estimate_gas({
+                    'from': self.account.address,
+                    'value': value,
+                })
             except ContractLogicError as e:
                 logger.error(f"Contract logic error during gas estimation: {e}")
                 return {
@@ -126,6 +130,7 @@ class VaultContract:
                 'gas': int(gas_estimate * 1.2),  # Add 20% buffer
                 'gasPrice': self.w3.eth.gas_price,
                 'chainId': CHAIN_ID,
+                'value': value,
             })
 
             # Sign transaction
@@ -446,4 +451,37 @@ class VaultContract:
 
         except Exception as e:
             logger.error(f"Failed to withdraw ETH: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def deposit_eth(self, amount_wei: int) -> dict[str, Any]:
+        """
+        Deposit ETH to the vault.
+
+        Args:
+            amount_wei: Amount to deposit in Wei
+
+        Returns:
+            Dict with keys:
+                - success: bool
+                - transactionHash: str (hex) - on success
+                - status: int - on success
+                - blockNumber: int - on success
+                - error: str - on failure
+        """
+        try:
+            # Validate amount
+            if amount_wei <= 0:
+                return {
+                    'success': False,
+                    'error': 'Deposit amount must be greater than 0'
+                }
+
+            # Get contract function (payable)
+            tx_func = self.contract.functions.depositETH()
+
+            # Send transaction with value
+            return await self._send_transaction(tx_func, value=amount_wei)
+
+        except Exception as e:
+            logger.error(f"Failed to deposit ETH: {e}")
             return {"success": False, "error": str(e)}

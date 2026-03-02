@@ -55,6 +55,7 @@ async def post_init(app: Application):
         BotCommand("strategies", "Strategies"), BotCommand("vault", "Vault info"),
         BotCommand("deposits", "Deposits history"),
         BotCommand("pnl_history", "PnL trend history"),
+        BotCommand("deposit", "Deposit ETH to vault"),
         BotCommand("add_strategy", "Add new strategy"), BotCommand("disable_strategy", "Disable strategy"),
         BotCommand("disable_all", "Disable all strategies"), BotCommand("pause", "Pause agent trading"),
         BotCommand("resume", "Resume agent trading"), BotCommand("update_settings", "Update vault settings"),

@@ -32,6 +32,7 @@ Commands:
 /strategies - Active strategies
 /vault - Vault info
 /deposits [limit] - Deposits/withdrawals history
+/deposit <amount> - Deposit ETH to vault
 /add_strategy <text> - Add new strategy
 /disable_strategy <id> - Disable a specific strategy
 /disable_all - Disable all active strategies

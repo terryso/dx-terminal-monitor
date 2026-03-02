@@ -4,6 +4,7 @@ import re
 
 from telegram import Update
 from telegram.ext import ContextTypes
+from web3 import Web3
 
 from config import is_admin
 
@@ -271,3 +272,46 @@ async def cmd_update_settings(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     else:
         error = result.get("error", "Unknown error")
         await update.message.reply_text(f"Update failed: {error}")
+
+
+async def cmd_deposit(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """Deposit ETH to the vault."""
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text("Unauthorized: Admin only")
+        return
+
+    args = ctx.args or []
+    if len(args) == 0:
+        await update.message.reply_text("Usage: /deposit <amount>")
+        return
+
+    # Parse amount
+    try:
+        amount_eth = float(args[0])
+        if amount_eth <= 0:
+            await update.message.reply_text("Amount must be greater than 0")
+            return
+        # Validate precision (max 6 decimal places for ETH)
+        if '.' in args[0] and len(args[0].split('.')[-1]) > 6:
+            await update.message.reply_text("Amount precision too high (max 6 decimals)")
+            return
+    except ValueError:
+        await update.message.reply_text("Invalid amount format")
+        return
+
+    # Convert to Wei
+    amount_wei = Web3.to_wei(amount_eth, 'ether')
+
+    logger.info(f"Admin {update.effective_user.id} depositing {amount_eth} ETH")
+
+    result = await _get_contract().deposit_eth(amount_wei)
+
+    if result.get("success"):
+        tx_hash = result.get("transactionHash", "")
+        await update.message.reply_text(
+            f"Deposited {amount_eth} ETH to Vault\n"
+            f"TX: {tx_hash}"
+        )
+    else:
+        error = result.get("error", "Unknown error")
+        await update.message.reply_text(f"Deposit failed: {error}")

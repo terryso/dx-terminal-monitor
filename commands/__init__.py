@@ -3,6 +3,7 @@ from telegram.ext import CommandHandler
 
 from .admin import (
     cmd_add_strategy,
+    cmd_deposit,
     cmd_disable_all,
     cmd_disable_strategy,
     cmd_pause,
@@ -42,6 +43,7 @@ def register_handlers(app):
 
     # Admin commands
     app.add_handler(CommandHandler("add_strategy", cmd_add_strategy))
+    app.add_handler(CommandHandler("deposit", cmd_deposit))
     app.add_handler(CommandHandler("disable_strategy", cmd_disable_strategy))
     app.add_handler(CommandHandler("disable_all", cmd_disable_all))
     app.add_handler(CommandHandler("pause", cmd_pause))
@@ -73,6 +75,7 @@ __all__ = [
     'cmd_pnl_history',
     # Admin commands
     'cmd_add_strategy',
+    'cmd_deposit',
     'cmd_disable_strategy',
     'cmd_disable_all',
     'cmd_pause',
