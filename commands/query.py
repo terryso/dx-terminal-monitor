@@ -477,23 +477,24 @@ async def cmd_token(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"Error: {data['error']}")
         return
 
-    # Format output
+    # Format output using actual API fields
     symbol = data.get("symbol", "?")
     name = data.get("name", "?")
-    token_address = data.get("address", "?")
-    price = format_usd(data.get("priceUsd", "0"))
-    change = format_percent(data.get("change24h", "0"))
-    market_cap = format_large_number(data.get("marketCapUsd", "0"))
-    holders = data.get("holderCount", 0)
+    token_address = data.get("tokenAddress", "?")
+    token_type = data.get("type", "unknown").replace("_", " ").title()
+    description = data.get("description", "")[:100]
+    if len(data.get("description", "")) > 100:
+        description += "..."
+    total_supply = format_large_number(data.get("totalSupply", "0"))
 
     msg = f"""
-Token Details: {symbol}
+Token Details: ${symbol}
 
 Name: {name}
 Contract: {token_address}
-Price: {price}
-24h Change: {change}
-Market Cap: {market_cap}
-Holders: {holders:,}
+Type: {token_type}
+Total Supply: {total_supply}
+
+{description}
 """
     await update.message.reply_text(msg)
