@@ -76,7 +76,7 @@ development_status:
 
   # Epic 6: 市场数据查询
   epic-6: in-progress
-  6-1-eth-price: review
+  6-1-eth-price: done
   6-2-tokens-list: backlog
   6-3-token-detail: backlog
   6-4-launch-schedule: backlog

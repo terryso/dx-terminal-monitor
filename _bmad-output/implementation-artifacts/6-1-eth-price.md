@@ -1,5 +1,7 @@
 # Story 6.1: ETH Price Query
 
+**Status: done**
+
 ## Story
 
 **As a** **user**, I need to **query ETH real-time price via `/price` command** so that **I can understand the current market situation**.
