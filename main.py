@@ -53,6 +53,7 @@ async def post_init(app: Application):
         BotCommand("start", "Help"), BotCommand("balance", "Balance"), BotCommand("pnl", "PnL"),
         BotCommand("positions", "Positions"), BotCommand("activity", "Activity"), BotCommand("swaps", "Swaps"),
         BotCommand("strategies", "Strategies"), BotCommand("vault", "Vault info"),
+        BotCommand("price", "ETH price"),
         BotCommand("deposits", "Deposits history"),
         BotCommand("pnl_history", "PnL trend history"),
         BotCommand("deposit", "Deposit ETH to vault"),

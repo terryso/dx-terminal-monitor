@@ -31,6 +31,7 @@ Commands:
 /swaps - Recent swaps
 /strategies - Active strategies
 /vault - Vault info
+/price - ETH price
 /deposits [limit] - Deposits/withdrawals history
 /deposit <amount> - Deposit ETH to vault
 /add_strategy <text> - Add new strategy
@@ -377,3 +378,25 @@ async def cmd_pnl_history(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     lines.append(f"ETH: {latest_eth}")
 
     await update.message.reply_text("\n".join(lines))
+
+
+async def cmd_price(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """Query ETH price."""
+    if not authorized(update):
+        return
+    api = _get_api()
+    data = await api.get_eth_price()
+    if "error" in data:
+        await update.message.reply_text(f"Error: {data['error']}")
+        return
+
+    price = format_usd(data.get("price", "0"))
+    change = format_percent(data.get("change24h", "0"))
+
+    msg = f"""
+ETH Price
+
+Current: {price}
+24h Change: {change}
+"""
+    await update.message.reply_text(msg)

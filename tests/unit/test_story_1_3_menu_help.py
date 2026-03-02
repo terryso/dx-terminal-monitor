@@ -81,7 +81,7 @@ class TestPostInitStory13:
         call_args = mock_app.bot.set_my_commands.call_args[0][0]
         command_names = [cmd.command for cmd in call_args]
 
-        # All expected commands including the new ones from Story 1-3, 2-1, 2-2, 3-1, 3-2, 4-1
+        # All expected commands including the new ones from Story 1-3, 2-1, 2-2, 3-1, 3-2, 4-1, 5-1, 5-2, 5-3, 6-1
         expected_commands = [
             "start",
             "balance",
@@ -91,6 +91,7 @@ class TestPostInitStory13:
             "swaps",
             "strategies",
             "vault",
+            "price",             # Story 6-1
             "deposits",          # Story 5-1
             "pnl_history",       # Story 5-2
             "deposit",           # Story 5-3

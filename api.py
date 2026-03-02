@@ -52,3 +52,7 @@ class TerminalAPI:
             f"/deposits-withdrawals/{self.vault}",
             {"limit": limit, "order": "desc"}
         )
+
+    async def get_eth_price(self) -> dict:
+        """Get ETH real-time price."""
+        return await self._get("/eth-price")
