@@ -91,6 +91,7 @@ class TestPostInitStory13:
             "swaps",
             "strategies",
             "vault",
+            "deposits",          # Story 5-1
             "add_strategy",      # Story 2-1
             "disable_strategy",  # Story 1-3
             "disable_all",       # Story 1-3

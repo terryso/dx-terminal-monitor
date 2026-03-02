@@ -28,6 +28,7 @@ Commands:
 /swaps - Recent swaps
 /strategies - Active strategies
 /vault - Vault info
+/deposits [limit] - Deposits/withdrawals history
 /add_strategy <text> - Add new strategy
 /disable_strategy <id> - Disable a specific strategy
 /disable_all - Disable all active strategies
@@ -241,3 +242,49 @@ Behavior Preferences:
   Diversification: {diversification}
 """
     await update.message.reply_text(msg)
+
+
+async def cmd_deposits(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """Query deposits/withdrawals history."""
+    if not authorized(update):
+        return
+
+    # Parse optional limit argument
+    limit = 10
+    if ctx.args and ctx.args[0].isdigit():
+        limit = int(ctx.args[0])
+
+    # Call API
+    api = _get_api()
+    data = await api.get_deposits_withdrawals(limit)
+
+    # Handle API error
+    if "error" in data:
+        await update.message.reply_text(f"错误: {data['error']}")
+        return
+
+    # Get items list
+    items = data.get("items", [])
+    if not items:
+        await update.message.reply_text("暂无存取款记录")
+        return
+
+    # Format output
+    lines = [f"存取款历史 (最近 {len(items)} 条):\n"]
+    for item in items:
+        ts = format_time(item.get("timestamp"))
+        t = item.get("type", "?")
+        status = item.get("status", "?")
+
+        if t == "deposit":
+            d = item.get("deposit", {})
+            amt = format_eth(d.get("amountWei", "0"))
+            lines.append(f"[{ts}] 存入 {amt} ETH")
+        elif t == "withdrawal":
+            w = item.get("withdrawal", {})
+            amt = format_eth(w.get("amountWei", "0"))
+            lines.append(f"[{ts}] 取出 {amt} ETH")
+
+        lines.append(f"  状态: {status}\n")
+
+    await update.message.reply_text("\n".join(lines))

@@ -13,6 +13,7 @@ from .monitor import cmd_monitor_start, cmd_monitor_status, cmd_monitor_stop, se
 from .query import (
     cmd_activity,
     cmd_balance,
+    cmd_deposits,
     cmd_pnl,
     cmd_positions,
     cmd_start,
@@ -35,6 +36,7 @@ def register_handlers(app):
     app.add_handler(CommandHandler("swaps", cmd_swaps))
     app.add_handler(CommandHandler("strategies", cmd_strategies))
     app.add_handler(CommandHandler("vault", cmd_vault))
+    app.add_handler(CommandHandler("deposits", cmd_deposits))
 
     # Admin commands
     app.add_handler(CommandHandler("add_strategy", cmd_add_strategy))
@@ -65,6 +67,7 @@ __all__ = [
     'cmd_swaps',
     'cmd_strategies',
     'cmd_vault',
+    'cmd_deposits',
     # Admin commands
     'cmd_add_strategy',
     'cmd_disable_strategy',
