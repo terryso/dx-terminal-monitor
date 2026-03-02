@@ -66,6 +66,7 @@ def mock_telegram_context() -> MagicMock:
     """Create a mock Telegram Context object."""
     context = MagicMock()
     context.bot = AsyncMock()
+    context.args = []  # Default to empty list for command argument parsing
     return context
 
 

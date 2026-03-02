@@ -70,7 +70,7 @@ development_status:
   # Epic 5: 资金查询与历史数据
   epic-5: in-progress
   5-1-deposits-history: done
-  5-2-pnl-history: backlog
+  5-2-pnl-history: done
   5-3-deposit-eth: backlog
   epic-5-retrospective: optional
 

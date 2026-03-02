@@ -15,6 +15,7 @@ from .query import (
     cmd_balance,
     cmd_deposits,
     cmd_pnl,
+    cmd_pnl_history,
     cmd_positions,
     cmd_start,
     cmd_strategies,
@@ -37,6 +38,7 @@ def register_handlers(app):
     app.add_handler(CommandHandler("strategies", cmd_strategies))
     app.add_handler(CommandHandler("vault", cmd_vault))
     app.add_handler(CommandHandler("deposits", cmd_deposits))
+    app.add_handler(CommandHandler("pnl_history", cmd_pnl_history))
 
     # Admin commands
     app.add_handler(CommandHandler("add_strategy", cmd_add_strategy))
@@ -68,6 +70,7 @@ __all__ = [
     'cmd_strategies',
     'cmd_vault',
     'cmd_deposits',
+    'cmd_pnl_history',
     # Admin commands
     'cmd_add_strategy',
     'cmd_disable_strategy',

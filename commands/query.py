@@ -1,4 +1,6 @@
 """Query commands module - read-only data query commands."""
+from datetime import UTC
+
 from telegram import Update
 from telegram.ext import ContextTypes
 
@@ -23,6 +25,7 @@ Terminal Markets Monitor
 Commands:
 /balance - View balance
 /pnl - View PnL
+/pnl_history [days] - PnL trend history
 /positions - View positions
 /activity - Recent activity
 /swaps - Recent swaps
@@ -289,5 +292,87 @@ async def cmd_deposits(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             lines.append(f"  Tx: {tx_hash[:16]}...\n")
         else:
             lines.append("")
+
+    await update.message.reply_text("\n".join(lines))
+
+
+async def cmd_pnl_history(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """Query PnL trend history grouped by day."""
+    if not authorized(update):
+        return
+
+    # Parse optional days argument (default 7, max 90 to avoid Telegram message limit)
+    MAX_DAYS = 90
+    days = 7
+    if ctx.args and ctx.args[0].isdigit():
+        requested = int(ctx.args[0])
+        if requested > 0:
+            days = min(requested, MAX_DAYS)
+
+    # Call API
+    api = _get_api()
+    data = await api.get_pnl_history()
+
+    # Handle API error
+    if isinstance(data, dict) and "error" in data:
+        await update.message.reply_text(f"Error: {data['error']}")
+        return
+
+    # Validate response type
+    if not isinstance(data, list):
+        await update.message.reply_text("Error: Unexpected API response format")
+        return
+
+    # Handle no records
+    if not data:
+        await update.message.reply_text("No PnL history available")
+        return
+
+    # Group records by day, taking the last record of each day (highest timestamp)
+    from datetime import datetime
+
+    daily_records = {}  # date_key -> (timestamp, item)
+    for item in data:
+        ts = item.get("timestamp")
+        if ts is None:
+            continue
+        # Parse timestamp (Unix timestamp or ISO string)
+        if isinstance(ts, (int, float)):
+            dt = datetime.fromtimestamp(ts, tz=UTC)
+        else:
+            dt = datetime.fromisoformat(str(ts).replace("Z", "+00:00"))
+        date_key = dt.strftime("%Y-%m-%d")
+        # Keep the record with highest timestamp for each day
+        if date_key not in daily_records or ts > daily_records[date_key][0]:
+            daily_records[date_key] = (ts, item)
+
+    # Sort by date descending (newest first) and take last N days
+    sorted_dates = sorted(daily_records.keys(), reverse=True)[:days]
+
+    if not sorted_dates:
+        await update.message.reply_text("No PnL history available")
+        return
+
+    # Format output
+    lines = [f"PnL Trend (Last {len(sorted_dates)} days):\n"]
+
+    for date_key in sorted_dates:
+        _, item = daily_records[date_key]
+        pnl_usd_val = item.get("pnlUsd", 0)
+        pnl_eth_val = item.get("pnlEth", 0)
+
+        # Handle both string and numeric values
+        pnl_usd = format_usd(str(float(pnl_usd_val) if pnl_usd_val else 0))
+        pnl_eth = format_eth(str(int(float(pnl_eth_val) if pnl_eth_val else 0)))
+
+        lines.append(f"[{date_key}] {pnl_usd}")
+        lines.append(f"  ETH: {pnl_eth}")
+
+    # Show latest PnL as summary (first item = newest)
+    _, latest = daily_records[sorted_dates[0]]
+    latest_usd = format_usd(str(float(latest.get("pnlUsd", 0) or 0)))
+    latest_eth = format_eth(str(int(float(latest.get("pnlEth", 0) or 0))))
+    lines.append(f"\nLatest: {latest_usd}")
+    lines.append(f"ETH: {latest_eth}")
 
     await update.message.reply_text("\n".join(lines))
