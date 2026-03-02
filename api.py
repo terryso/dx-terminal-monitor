@@ -115,3 +115,7 @@ class TerminalAPI:
             return await self._get(f"/token/{token_address}")
 
         return {"error": f"Token '{address_or_symbol}' not found"}
+
+    async def get_launch_schedule(self) -> list:
+        """Get upcoming token launch schedule."""
+        return await self._get("/launch-schedule")

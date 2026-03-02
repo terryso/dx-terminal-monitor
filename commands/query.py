@@ -40,6 +40,7 @@ Commands:
 /price - ETH price
 /tokens - Tradeable tokens list
 /token <symbol> - Token details
+/launches - Upcoming token launches
 /deposits [limit] - Deposits/withdrawals history
 /deposit <amount> - Deposit ETH to vault
 /add_strategy <text> - Add new strategy
@@ -498,3 +499,36 @@ Total Supply: {total_supply}
 {description}
 """
     await update.message.reply_text(msg)
+
+
+async def cmd_launches(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """Query upcoming token launch schedule."""
+    if not authorized(update):
+        return
+
+    # Call API
+    api = _get_api()
+    data = await api.get_launch_schedule()
+
+    # Handle API error
+    if isinstance(data, dict) and "error" in data:
+        await update.message.reply_text(f"Error: {data['error']}")
+        return
+
+    # Handle empty results - AC5
+    if not data:
+        await update.message.reply_text("No upcoming launches")
+        return
+
+    # Format output - AC4
+    lines = ["New Coin Launch Schedule\n"]
+    for i, launch in enumerate(data, 1):
+        symbol = launch.get("tokenSymbol", "?")
+        name = launch.get("tokenName", "?")
+        launch_time = launch.get("timestamp", "?")
+
+        lines.append(f"{i}. ${symbol}")
+        lines.append(f"   Name: {name}")
+        lines.append(f"   Launch Time: {launch_time}\n")
+
+    await update.message.reply_text("\n".join(lines))
