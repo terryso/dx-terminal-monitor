@@ -92,6 +92,8 @@ class TestPostInitStory13:
             "strategies",
             "vault",
             "price",             # Story 6-1
+            "tokens",            # Story 6-2
+            "token",             # Story 6-3
             "deposits",          # Story 5-1
             "pnl_history",       # Story 5-2
             "deposit",           # Story 5-3

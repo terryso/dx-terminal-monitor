@@ -4,7 +4,13 @@ from datetime import UTC
 from telegram import Update
 from telegram.ext import ContextTypes
 
-from utils.formatters import format_eth, format_percent, format_time, format_usd
+from utils.formatters import (
+    format_eth,
+    format_large_number,
+    format_percent,
+    format_time,
+    format_usd,
+)
 from utils.permissions import authorized
 
 
@@ -33,6 +39,7 @@ Commands:
 /vault - Vault info
 /price - ETH price
 /tokens - Tradeable tokens list
+/token <symbol> - Token details
 /deposits [limit] - Deposits/withdrawals history
 /deposit <amount> - Deposit ETH to vault
 /add_strategy <text> - Add new strategy
@@ -447,3 +454,46 @@ async def cmd_tokens(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         lines.append(f"   Type: {token_type}\n")
 
     await update.message.reply_text("\n".join(lines))
+
+
+async def cmd_token(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """Query token details."""
+    if not authorized(update):
+        return
+
+    # Check required argument
+    if not ctx.args:
+        await update.message.reply_text("Usage: /token <symbol>")
+        return
+
+    address = ctx.args[0]
+
+    # Call API
+    api = _get_api()
+    data = await api.get_token(address)
+
+    # Handle API error
+    if "error" in data:
+        await update.message.reply_text(f"Error: {data['error']}")
+        return
+
+    # Format output
+    symbol = data.get("symbol", "?")
+    name = data.get("name", "?")
+    token_address = data.get("address", "?")
+    price = format_usd(data.get("priceUsd", "0"))
+    change = format_percent(data.get("change24h", "0"))
+    market_cap = format_large_number(data.get("marketCapUsd", "0"))
+    holders = data.get("holderCount", 0)
+
+    msg = f"""
+Token Details: {symbol}
+
+Name: {name}
+Contract: {token_address}
+Price: {price}
+24h Change: {change}
+Market Cap: {market_cap}
+Holders: {holders:,}
+"""
+    await update.message.reply_text(msg)

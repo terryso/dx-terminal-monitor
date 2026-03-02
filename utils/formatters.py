@@ -46,3 +46,18 @@ def format_time(timestamp) -> str:
             return dt.strftime("%m-%d %H:%M")
     except (ValueError, TypeError):
         return "?"
+
+
+def format_large_number(value) -> str:
+    """Format large numbers with B/M/K suffix."""
+    try:
+        v = float(value)
+        if v >= 1e9:
+            return f"${v/1e9:.1f}B"
+        elif v >= 1e6:
+            return f"${v/1e6:.1f}M"
+        elif v >= 1e3:
+            return f"${v/1e3:.1f}K"
+        return f"${v:.2f}"
+    except (ValueError, TypeError):
+        return str(value)

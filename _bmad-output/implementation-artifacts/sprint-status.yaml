@@ -78,12 +78,7 @@ development_status:
   epic-6: in-progress
   6-1-eth-price: done
   6-2-tokens-list: done
-  6-3-token-detail: backlog
-  6-4-launch-schedule: backlog
-  6-5-leaderboard: backlog
-  6-6-token-tweets: backlog
-  epic-6-retrospective: optional
-  6-3-token-detail: backlog
+  6-3-token-detail: ready-for-dev
   6-4-launch-schedule: backlog
   6-5-leaderboard: backlog
   6-6-token-tweets: backlog

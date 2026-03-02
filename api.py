@@ -60,3 +60,7 @@ class TerminalAPI:
     async def get_tokens(self, page: int = 1, limit: int = 10) -> dict:
         """Get tradeable tokens list."""
         return await self._get("/tokens", {"page": page, "limit": limit})
+
+    async def get_token(self, address: str) -> dict:
+        """Get token details by address or symbol."""
+        return await self._get(f"/token/{address}")
