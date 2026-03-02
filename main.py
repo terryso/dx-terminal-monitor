@@ -1,10 +1,5 @@
 """DX Terminal Monitor Bot 入口模块。"""
-import os
-
-# 在任何 import 之前清除代理设置，防止库在导入时读取代理
-for _proxy_var in ['HTTP_PROXY', 'HTTPS_PROXY', 'ALL_PROXY', 'http_proxy', 'https_proxy', 'all_proxy']:
-    os.environ.pop(_proxy_var, None)
-
+import asyncio
 import logging
 import time
 
@@ -86,7 +81,12 @@ async def _on_new_activity(activity: dict):
 
 def create_app():
     """创建并配置 Telegram 应用。"""
-    app = Application.builder().token(TELEGRAM_BOT_TOKEN).post_init(post_init).build()
+    app = (
+        Application.builder()
+        .token(TELEGRAM_BOT_TOKEN)
+        .post_init(post_init)
+        .build()
+    )
     register_handlers(app)
     return app
 
@@ -99,6 +99,14 @@ def main():
     retry_count, max_retries, base_delay = 0, 10, 5
     while retry_count < max_retries:
         try:
+            # 创建新的事件循环以避免 "Event loop is closed" 错误
+            try:
+                loop = asyncio.get_running_loop()
+                loop.close()
+            except RuntimeError:
+                pass
+            asyncio.set_event_loop(asyncio.new_event_loop())
+
             app = create_app()
             logger.info(f"Bot starting... (attempt {retry_count + 1}/{max_retries})")
             app.run_polling(allowed_updates=Update.ALL_TYPES)

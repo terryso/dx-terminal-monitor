@@ -1,6 +1,35 @@
+import time
+
 import aiohttp
 
 from config import API_BASE_URL, VAULT_ADDRESS
+
+# Token symbol -> address 缓存
+_token_cache: dict[str, str] = {}
+_token_cache_time: float = 0
+TOKEN_CACHE_TTL = 3600  # 1 hour
+
+
+async def _build_token_cache(api: "TerminalAPI"):
+    """构建 token symbol -> address 缓存。"""
+    global _token_cache, _token_cache_time
+    cache = {}
+    page = 1
+    while page <= 50:  # 最多50页
+        data = await api._get("/tokens", {"page": page, "limit": 50})
+        if isinstance(data, dict) and "error" in data:
+            break
+        items = data if isinstance(data, list) else data.get("items", [])
+        if not items:
+            break
+        for token in items:
+            symbol = token.get("symbol", "").upper()
+            address = token.get("tokenAddress", "")
+            if symbol and address:
+                cache[symbol] = address
+        page += 1
+    _token_cache = cache
+    _token_cache_time = time.time()
 
 
 class TerminalAPI:
@@ -61,6 +90,28 @@ class TerminalAPI:
         """Get tradeable tokens list."""
         return await self._get("/tokens", {"page": page, "limit": limit})
 
-    async def get_token(self, address: str) -> dict:
-        """Get token details by address or symbol."""
-        return await self._get(f"/token/{address}")
+    async def get_token(self, address_or_symbol: str) -> dict:
+        """Get token details by address or symbol.
+
+        If the input looks like a contract address (starts with 0x), query directly.
+        Otherwise, use cache to find matching symbol.
+        """
+        global _token_cache, _token_cache_time
+
+        # If it looks like a contract address, query directly
+        if address_or_symbol.startswith("0x"):
+            return await self._get(f"/token/{address_or_symbol}")
+
+        symbol = address_or_symbol.upper()
+
+        # Check cache (refresh if expired or empty)
+        now = time.time()
+        if not _token_cache or (now - _token_cache_time) > TOKEN_CACHE_TTL:
+            await _build_token_cache(self)
+
+        # Lookup in cache
+        token_address = _token_cache.get(symbol)
+        if token_address:
+            return await self._get(f"/token/{token_address}")
+
+        return {"error": f"Token '{address_or_symbol}' not found"}

@@ -46,8 +46,7 @@ class TestCmdPrice:
         # Given
         mock_api = AsyncMock()
         mock_api.get_eth_price = AsyncMock(return_value={
-            "price": "3000.00",
-            "change24h": "2.5"
+            "priceUsd": "3000.00"
         })
 
         with patch("commands.query.authorized", return_value=True), patch(
@@ -63,7 +62,6 @@ class TestCmdPrice:
         call_args = mock_update.message.reply_text.call_args[0][0]
         assert "ETH Price" in call_args
         assert "3000" in call_args
-        assert "2.5" in call_args
 
     @pytest.mark.asyncio
     async def test_cmd_price_unauthorized(self, mock_update, mock_context):
@@ -102,13 +100,12 @@ class TestCmdPrice:
         assert "Error" in call_args or "error" in call_args.lower()
 
     @pytest.mark.asyncio
-    async def test_cmd_price_negative_change(self, mock_update, mock_context):
-        """Test negative 24h change formatting."""
+    async def test_cmd_price_low_value(self, mock_update, mock_context):
+        """Test low price value formatting."""
         # Given
         mock_api = AsyncMock()
         mock_api.get_eth_price = AsyncMock(return_value={
-            "price": "2800.00",
-            "change24h": "-3.5"
+            "priceUsd": "2800.00"
         })
 
         with patch("commands.query.authorized", return_value=True), patch(
@@ -122,7 +119,7 @@ class TestCmdPrice:
 
         # Then
         call_args = mock_update.message.reply_text.call_args[0][0]
-        assert "-3.5" in call_args
+        assert "2800" in call_args
 
 
 # =============================================================================

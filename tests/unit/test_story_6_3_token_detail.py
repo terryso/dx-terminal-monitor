@@ -34,16 +34,19 @@ def mock_context():
 
 @pytest.fixture
 def mock_token_response():
-    """Create mock token detail API response."""
+    """Create mock token detail API response.
+
+    Based on actual API response structure from /token/{address} endpoint.
+    """
     return {
         "symbol": "ETH",
         "name": "Ethereum",
-        "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-        "priceUsd": "3000.00",
-        "change24h": "2.5",
-        "marketCapUsd": "360000000000",
-        "holderCount": 1234,
-        "volume24hUsd": "15000000000",
+        "tokenAddress": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+        "type": "blue_chip_token",
+        "description": "Ethereum is a decentralized, open-source blockchain.",
+        "totalSupply": "1000000000000000000000000000",
+        "poolId": "0x1234...",
+        "image": "https://example.com/eth.png",
     }
 
 
@@ -57,13 +60,23 @@ class TestGetToken:
 
     @pytest.mark.asyncio
     async def test_get_token_success_with_symbol(self, mock_token_response):
-        """Test get_token returns token details for symbol input."""
+        """Test get_token returns token details for symbol input.
+
+        When a symbol is provided, get_token uses cache to find the address,
+        then queries the specific token by address.
+        """
         # Given
+        import api as api_module
         from api import TerminalAPI
+
+        # Pre-populate cache to avoid cache building
+        token_address = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+        api_module._token_cache = {"ETH": token_address}
+        api_module._token_cache_time = 9999999999  # Far future
 
         api = TerminalAPI()
 
-        # Mock the _get method
+        # Mock only the final token detail call
         with patch.object(api, "_get", new_callable=AsyncMock) as mock_get:
             mock_get.return_value = mock_token_response
 
@@ -74,10 +87,9 @@ class TestGetToken:
         assert result is not None
         assert result["symbol"] == "ETH"
         assert result["name"] == "Ethereum"
-        assert result["address"] == "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-        assert result["priceUsd"] == "3000.00"
-        assert result["change24h"] == "2.5"
-        mock_get.assert_called_once_with("/token/ETH")
+        assert result["tokenAddress"] == token_address
+        # Only one call to get token details (cache was pre-populated)
+        mock_get.assert_called_once_with(f"/token/{token_address}")
 
     @pytest.mark.asyncio
     async def test_get_token_success_with_address(self, mock_token_response):
@@ -101,21 +113,27 @@ class TestGetToken:
 
     @pytest.mark.asyncio
     async def test_get_token_api_error(self):
-        """Test get_token handles API errors."""
+        """Test get_token handles API errors when token not in cache."""
         # Given
+        import api as api_module
         from api import TerminalAPI
+
+        # Clear cache before test
+        api_module._token_cache.clear()
+        api_module._token_cache_time = 0
 
         api = TerminalAPI()
 
+        # Mock empty tokens list (token not found)
         with patch.object(api, "_get", new_callable=AsyncMock) as mock_get:
-            mock_get.return_value = {"error": "Token not found"}
+            mock_get.return_value = {"items": []}  # Empty cache
 
             # When
             result = await api.get_token("INVALID")
 
         # Then
         assert "error" in result
-        assert result["error"] == "Token not found"
+        assert "INVALID" in result["error"]
 
 
 # =============================================================================
@@ -147,11 +165,11 @@ class TestCmdToken:
 
         # Then
         call_args = mock_update.message.reply_text.call_args[0][0]
-        assert "Token Details: ETH" in call_args
+        assert "Token Details: $ETH" in call_args
         assert "Ethereum" in call_args
         assert "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2" in call_args
-        assert "$3000.00" in call_args
-        assert "+2.50%" in call_args
+        assert "Type: Blue Chip Token" in call_args
+        assert "Ethereum is a decentralized" in call_args
 
     @pytest.mark.asyncio
     async def test_cmd_token_success_with_address(
@@ -175,7 +193,7 @@ class TestCmdToken:
 
         # Then
         call_args = mock_update.message.reply_text.call_args[0][0]
-        assert "Token Details: ETH" in call_args
+        assert "Token Details: $ETH" in call_args
         mock_api.get_token.assert_called_once_with(token_address)
 
     @pytest.mark.asyncio
