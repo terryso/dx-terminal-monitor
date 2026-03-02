@@ -33,6 +33,24 @@ inputDocuments:
 
 > **注意**: 合约不支持恢复已禁用的策略，如需恢复需通过 `addStrategy` 重新添加。
 
+### 新增功能需求 (FR - Extended)
+
+| ID | 需求 | 优先级 | Epic |
+|----|------|--------|------|
+| FR10 | 查询存取款历史 | P1 | Epic 5 |
+| FR11 | 查询 PnL 趋势历史 | P1 | Epic 5 |
+| FR12 | 存入 ETH 到 Vault | P1 | Epic 5 |
+| FR13 | 查询 ETH 实时价格 | P2 | Epic 6 |
+| FR14 | 查询可交易代币列表 | P2 | Epic 6 |
+| FR15 | 查询代币详情 | P2 | Epic 6 |
+| FR16 | 查询新币上线计划 | P2 | Epic 6 |
+| FR17 | 定期报告推送 | P2 | Epic 7 |
+| FR18 | 阈值变化提醒 | P2 | Epic 7 |
+| FR19 | 策略到期提醒 | P3 | Epic 7 |
+| FR20 | Gas 价格监控 | P3 | Epic 7 |
+| FR21 | 查询排行榜 | P3 | Epic 6 |
+| FR22 | 查询代币推文 | P2 | Epic 6 |
+
 ### 非功能需求 (NFR)
 
 | ID | 需求 |
@@ -46,21 +64,34 @@ inputDocuments:
 
 ## 需求覆盖矩阵
 
-| 需求 | Epic 1 | Epic 2 | Epic 3 | Epic 4 |
-|------|--------|--------|--------|--------|
-| FR1 - 禁用指定策略 | ✅ Story 1.1 | - | - | - |
-| FR2 - 禁用所有策略 | ✅ Story 1.2 | - | - | - |
-| FR3 - 添加新策略 | - | ✅ Story 2.1 | - | - |
-| FR4 - 暂停/恢复交易 | - | ✅ Story 2.2 | - | - |
-| FR5 - 更新设置 | - | - | ✅ Story 3.1 | - |
-| FR6 - 提取 ETH | - | - | ✅ Story 3.2 | - |
-| FR7 - 监控 Agent 活动 | - | - | - | ✅ Story 4.1 |
-| FR8 - 推送 TG 通知 | - | - | - | ✅ Story 4.2 |
-| FR9 - 控制监控服务 | - | - | - | ✅ Story 4.3 |
-| NFR1 - 私钥安全 | ✅ Story 1.0 | - | - | - |
-| NFR2 - 错误提示 | ✅ All | ✅ All | ✅ All | ✅ All |
-| NFR3 - 权限确认 | - | ✅ Story 2.x | ✅ Story 3.x | ✅ Story 4.3 |
-| NFR4 - Gas 限制 | ✅ All | ✅ All | ✅ All | - |
+| 需求 | Epic 1 | Epic 2 | Epic 3 | Epic 4 | Epic 5 | Epic 6 | Epic 7 |
+|------|--------|--------|--------|--------|--------|--------|--------|
+| FR1 - 禁用指定策略 | ✅ 1.1 | - | - | - | - | - | - |
+| FR2 - 禁用所有策略 | ✅ 1.2 | - | - | - | - | - | - |
+| FR3 - 添加新策略 | - | ✅ 2.1 | - | - | - | - | - |
+| FR4 - 暂停/恢复交易 | - | ✅ 2.2 | - | - | - | - | - |
+| FR5 - 更新设置 | - | - | ✅ 3.1 | - | - | - | - |
+| FR6 - 提取 ETH | - | - | ✅ 3.2 | - | - | - | - |
+| FR7 - 监控 Agent 活动 | - | - | - | ✅ 4.1 | - | - | - |
+| FR8 - 推送 TG 通知 | - | - | - | ✅ 4.2 | - | - | - |
+| FR9 - 控制监控服务 | - | - | - | ✅ 4.3 | - | - | - |
+| FR10 - 存取款历史 | - | - | - | - | ✅ 5.1 | - | - |
+| FR11 - PnL 趋势历史 | - | - | - | - | ✅ 5.2 | - | - |
+| FR12 - 存入 ETH | - | - | - | - | ✅ 5.3 | - | - |
+| FR13 - ETH 价格 | - | - | - | - | - | ✅ 6.1 | - |
+| FR14 - 代币列表 | - | - | - | - | - | ✅ 6.2 | - |
+| FR15 - 代币详情 | - | - | - | - | - | ✅ 6.3 | - |
+| FR16 - 新币计划 | - | - | - | - | - | ✅ 6.4 | - |
+| FR21 - 排行榜 | - | - | - | - | - | ✅ 6.5 | - |
+| FR22 - 代币推文 | - | - | - | - | - | ✅ 6.6 | - |
+| FR17 - 定期报告 | - | - | - | - | - | - | ✅ 7.1 |
+| FR18 - 阈值提醒 | - | - | - | - | - | - | ✅ 7.2 |
+| FR19 - 策略到期提醒 | - | - | - | - | - | - | ✅ 7.3 |
+| FR20 - Gas 监控 | - | - | - | - | - | - | ✅ 7.4 |
+| NFR1 - 私钥安全 | ✅ 1.0 | - | - | - | ✅ 5.3 | - | - |
+| NFR2 - 错误提示 | ✅ All | ✅ All | ✅ All | ✅ All | ✅ All | ✅ All | ✅ All |
+| NFR3 - 权限确认 | - | ✅ 2.x | ✅ 3.x | ✅ 4.3 | ✅ 5.3 | - | - |
+| NFR4 - Gas 限制 | ✅ All | ✅ All | ✅ All | - | ✅ 5.3 | - | - |
 
 ---
 
@@ -443,5 +474,519 @@ class ActivityMonitor:
 | 误操作 | 高风险操作需要管理员权限 |
 | API 限流 | 合理设置轮询间隔，错误重试 |
 | 消息刷屏 | 支持暂停/恢复监控，可配置间隔 |
+
+---
+
+## Epic 5: 资金查询与历史数据
+
+**目标**: 扩展数据查询功能，提供资金历史和趋势分析
+
+### Story 5.1: 存取款历史查询
+
+**作为用户，我需要** 通过 `/deposits` 命令查看存取款历史，**以便** 追踪资金进出情况。
+
+**验收标准:**
+- [ ] 在 `commands/query.py` 添加 `cmd_deposits` 命令处理函数
+- [ ] 调用现有 `api.get_deposits_withdrawals()` 方法
+- [ ] 格式化输出: 时间、类型(存入/取出)、金额、状态
+- [ ] 默认显示最近 10 条记录
+- [ ] 支持参数指定数量: `/deposits 20`
+- [ ] 添加单元测试
+
+**技术说明:**
+```python
+# commands/query.py
+async def cmd_deposits(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    if not authorized(update):
+        return
+    limit = int(ctx.args[0]) if ctx.args else 10
+    data = await api.get_deposits_withdrawals(limit)
+    # 格式化输出...
+```
+
+**预估复杂度**: 低
+
+---
+
+### Story 5.2: PnL 趋势历史查询
+
+**作为用户，我需要** 通过 `/pnl_history` 命令查看 PnL 变化趋势，**以便** 分析盈亏历史。
+
+**验收标准:**
+- [ ] 在 `commands/query.py` 添加 `cmd_pnl_history` 命令处理函数
+- [ ] 调用现有 `api.get_pnl_history()` 方法
+- [ ] 格式化输出: 时间、PnL USD、PnL ETH、变化百分比
+- [ ] 默认显示最近 7 天数据
+- [ ] 支持参数指定天数: `/pnl_history 30`
+- [ ] 添加单元测试
+
+**技术说明:**
+```python
+# 消息格式示例
+"""
+PnL 趋势 (最近 7 天)
+
+2026-03-01: +$120.50 (+2.1%)
+2026-02-28: -$45.20 (-0.8%)
+2026-02-27: +$89.00 (+1.5%)
+...
+总计: +$164.30 (+2.8%)
+"""
+```
+
+**预估复杂度**: 低
+
+---
+
+### Story 5.3: 存入 ETH 命令
+
+**作为用户，我需要** 通过 `/deposit` 命令存入 ETH 到 Vault，**以便** 增加 Agent 可用资金。
+
+**验收标准:**
+- [ ] 在 `contract.py` 添加 `deposit_eth()` 方法
+- [ ] 在 `commands/admin.py` 添加 `cmd_deposit` 命令处理函数
+- [ ] 命令格式: `/deposit 0.5` (单位: ETH)
+- [ ] 调用合约 `depositETH()` payable 函数
+- [ ] 二次确认: "确认存入 0.5 ETH 到 Vault？ [Y/N]"
+- [ ] 成功时返回: "已存入 0.5 ETH，交易哈希: 0x..."
+- [ ] 管理员权限检查
+- [ ] 添加单元测试
+
+**技术说明:**
+```python
+# contract.py
+async def deposit_eth(self, amount_wei: int) -> dict:
+    tx_func = self.contract.functions.depositETH()
+    # 需要传入 value = amount_wei
+    tx = tx_func.build_transaction({
+        'value': amount_wei,
+        ...
+    })
+```
+
+**预估复杂度**: 中等
+
+---
+
+## Epic 6: 市场数据查询
+
+**目标**: 集成 Terminal Markets 市场数据 API，提供实时市场信息
+
+### Story 6.1: ETH 价格查询
+
+**作为用户，我需要** 通过 `/price` 命令查看 ETH 实时价格，**以便** 了解市场行情。
+
+**验收标准:**
+- [ ] 在 `api.py` 添加 `get_eth_price()` 方法
+- [ ] 调用 `/eth-price` 端点
+- [ ] 在 `commands/query.py` 添加 `cmd_price` 命令处理函数
+- [ ] 格式化输出: 当前价格、24h 变化
+- [ ] 添加单元测试
+
+**技术说明:**
+```python
+# api.py
+async def get_eth_price(self) -> dict:
+    return await self._get("/eth-price")
+
+# 消息格式
+"""
+ETH 价格
+
+当前: $3,000.00
+24h 变化: +2.5%
+"""
+```
+
+**预估复杂度**: 低
+
+---
+
+### Story 6.2: 可交易代币列表
+
+**作为用户，我需要** 通过 `/tokens` 命令查看可交易代币列表，**以便** 了解有哪些代币可以交易。
+
+**验收标准:**
+- [ ] 在 `api.py` 添加 `get_tokens()` 方法
+- [ ] 调用 `/tokens` 端点
+- [ ] 在 `commands/query.py` 添加 `cmd_tokens` 命令处理函数
+- [ ] 格式化输出: 代币符号、名称、价格、24h 变化
+- [ ] 支持分页: `/tokens 2`
+- [ ] 添加单元测试
+
+**技术说明:**
+```python
+# 消息格式
+"""
+可交易代币 (1-10)
+
+1. ETH - Ethereum
+   价格: $3,000 | 24h: +2.5%
+
+2. USDC - USD Coin
+   价格: $1.00 | 24h: +0.1%
+
+...
+"""
+```
+
+**预估复杂度**: 低
+
+---
+
+### Story 6.3: 代币详情查询
+
+**作为用户，我需要** 通过 `/token <symbol>` 命令查看代币详情，**以便** 深入了解特定代币。
+
+**验收标准:**
+- [ ] 在 `api.py` 添加 `get_token(address)` 方法
+- [ ] 调用 `/token/{tokenAddress}` 端点
+- [ ] 在 `commands/query.py` 添加 `cmd_token` 命令处理函数
+- [ ] 命令格式: `/token ETH` 或 `/token 0x...`
+- [ ] 格式化输出: 名称、价格、市值、持仓数、24h 交易量
+- [ ] 添加单元测试
+
+**技术说明:**
+```python
+# 消息格式
+"""
+代币详情: ETH
+
+名称: Ethereum
+合约: 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2
+价格: $3,000.00
+24h 变化: +2.5%
+市值: $360B
+持仓数: 1,234
+"""
+```
+
+**预估复杂度**: 低
+
+---
+
+### Story 6.4: 新币上线计划
+
+**作为用户，我需要** 通过 `/launches` 命令查看新币上线计划，**以便** 提前了解即将上线的代币。
+
+**验收标准:**
+- [ ] 在 `api.py` 添加 `get_launch_schedule()` 方法
+- [ ] 调用 `/launch-schedule` 端点
+- [ ] 在 `commands/query.py` 添加 `cmd_launches` 命令处理函数
+- [ ] 格式化输出: 代币名称、上线时间、状态
+- [ ] 添加单元测试
+
+**技术说明:**
+```python
+# 消息格式
+"""
+新币上线计划
+
+1. NEWTOKEN
+   上线时间: 2026-03-05 12:00 UTC
+   状态: 即将上线
+
+2. ANOTHER
+   上线时间: 2026-03-10 08:00 UTC
+   状态: 计划中
+"""
+```
+
+**预估复杂度**: 低
+
+---
+
+### Story 6.5: 排行榜查询
+
+**作为用户，我需要** 通过 `/leaderboard` 命令查看 Vault 排行榜，**以便** 了解表现最好的交易者。
+
+**验收标准:**
+- [ ] 在 `api.py` 添加 `get_leaderboard()` 方法
+- [ ] 调用 `/leaderboard` 端点
+- [ ] 在 `commands/query.py` 添加 `cmd_leaderboard` 命令处理函数
+- [ ] 格式化输出: 排名、Vault 名称、PnL、收益率
+- [ ] 默认显示 Top 10
+- [ ] 支持参数指定数量: `/leaderboard 20`
+- [ ] 添加单元测试
+
+**技术说明:**
+```python
+# api.py
+async def get_leaderboard(self, limit: int = 10) -> dict:
+    return await self._get("/leaderboard", {"limit": limit})
+
+# 消息格式
+"""
+🏆 Vault 排行榜 (Top 10)
+
+1. AlphaVault
+   PnL: +$125,000 (+45.2%)
+   收益率: 45.2%
+
+2. DiamondHands
+   PnL: +$89,000 (+32.1%)
+   收益率: 32.1%
+
+3. SmartTrader
+   PnL: +$67,500 (+28.5%)
+   收益率: 28.5%
+...
+"""
+```
+
+**预估复杂度**: 低
+
+---
+
+### Story 6.6: 代币推文查询
+
+**作为用户，我需要** 通过 `/tweets <symbol>` 命令查看代币相关推文，**以便** 了解市场情绪和最新动态。
+
+**验收标准:**
+- [ ] 在 `api.py` 添加 `get_token_tweets(symbol)` 方法
+- [ ] 调用 `/tweets/{tokenSymbol}` 端点
+- [ ] 在 `commands/query.py` 添加 `cmd_tweets` 命令处理函数
+- [ ] 命令格式: `/tweets ETH`
+- [ ] 格式化输出: 推文内容、作者、时间、链接
+- [ ] 默认显示最近 5 条
+- [ ] 添加单元测试
+
+**技术说明:**
+```python
+# api.py
+async def get_token_tweets(self, symbol: str, limit: int = 5) -> dict:
+    return await self._get(f"/tweets/{symbol}", {"limit": limit})
+
+# 消息格式
+"""
+📢 ETH 相关推文
+
+1. @VitalikButerin (2026-03-01)
+   "Excited about the new ETH upgrade..."
+   🔗 https://x.com/...
+
+2. @ethereum (2026-03-01)
+   "The merge is complete! 🚀"
+   🔗 https://x.com/...
+
+3. @ethenterprise (2026-02-28)
+   "Enterprise adoption continues to grow..."
+   🔗 https://x.com/...
+"""
+```
+
+**预估复杂度**: 低
+
+---
+
+## Epic 7: 智能通知增强
+
+**目标**: 扩展 ActivityMonitor，支持定期报告和智能提醒
+
+### Story 7.1: 定期报告推送
+
+**作为用户，我需要** 每日自动收到 Vault 状态摘要，**以便** 无需主动查询了解账户情况。
+
+**验收标准:**
+- [ ] 扩展 `monitor.py` 支持定时任务
+- [ ] 创建 `reporter.py` 模块
+- [ ] 实现 `DailyReporter` 类
+- [ ] 默认每日 08:00 推送（可配置）
+- [ ] 报告内容: 余额、24h PnL、持仓变化、活跃策略数
+- [ ] 支持开关命令: `/report_on`, `/report_off`
+- [ ] 添加单元测试
+
+**技术说明:**
+```python
+# 消息格式
+"""
+📊 每日报告 - 2026-03-01
+
+余额: 1.5 ETH ($4,500)
+24h PnL: +$120.50 (+2.1%)
+持仓数: 3
+活跃策略: 2
+
+持仓变化:
+  ETH: +0.05 ETH
+  USDC: -$50.00
+"""
+```
+
+**预估复杂度**: 中等
+
+---
+
+### Story 7.2: 阈值变化提醒
+
+**作为用户，我需要** 当 PnL 或持仓变化超过阈值时收到提醒，**以便** 及时关注异常波动。
+
+**验收标准:**
+- [ ] 扩展 `ActivityMonitor` 支持阈值检查
+- [ ] 配置项: PNL_ALERT_THRESHOLD (默认 5%)
+- [ ] 配置项: POSITION_ALERT_THRESHOLD (默认 10%)
+- [ ] 触发时推送: 变化类型、变化量、当前值
+- [ ] 支持动态配置: `/alert_pnl 3`, `/alert_position 5`
+- [ ] 添加单元测试
+
+**技术说明:**
+```python
+# 消息格式
+"""
+⚠️ PnL 变化提醒
+
+24h PnL 变化超过阈值 (5%)
+
+当前 PnL: -$250.00 (-4.2%)
+变化: -$180.00 (较昨日)
+"""
+```
+
+**预估复杂度**: 中等
+
+---
+
+### Story 7.3: 策略到期提醒
+
+**作为用户，我需要** 在策略即将过期前收到提醒，**以便** 决定是否续期。
+
+**验收标准:**
+- [ ] 扩展 `ActivityMonitor` 检查策略过期时间
+- [ ] 默认提前 24 小时提醒（可配置）
+- [ ] 推送内容: 策略 ID、内容摘要、过期时间
+- [ ] 支持配置: `/alert_expiry 48` (小时)
+- [ ] 添加单元测试
+
+**技术说明:**
+```python
+# 消息格式
+"""
+⏰ 策略即将过期
+
+策略 #3 将在 24 小时后过期
+
+内容: 当 ETH 跌破 2800 时买入
+过期时间: 2026-03-02 12:00 UTC
+
+使用 /add_strategy 重新添加
+"""
+```
+
+**预估复杂度**: 低
+
+---
+
+### Story 7.4: Gas 价格监控
+
+**作为用户，我需要** 当 Gas 价格低于阈值时收到提醒，**以便** 选择合适时机进行链上操作。
+
+**验收标准:**
+- [ ] 创建 `gas_monitor.py` 模块
+- [ ] 实现 `GasMonitor` 类
+- [ ] 配置项: GAS_ALERT_THRESHOLD (默认 20 Gwei)
+- [ ] 配置项: GAS_CHECK_INTERVAL (默认 5 分钟)
+- [ ] 触发时推送: 当前 Gas 价格、建议操作
+- [ ] 支持开关命令: `/gas_alert_on`, `/gas_alert_off`
+- [ ] 添加单元测试
+
+**技术说明:**
+```python
+# 消息格式
+"""
+⛽ Gas 价格提醒
+
+当前 Gas: 15 Gwei (低于阈值 20)
+
+建议进行链上操作:
+  - /withdraw 提取资金
+  - /update_settings 更新设置
+"""
+```
+
+**预估复杂度**: 中等
+
+---
+
+## Epic 5-7 需求覆盖
+
+| 需求 | Epic 5 | Epic 6 | Epic 7 |
+|------|--------|--------|--------|
+| FR10 - 存取款历史 | ✅ 5.1 | - | - |
+| FR11 - PnL 趋势 | ✅ 5.2 | - | - |
+| FR12 - 存入 ETH | ✅ 5.3 | - | - |
+| FR13 - ETH 价格 | - | ✅ 6.1 | - |
+| FR14 - 代币列表 | - | ✅ 6.2 | - |
+| FR15 - 代币详情 | - | ✅ 6.3 | - |
+| FR16 - 新币计划 | - | ✅ 6.4 | - |
+| FR21 - 排行榜 | - | ✅ 6.5 | - |
+| FR22 - 代币推文 | - | ✅ 6.6 | - |
+| FR17 - 定期报告 | - | - | ✅ 7.1 |
+| FR18 - 阈值提醒 | - | - | ✅ 7.2 |
+| FR19 - 策略到期 | - | - | ✅ 7.3 |
+| FR20 - Gas 监控 | - | - | ✅ 7.4 |
+
+---
+
+## 完整实现顺序建议
+
+| 阶段 | Epic | Stories | 优先级 | 预估工时 |
+|------|------|---------|--------|----------|
+| **Phase 1** | Epic 1 | 1.0, 1.1, 1.2, 1.3 | 🔴 P0 | 2-3 天 |
+| **Phase 2** | Epic 2 | 2.1, 2.2 | 🟡 P1 | 1-2 天 |
+| **Phase 3** | Epic 3 | 3.1, 3.2 | 🟢 P2 | 2-3 天 |
+| **Phase 4** | Epic 4 | 4.1, 4.2, 4.3 | 🔵 P3 | 2-3 天 |
+| **Phase 5** | Epic 5 | 5.1, 5.2, 5.3 | 🟠 P1 | 1-2 天 |
+| **Phase 6** | Epic 6 | 6.1, 6.2, 6.3, 6.4, 6.5, 6.6 | 🟣 P2 | 2-4 天 |
+| **Phase 7** | Epic 7 | 7.1, 7.2, 7.3, 7.4 | 🟤 P2-P3 | 3-5 天 |
+
+---
+
+## 完整技术依赖
+
+```
+Epic 1 (基础设施)
+    └── Story 1.0 (Web3 基础) ← 必须首先完成
+        ├── Story 1.1 (禁用策略)
+        ├── Story 1.2 (禁用所有)
+        └── Story 1.3 (菜单更新)
+
+Epic 2 (策略管理)
+    └── 依赖 Epic 1 完成
+        ├── Story 2.1 (添加策略)
+        └── Story 2.2 (暂停/恢复)
+
+Epic 3 (高级功能)
+    └── 依赖 Epic 1 完成
+        ├── Story 3.1 (更新设置)
+        └── Story 3.2 (提取 ETH)
+
+Epic 4 (操作监控)
+    └── 依赖 api.py
+        ├── Story 4.1 (活动监控服务)
+        ├── Story 4.2 (TG 消息推送)
+        └── Story 4.3 (监控控制命令)
+
+Epic 5 (资金查询)
+    └── 依赖 api.py + Epic 1 (5.3)
+        ├── Story 5.1 (存取款历史) ← 仅依赖 api.py
+        ├── Story 5.2 (PnL 趋势) ← 仅依赖 api.py
+        └── Story 5.3 (存入 ETH) ← 依赖 Epic 1
+
+Epic 6 (市场数据)
+    └── 依赖 api.py (新增方法)
+        ├── Story 6.1 (ETH 价格)
+        ├── Story 6.2 (代币列表)
+        ├── Story 6.3 (代币详情)
+        ├── Story 6.4 (新币计划)
+        ├── Story 6.5 (排行榜)
+        └── Story 6.6 (代币推文)
+
+Epic 7 (智能通知)
+    └── 依赖 Epic 4 (ActivityMonitor)
+        ├── Story 7.1 (定期报告) ← 依赖 Epic 4
+        ├── Story 7.2 (阈值提醒) ← 依赖 Epic 4
+        ├── Story 7.3 (策略到期) ← 依赖 api.py
+        └── Story 7.4 (Gas 监控) ← 独立
+```
 
 ---
