@@ -22,6 +22,7 @@ from .query import (
     cmd_start,
     cmd_strategies,
     cmd_swaps,
+    cmd_tokens,
     cmd_vault,
 )
 from .withdraw import create_withdraw_handler
@@ -42,6 +43,7 @@ def register_handlers(app):
     app.add_handler(CommandHandler("deposits", cmd_deposits))
     app.add_handler(CommandHandler("pnl_history", cmd_pnl_history))
     app.add_handler(CommandHandler("price", cmd_price))
+    app.add_handler(CommandHandler("tokens", cmd_tokens))
 
     # Admin commands
     app.add_handler(CommandHandler("add_strategy", cmd_add_strategy))
@@ -76,6 +78,7 @@ __all__ = [
     'cmd_deposits',
     'cmd_pnl_history',
     'cmd_price',
+    'cmd_tokens',
     # Admin commands
     'cmd_add_strategy',
     'cmd_deposit',

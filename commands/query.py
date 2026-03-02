@@ -32,6 +32,7 @@ Commands:
 /strategies - Active strategies
 /vault - Vault info
 /price - ETH price
+/tokens - Tradeable tokens list
 /deposits [limit] - Deposits/withdrawals history
 /deposit <amount> - Deposit ETH to vault
 /add_strategy <text> - Add new strategy
@@ -398,3 +399,51 @@ ETH Price
 Current: {price}
 """
     await update.message.reply_text(msg)
+
+
+async def cmd_tokens(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """Query tradeable tokens list."""
+    if not authorized(update):
+        return
+
+    # Parse optional page argument (default 1)
+    page = 1
+    if ctx.args and ctx.args[0].isdigit():
+        page = max(1, int(ctx.args[0]))  # Ensure page >= 1
+
+    # Call API
+    api = _get_api()
+    data = await api.get_tokens(page)
+
+    # Handle API error
+    if isinstance(data, dict) and "error" in data:
+        await update.message.reply_text(f"Error: {data['error']}")
+        return
+
+    # Get items list - API may return list directly or dict with items
+    if isinstance(data, list):
+        items = data
+        total = len(items)
+    else:
+        items = data.get("items", [])
+        total = data.get("total", len(items))
+
+    if not items:
+        await update.message.reply_text("No tokens available")
+        return
+
+    # Calculate display range
+    limit = 10
+    start_num = (page - 1) * limit + 1
+    end_num = min(page * limit, total)
+
+    # Format output
+    lines = [f"Tradeable Tokens ({start_num}-{end_num})\n"]
+    for i, token in enumerate(items, 1):
+        symbol = token.get("symbol", "?")
+        name = token.get("name", "?")
+        token_type = token.get("type", "unknown").replace("_", " ").title()
+        lines.append(f"{i}. ${symbol} - {name}")
+        lines.append(f"   Type: {token_type}\n")
+
+    await update.message.reply_text("\n".join(lines))

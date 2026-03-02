@@ -56,3 +56,7 @@ class TerminalAPI:
     async def get_eth_price(self) -> dict:
         """Get ETH real-time price."""
         return await self._get("/eth-price")
+
+    async def get_tokens(self, page: int = 1, limit: int = 10) -> dict:
+        """Get tradeable tokens list."""
+        return await self._get("/tokens", {"page": page, "limit": limit})
