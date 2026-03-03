@@ -170,7 +170,7 @@ class ThresholdAlerter:
 
     def _format_pnl_alert(self, data: dict[str, Any]) -> str:
         """Format PnL alert message."""
-        now = datetime.datetime.now(datetime_utc).strftime('%Y-%m-%d %H:%M UTC')
+        now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
         change = data['change']
         sign = '+' if change >= 0 else ''
 
@@ -184,7 +184,7 @@ Change: {sign}{format_usd(str(change))} ({sign}{data['pct_change']:.1f}%)
 
     def _format_position_alert(self, data: dict[str, Any]) -> str:
         """Format position alert message."""
-        now = datetime.datetime.now(datetime_utc).strftime('%Y-%m-%d %H:%M UTC')
+        now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
         change = data['current_value'] - data['previous_value']
         sign = '+' if change >= 0 else ''
 
