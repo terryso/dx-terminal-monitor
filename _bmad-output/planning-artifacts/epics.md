@@ -920,6 +920,413 @@ Epic 7 (智能通知)
     └── 依赖 Epic 4 (ActivityMonitor)
         ├── Story 7.1 (定期报告) ← 依赖 Epic 4
         └── Story 7.2 (阈值提醒) ← 依赖 Epic 4
+
+Epic 8 (AI 策略顾问)
+    └── 依赖 api.py + contract.py + Epic 4 (消息推送)
+        ├── Story 8.0 (LLM 客户端) ← 基础设施
+        ├── Story 8.1 (数据收集器) ← 收集持仓/策略数据
+        ├── Story 8.2 (AI 分析服务) ← 核心分析逻辑
+        ├── Story 8.3 (建议推送) ← 依赖 Epic 4
+        └── Story 8.4 (确认执行) ← 依赖 Story 8.3
 ```
+
+---
+
+## Epic 8: AI 策略顾问
+
+**目标**: 实现定时 AI 分析，自动生成策略建议并推送给用户确认执行
+
+### 背景说明
+
+用户目前需要通过 terminal.markets 网站与 Agent 聊天来创建策略，较为不便。本 Epic 实现定时唤起大模型分析持仓数据，自动生成策略建议推送给用户，用户只需确认或拒绝即可。
+
+### 数据源
+
+| 数据 | API 端点 | 说明 |
+|------|----------|------|
+| 持仓信息 | `/positions/{vaultAddress}` | ETH余额、各代币持仓、PnL |
+| 活跃策略 | `/strategies/{vaultAddress}?activeOnly=true` | 策略ID、内容、优先级、过期时间 |
+| Vault 信息 | `/vault` | 暂停状态、交易设置 |
+| 代币列表 | `/tokens` | 可交易代币及价格 |
+
+### 策略操作参数
+
+**添加策略** (`contract.add_strategy`):
+- `content` (str): 策略提示词原文
+- `expiry` (int): 失效时间戳 (0=永不过期)
+- `priority` (int): 优先级 (0=LOW, 1=MEDIUM, 2=HIGH)
+
+**禁用策略** (`contract.disable_strategy`):
+- `strategy_id` (int): 策略ID
+
+---
+
+### Story 8.0: LLM 客户端基础设施
+
+**作为开发者，我需要** 搭建 LLM 客户端基础设施，**以便** 与 GLM5/OpenAI 兼容的大模型交互。
+
+**验收标准:**
+- [ ] 创建 `llm.py` 模块
+- [ ] 实现 `LLMClient` 类，支持 OpenAI 协议
+- [ ] 配置项: `LLM_API_KEY`, `LLM_BASE_URL`, `LLM_MODEL`
+- [ ] 实现 `async def chat(system_prompt: str, user_message: str) -> str` 方法
+- [ ] 支持超时配置 (`LLM_TIMEOUT`, 默认 60s)
+- [ ] 错误处理: API 超时、限流、无效响应
+- [ ] 添加单元测试 (Mock API)
+
+**技术说明:**
+```python
+# llm.py
+import aiohttp
+from config import LLM_API_KEY, LLM_BASE_URL, LLM_MODEL, LLM_TIMEOUT
+
+class LLMClient:
+    def __init__(self):
+        self.api_key = LLM_API_KEY
+        self.base_url = LLM_BASE_URL or "https://open.bigmodel.cn/api/paas/v4"
+        self.model = LLM_MODEL or "glm-4"
+
+    async def chat(self, system_prompt: str, user_message: str) -> str:
+        headers = {"Authorization": f"Bearer {self.api_key}"}
+        payload = {
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message}
+            ]
+        }
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                f"{self.base_url}/chat/completions",
+                headers=headers,
+                json=payload,
+                timeout=aiohttp.ClientTimeout(total=LLM_TIMEOUT)
+            ) as resp:
+                data = await resp.json()
+                return data["choices"][0]["message"]["content"]
+```
+
+**预估复杂度**: 低
+
+---
+
+### Story 8.1: 策略分析数据收集器
+
+**作为开发者，我需要** 实现数据收集器，**以便** 为 AI 分析提供完整的上下文数据。
+
+**验收标准:**
+- [ ] 创建 `advisor.py` 模块
+- [ ] 实现 `StrategyDataCollector` 类
+- [ ] 实现 `async def collect() -> dict` 方法，收集:
+  - 持仓信息 (ETH余额、各代币持仓、PnL)
+  - 活跃策略列表 (ID、内容、优先级、过期时间)
+  - Vault 状态 (暂停状态)
+  - 市场数据 (ETH价格、热门代币)
+  - **持仓代币蜡烛图** (1h/4h/1d 时间周期，用于趋势分析)
+- [ ] 在 `api.py` 添加 `get_candles(token_address, timeframe, limit)` 方法
+- [ ] 数据格式化: 转换为 LLM 友好的文本格式
+- [ ] 错误处理: API 失败时返回部分数据 + 错误信息
+- [ ] 添加单元测试
+
+**技术说明:**
+```python
+# api.py 新增方法
+async def get_candles(
+    self,
+    token_address: str,
+    timeframe: str = "4h",  # 1m/5m/15m/1h/4h/1d
+    limit: int = 24
+) -> list:
+    """Get candlestick data for a token."""
+    now = int(time.time())
+    return await self._get(f"/candles/{token_address}", {
+        "timeframe": timeframe,
+        "to": now,
+        "countback": limit
+    })
+
+# advisor.py
+class StrategyDataCollector:
+    def __init__(self, api: TerminalAPI):
+        self.api = api
+
+    async def collect(self) -> dict:
+        """收集所有分析所需数据"""
+        positions = await self.api.get_positions()
+        strategies = await self.api.get_strategies()
+        vault = await self.api.get_vault()
+        eth_price = await self.api.get_eth_price()
+
+        # 获取持仓代币的蜡烛图数据 (用于趋势分析)
+        candles = {}
+        if positions and "tokens" in positions:
+            for token in positions.get("tokens", [])[:5]:  # 最多5个代币
+                addr = token.get("tokenAddress")
+                symbol = token.get("symbol", "UNKNOWN")
+                if addr:
+                    candles[symbol] = await self.api.get_candles(addr, "4h", 24)
+
+        return {
+            "positions": positions,
+            "strategies": strategies,
+            "vault": vault,
+            "eth_price": eth_price,
+            "candles": candles,  # 蜡烛图数据
+            "collected_at": datetime.now().isoformat()
+        }
+
+    def format_for_llm(self, data: dict) -> str:
+        """格式化为 LLM 可读的文本，包含趋势分析"""
+        # 输出示例:
+        # ETH: 24h变化 +5.2%, 4h趋势: 上涨
+        # BTC: 24h变化 -2.1%, 4h趋势: 下跌
+        # ...
+```
+
+**蜡烛图数据用途:**
+| 时间周期 | 用途 |
+|----------|------|
+| 1h | 短期波动、日内交易信号 |
+| 4h | 中期趋势、支撑阻力位 |
+| 1d | 长期趋势、大周期分析 |
+
+**预估复杂度**: 中等
+
+---
+
+### Story 8.2: AI 策略分析服务
+
+**作为系统，我需要** 定时调用 AI 分析持仓数据，**以便** 生成策略建议。
+
+**验收标准:**
+- [ ] 实现 `StrategyAdvisor` 类
+- [ ] 实现 `async def analyze(data: dict) -> list[Suggestion]` 方法
+- [ ] 设计系统提示词 (System Prompt):
+  - 角色: 专业的加密货币交易策略顾问
+  - 任务: 分析持仓和策略，给出增删建议
+  - 输出格式: JSON 结构化数据
+- [ ] 输出结构 `Suggestion`:
+  ```python
+  @dataclass
+  class Suggestion:
+      action: Literal["add", "disable"]  # 操作类型
+      # 添加策略时的参数
+      content: str | None = None         # 策略提示词
+      priority: int = 1                  # 优先级 (0-2)
+      expiry_hours: int = 0              # 有效期(小时), 0=永久
+      # 禁用策略时的参数
+      strategy_id: int | None = None     # 要禁用的策略ID
+      # 说明
+      reason: str = ""                   # 建议原因
+  ```
+- [ ] 定时任务: 默认每 2 小时执行一次 (可配置 `ADVISOR_INTERVAL_HOURS`)
+- [ ] 添加单元测试 (Mock LLM 响应)
+
+**技术说明:**
+```python
+# advisor.py
+SYSTEM_PROMPT = """你是一个专业的加密货币交易策略顾问。
+
+当前持仓数据:
+{positions}
+
+当前活跃策略:
+{strategies}
+
+请分析以上数据，给出策略建议。输出 JSON 格式:
+{
+  "suggestions": [
+    {
+      "action": "add",
+      "content": "当 BTC 突破 70000 时卖出 50% ETH",
+      "priority": 2,
+      "expiry_hours": 24,
+      "reason": "BTC 突破关键阻力位可能引发回调"
+    },
+    {
+      "action": "disable",
+      "strategy_id": 3,
+      "reason": "该策略条件已失效"
+    }
+  ]
+}
+"""
+
+class StrategyAdvisor:
+    def __init__(self, llm: LLMClient, api: TerminalAPI):
+        self.llm = llm
+        self.collector = StrategyDataCollector(api)
+
+    async def analyze(self) -> list[Suggestion]:
+        data = await self.collector.collect()
+        prompt = SYSTEM_PROMPT.format(...)
+        response = await self.llm.chat(SYSTEM_PROMPT, prompt)
+        return self._parse_suggestions(response)
+```
+
+**预估复杂度**: 中等
+
+---
+
+### Story 8.3: 建议推送与交互
+
+**作为用户，我需要** 收到 AI 策略建议推送并能选择执行，**以便** 快速调整交易策略。
+
+**验收标准:**
+- [ ] 实现 `format_suggestions_message(suggestions: list) -> str` 格式化消息
+- [ ] 扩展 `monitor.py` 或创建 `advisor_monitor.py` 定时推送
+- [ ] 推送消息格式:
+  ```
+  🤖 AI 策略分析建议
+
+  📅 分析时间: 2026-03-03 14:00
+
+  📊 当前状态:
+    余额: 1.5 ETH ($4,500)
+    持仓: 3 个代币
+    活跃策略: 2 个
+    总 PnL: +$120.50 (+2.1%)
+
+  💡 建议操作:
+
+  [1] 🟢 添加策略
+      提示词: "当 BTC 突破 70000 时卖出 50% ETH"
+      优先级: 高
+      有效期: 24小时
+      原因: BTC 突破关键阻力位可能引发回调
+
+  [2] 🔴 禁用策略 #3
+      原因: 该策略条件已失效
+
+  ---
+  回复 [1] [2] 执行对应操作
+  回复 [ALL] 执行全部
+  回复 [N] 忽略
+  ```
+- [ ] 支持命令控制: `/advisor_on`, `/advisor_off`, `/advisor_status`
+- [ ] 配置项: `ADVISOR_INTERVAL_HOURS` (默认 2)
+- [ ] 添加单元测试
+
+**预估复杂度**: 中等
+
+---
+
+### Story 8.4: 建议确认执行
+
+**作为用户，我需要** 通过回复消息执行 AI 建议，**以便** 快速应用策略变更。
+
+**验收标准:**
+- [ ] 实现消息回调处理: 监听用户回复
+- [ ] 支持 `[1]`, `[2]`, `[ALL]`, `[N]` 四种回复
+- [ ] 执行添加策略: 调用 `contract.add_strategy(content, expiry, priority)`
+- [ ] 执行禁用策略: 调用 `contract.disable_strategy(strategy_id)`
+- [ ] 执行结果反馈:
+  ```
+  ✅ 已执行操作:
+
+  [1] 策略已添加, ID: #5
+      TX: 0x1234...
+
+  [2] 策略 #3 已禁用
+      TX: 0x5678...
+  ```
+- [ ] 会话管理: 建议有效期 (默认 30 分钟内可回复)
+- [ ] 权限检查: 仅管理员可执行
+- [ ] 添加单元测试
+
+**技术说明:**
+```python
+# 存储待确认的建议
+pending_suggestions: dict[str, tuple[list[Suggestion], datetime]] = {}
+
+async def handle_advisor_reply(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    message_id = update.message.reply_to_message.message_id
+    key = f"{user_id}:{message_id}"
+
+    if key not in pending_suggestions:
+        await update.message.reply_text("建议已过期，请等待下次分析")
+        return
+
+    suggestions, created_at = pending_suggestions[key]
+    # 处理用户回复...
+```
+
+**预估复杂度**: 中等
+
+---
+
+## Epic 8 需求覆盖
+
+| 需求 | Story 8.0 | Story 8.1 | Story 8.2 | Story 8.3 | Story 8.4 |
+|------|-----------|-----------|-----------|-----------|-----------|
+| LLM 客户端 | ✅ | - | - | - | - |
+| 数据收集 | - | ✅ | - | - | - |
+| AI 分析 | - | - | ✅ | - | - |
+| 建议推送 | - | - | - | ✅ | - |
+| 确认执行 | - | - | - | - | ✅ |
+
+---
+
+## Epic 8 新增功能需求
+
+| ID | 需求 | 优先级 | Epic |
+|----|------|--------|------|
+| FR23 | 定时 AI 分析持仓与策略 | P1 | Epic 8 |
+| FR24 | AI 生成添加策略建议 | P1 | Epic 8 |
+| FR25 | AI 生成禁用策略建议 | P1 | Epic 8 |
+| FR26 | 策略建议推送与确认执行 | P1 | Epic 8 |
+
+---
+
+## 更新后的完整实现顺序
+
+| 阶段 | Epic | Stories | 优先级 | 预估工时 |
+|------|------|---------|--------|----------|
+| **Phase 1** | Epic 1 | 1.0, 1.1, 1.2, 1.3 | 🔴 P0 | 2-3 天 |
+| **Phase 2** | Epic 2 | 2.1, 2.2 | 🟡 P1 | 1-2 天 |
+| **Phase 3** | Epic 3 | 3.1, 3.2 | 🟢 P2 | 2-3 天 |
+| **Phase 4** | Epic 4 | 4.1, 4.2, 4.3 | 🔵 P3 | 2-3 天 |
+| **Phase 5** | Epic 5 | 5.1, 5.2, 5.3 | 🟠 P1 | 1-2 天 |
+| **Phase 6** | Epic 6 | 6.1, 6.2, 6.3, 6.4, 6.5, 6.6 | 🟣 P2 | 2-4 天 |
+| **Phase 7** | Epic 7 | 7.1, 7.2 | 🟤 P2-P3 | 1-3 天 |
+| **Phase 8** | Epic 8 | 8.0, 8.1, 8.2, 8.3, 8.4 | 🔴 P1 | 2-4 天 |
+
+---
+
+## 更新后的完整需求覆盖矩阵
+
+| 需求 | Epic 1 | Epic 2 | Epic 3 | Epic 4 | Epic 5 | Epic 6 | Epic 7 | Epic 8 |
+|------|--------|--------|--------|--------|--------|--------|--------|--------|
+| FR1 - 禁用指定策略 | ✅ 1.1 | - | - | - | - | - | - | - |
+| FR2 - 禁用所有策略 | ✅ 1.2 | - | - | - | - | - | - | - |
+| FR3 - 添加新策略 | - | ✅ 2.1 | - | - | - | - | - | - |
+| FR4 - 暂停/恢复交易 | - | ✅ 2.2 | - | - | - | - | - | - |
+| FR5 - 更新设置 | - | - | ✅ 3.1 | - | - | - | - | - |
+| FR6 - 提取 ETH | - | - | ✅ 3.2 | - | - | - | - | - |
+| FR7 - 监控 Agent 活动 | - | - | - | ✅ 4.1 | - | - | - | - |
+| FR8 - 推送 TG 通知 | - | - | - | ✅ 4.2 | - | - | - | - |
+| FR9 - 控制监控服务 | - | - | - | ✅ 4.3 | - | - | - | - |
+| FR10 - 存取款历史 | - | - | - | - | ✅ 5.1 | - | - | - |
+| FR11 - PnL 趋势 | - | - | - | - | ✅ 5.2 | - | - | - |
+| FR12 - 存入 ETH | - | - | - | - | ✅ 5.3 | - | - | - |
+| FR13 - ETH 价格 | - | - | - | - | - | ✅ 6.1 | - | - |
+| FR14 - 代币列表 | - | - | - | - | - | ✅ 6.2 | - | - |
+| FR15 - 代币详情 | - | - | - | - | - | ✅ 6.3 | - | - |
+| FR16 - 新币计划 | - | - | - | - | - | ✅ 6.4 | - | - |
+| FR17 - 定期报告 | - | - | - | - | - | - | ✅ 7.1 | - |
+| FR18 - 阈值提醒 | - | - | - | - | - | - | ✅ 7.2 | - |
+| FR19 - 策略到期提醒 | - | - | - | - | - | - | ✅ 7.3 | - |
+| FR20 - Gas 监控 | - | - | - | - | - | - | ✅ 7.4 | - |
+| FR21 - 排行榜 | - | - | - | - | - | ✅ 6.5 | - | - |
+| FR22 - 代币推文 | - | - | - | - | - | ✅ 6.6 | - | - |
+| FR23 - AI 分析持仓策略 | - | - | - | - | - | - | - | ✅ 8.2 |
+| FR24 - AI 添加策略建议 | - | - | - | - | - | - | - | ✅ 8.2 |
+| FR25 - AI 禁用策略建议 | - | - | - | - | - | - | - | ✅ 8.2 |
+| FR26 - 建议推送执行 | - | - | - | - | - | - | - | ✅ 8.3/8.4 |
+| NFR1 - 私钥安全 | ✅ 1.0 | - | - | - | ✅ 5.3 | - | - | - |
+| NFR2 - 错误提示 | ✅ All | ✅ All | ✅ All | ✅ All | ✅ All | ✅ All | ✅ All | ✅ All |
+| NFR3 - 权限确认 | - | ✅ 2.x | ✅ 3.x | ✅ 4.3 | ✅ 5.3 | - | - | ✅ 8.4 |
+| NFR4 - Gas 限制 | ✅ All | ✅ All | ✅ All | - | ✅ 5.3 | - | - | ✅ 8.4 |
 
 ---
