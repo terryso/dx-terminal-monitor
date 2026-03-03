@@ -103,22 +103,22 @@ def format_token_amount(amount: str, decimals: int = 18) -> str:
 
 
 def format_timestamp(ts: str | int) -> str:
-    """Format timestamp to readable format.
+    """Format timestamp to readable local time.
 
     Args:
         ts: ISO format timestamp string or Unix timestamp (seconds)
 
     Returns:
-        Formatted time string (YYYY-MM-DD HH:MM:SS UTC)
+        Formatted time string (YYYY-MM-DD HH:MM:SS) in local timezone
     """
     try:
         # Handle Unix timestamp (integer or numeric string)
         if isinstance(ts, int) or (isinstance(ts, str) and ts.isdigit()):
-            dt = datetime.utcfromtimestamp(int(ts))
-            return dt.strftime('%Y-%m-%d %H:%M:%S') + ' UTC'
+            dt = datetime.fromtimestamp(int(ts))  # Local time
+            return dt.strftime('%Y-%m-%d %H:%M:%S')
         # Handle ISO format string
         dt = datetime.fromisoformat(ts.replace('Z', '+00:00'))
-        return dt.strftime('%Y-%m-%d %H:%M:%S') + ' UTC'
+        return dt.strftime('%Y-%m-%d %H:%M:%S')
     except Exception:
         return str(ts)
 
@@ -197,6 +197,21 @@ def format_activity_message(activity: dict[str, Any]) -> str:
         withdrawal = activity.get('withdrawal', {})
         amt = format_eth(withdrawal.get('amountWei', '0'))
         lines.append(f"Amount: {amt} ETH")
+
+    elif activity_type == 'vault_summary':
+        vault_summary = activity.get('vaultSummary', {})
+        if vault_summary:
+            # Summary text
+            summary_text = vault_summary.get('summary', '')
+            if summary_text:
+                # Truncate long summaries
+                if len(summary_text) > 300:
+                    summary_text = summary_text[:300] + '...'
+                lines.append(f"Summary:\n{summary_text}")
+            else:
+                lines.append("No summary available")
+        else:
+            lines.append("No summary data available")
 
     # Add transaction link
     if activity_id:

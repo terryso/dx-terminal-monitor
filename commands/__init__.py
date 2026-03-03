@@ -26,6 +26,8 @@ from .query import (
     cmd_price,
     cmd_report_off,
     cmd_report_on,
+    cmd_report_status,
+    cmd_report_time,
     cmd_start,
     cmd_strategies,
     cmd_swaps,
@@ -59,6 +61,8 @@ def register_handlers(app):
     app.add_handler(CommandHandler("tweets", cmd_tweets))
     app.add_handler(CommandHandler("report_on", cmd_report_on))
     app.add_handler(CommandHandler("report_off", cmd_report_off))
+    app.add_handler(CommandHandler("report_time", cmd_report_time))
+    app.add_handler(CommandHandler("report_status", cmd_report_status))
     app.add_handler(CommandHandler("alert_pnl", cmd_alert_pnl))
     app.add_handler(CommandHandler("alert_position", cmd_alert_position))
     app.add_handler(CommandHandler("alert_status", cmd_alert_status))
@@ -103,6 +107,8 @@ __all__ = [
     'cmd_tweets',
     'cmd_report_on',
     'cmd_report_off',
+    'cmd_report_time',
+    'cmd_report_status',
     'cmd_alert_pnl',
     'cmd_alert_position',
     'cmd_alert_status',

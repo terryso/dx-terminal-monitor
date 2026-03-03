@@ -64,6 +64,9 @@ class ActivityMonitor:
             interval = 30
         return max(interval, 10)  # 最小 10 秒
 
+    # Activity types that should trigger notifications
+    NOTIFY_TYPES = {'swap', 'deposit', 'withdrawal', 'vault_summary'}
+
     def _filter_new(self, activities: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """过滤出新活动。
 
@@ -71,10 +74,13 @@ class ActivityMonitor:
             activities: 活动列表
 
         Returns:
-            未处理过的新活动列表
+            未处理过的新活动列表（只包含有意义的类型）
         """
         new_items = []
         for activity in activities:
+            # Skip activity types that don't need notifications
+            if activity.get('type') not in self.NOTIFY_TYPES:
+                continue
             # API 返回 cursor 作为唯一标识
             activity_id = activity.get('cursor') or activity.get('id')
             if activity_id and activity_id not in self.seen_ids:

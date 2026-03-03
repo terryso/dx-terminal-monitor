@@ -1,5 +1,5 @@
 """Query commands module - read-only data query commands."""
-from datetime import UTC
+from datetime import UTC, datetime
 
 from telegram import Update
 from telegram.ext import ContextTypes
@@ -57,6 +57,8 @@ Commands:
 /monitor_stop - Stop activity monitor
 /report_on - Enable daily report
 /report_off - Disable daily report
+/report_time [HH:MM] - View or set report time
+/report_status - Show report settings
 /alert_pnl [percent] - Set PnL alert threshold
 /alert_position [percent] - Set position alert threshold
 /alert_status - Show alert settings
@@ -631,15 +633,20 @@ async def cmd_tweets(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("\n".join(lines).strip())
 
 
-async def cmd_report_on(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    """Enable daily report."""
-    if not authorized(update):
-        return
+def _get_reporter():
+    """Lazy import reporter to avoid circular imports."""
     try:
         from __main__ import get_reporter
     except ImportError:
         from main import get_reporter
-    reporter = get_reporter()
+    return get_reporter()
+
+
+async def cmd_report_on(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """Enable daily report."""
+    if not authorized(update):
+        return
+    reporter = _get_reporter()
     if reporter is None:
         await update.message.reply_text("Reporter not initialized.")
         return
@@ -655,11 +662,7 @@ async def cmd_report_off(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Disable daily report."""
     if not authorized(update):
         return
-    try:
-        from __main__ import get_reporter
-    except ImportError:
-        from main import get_reporter
-    reporter = get_reporter()
+    reporter = _get_reporter()
     if reporter is None:
         await update.message.reply_text("Reporter not initialized.")
         return
@@ -669,6 +672,81 @@ async def cmd_report_off(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     reporter.enabled = False
     reporter.stop()
     await update.message.reply_text("Daily report disabled. Use /report_on to enable.")
+
+
+async def cmd_report_time(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """View or set daily report time (input is local time)."""
+    if not authorized(update):
+        return
+
+    reporter = _get_reporter()
+    if reporter is None:
+        await update.message.reply_text("Reporter not initialized.")
+        return
+
+    if not ctx.args:
+        # Show current time in local timezone
+        hour, minute = reporter.report_time
+        # Convert UTC to local time for display
+        now = datetime.now(UTC)
+        utc_time = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+        local_time = utc_time.astimezone()
+        local_hour, local_minute = local_time.hour, local_time.minute
+        await update.message.reply_text(
+            f"Current report time: {local_hour:02d}:{local_minute:02d} (Local)\n"
+            f"UTC: {hour:02d}:{minute:02d}\n"
+            f"Usage: /report_time HH:MM (local time)"
+        )
+        return
+
+    # Parse local time and convert to UTC for storage
+    try:
+        time_str = ctx.args[0]
+        parts = time_str.split(':')
+        if len(parts) != 2:
+            raise ValueError("Invalid format")
+        local_hour = int(parts[0])
+        local_minute = int(parts[1])
+        if not (0 <= local_hour <= 23 and 0 <= local_minute <= 59):
+            raise ValueError("Invalid range")
+
+        # Convert local time to UTC
+        now_local = datetime.now()
+        local_dt = now_local.replace(hour=local_hour, minute=local_minute, second=0, microsecond=0)
+        utc_dt = local_dt.astimezone(UTC)
+        utc_hour, utc_minute = utc_dt.hour, utc_dt.minute
+
+        reporter.set_report_time(utc_hour, utc_minute)
+        await update.message.reply_text(
+            f"Report time updated to {local_hour:02d}:{local_minute:02d} (Local)\n"
+            f"UTC: {utc_hour:02d}:{utc_minute:02d}"
+        )
+    except (ValueError, IndexError):
+        await update.message.reply_text("Invalid time format. Usage: /report_time HH:MM (e.g., 09:00)")
+
+
+async def cmd_report_status(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """Show current report settings."""
+    if not authorized(update):
+        return
+
+    reporter = _get_reporter()
+    if reporter is None:
+        await update.message.reply_text("Reporter not initialized.")
+        return
+
+    status = "enabled" if reporter.enabled else "disabled"
+    hour, minute = reporter.report_time
+    # Convert UTC to local time
+    now = datetime.now(UTC)
+    utc_time = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+    local_time = utc_time.astimezone()  # Convert to local timezone
+    local_hour, local_minute = local_time.hour, local_time.minute
+    await update.message.reply_text(
+        f"Daily Report Status: {status}\n"
+        f"Report Time: {local_hour:02d}:{local_minute:02d} (Local)\n"
+        f"UTC: {hour:02d}:{minute:02d}"
+    )
 
 
 def _get_alerter():

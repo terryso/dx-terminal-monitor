@@ -112,14 +112,15 @@ class DailyReporter:
         Returns:
             Formatted report string
         """
-        today = datetime.now(UTC).strftime('%Y-%m-%d')
+        today = datetime.now().strftime('%Y-%m-%d')  # Local time
         lines = [f"Daily Report - {today}\n"]
 
         # Balance section (from positions data)
         positions_data = data.get('positions', {})
         eth_balance = positions_data.get('ethBalance', '0')
         usd_value = positions_data.get('overallValueUsd', '0')
-        lines.append(f"Balance: {format_eth(eth_balance)} ETH ({format_usd(usd_value)})")
+        lines.append(f"Available: {format_eth(eth_balance)} ETH")
+        lines.append(f"Total Value: {format_usd(usd_value)}")
 
         # PnL section (from positions data)
         pnl_usd = positions_data.get('overallPnlUsd', '0')
@@ -207,3 +208,20 @@ class DailyReporter:
         """
         self._task = asyncio.create_task(self.start())
         return self._task
+
+    def set_report_time(self, hour: int, minute: int) -> bool:
+        """Update report time dynamically.
+
+        Args:
+            hour: Hour (0-23)
+            minute: Minute (0-59)
+
+        Returns:
+            True if updated, False if invalid
+        """
+        if not (0 <= hour <= 23 and 0 <= minute <= 59):
+            logger.warning(f"Invalid report time: {hour:02d}:{minute:02d}")
+            return False
+        self.report_time = (hour, minute)
+        logger.info(f"Report time updated to {hour:02d}:{minute:02d} UTC")
+        return True

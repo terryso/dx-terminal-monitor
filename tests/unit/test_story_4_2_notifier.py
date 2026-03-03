@@ -451,10 +451,13 @@ class TestHelperFunctions:
         assert "-" in result  # Contains date separator
         assert ":" in result  # Contains time separator
 
-    def test_format_timestamp_returns_utc(self):
-        """format_timestamp should return UTC suffix"""
+    def test_format_timestamp_returns_local_time(self):
+        """format_timestamp should return local time (no UTC suffix)"""
         result = format_timestamp("2026-03-01T12:00:00Z")
-        assert "UTC" in result
+        # Should format as local time without UTC suffix
+        assert "UTC" not in result
+        assert "-" in result  # Contains date separator
+        assert ":" in result  # Contains time separator
 
 
 class TestPriceFallback:

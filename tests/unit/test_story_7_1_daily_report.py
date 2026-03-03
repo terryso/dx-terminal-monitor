@@ -13,7 +13,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-
 # ============================================================================
 # Test Data Factory
 # ============================================================================
@@ -418,7 +417,8 @@ class TestFormatDailyReport:
 
         report = reporter._format_daily_report(data)
 
-        assert "Balance" in report or "ETH" in report
+        assert "Available" in report or "ETH" in report
+        assert "Total Value" in report
 
     def test_format_daily_report_includes_pnl(self, mock_api, mock_notifier, report_data_factory):
         """Report should include 24h PnL with sign and percentage."""
@@ -561,6 +561,142 @@ class TestReportCommands:
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
         assert "disabled" in call_args.lower() or "off" in call_args.lower()
+
+
+class TestReportTimeCommand:
+    """Tests for /report_time command."""
+
+    @pytest.mark.asyncio
+    async def test_cmd_report_time_shows_current_time(self, mock_telegram_update, mock_telegram_context, mock_api, mock_notifier):
+        """/report_time without args should show current time."""
+        from commands.query import cmd_report_time
+        from reporter import DailyReporter
+
+        mock_reporter = DailyReporter(mock_api, mock_notifier)
+        mock_telegram_context.args = []
+
+        with patch("commands.query.authorized", return_value=True), \
+             patch("main.get_reporter", return_value=mock_reporter):
+            await cmd_report_time(mock_telegram_update, mock_telegram_context)
+
+        mock_telegram_update.message.reply_text.assert_called_once()
+        call_args = mock_telegram_update.message.reply_text.call_args[0][0]
+        assert "08:00" in call_args
+        assert "UTC" in call_args
+
+    @pytest.mark.asyncio
+    async def test_cmd_report_time_sets_new_time(self, mock_telegram_update, mock_telegram_context, mock_api, mock_notifier):
+        """/report_time HH:MM should update report time (converts local to UTC)."""
+        from commands.query import cmd_report_time
+        from reporter import DailyReporter
+
+        mock_reporter = DailyReporter(mock_api, mock_notifier)
+        mock_telegram_context.args = ["09:30"]
+
+        with patch("commands.query.authorized", return_value=True), \
+             patch("main.get_reporter", return_value=mock_reporter):
+            await cmd_report_time(mock_telegram_update, mock_telegram_context)
+
+        mock_telegram_update.message.reply_text.assert_called_once()
+        # Report time is updated (converted from local to UTC, exact value depends on timezone)
+        # Just verify it was updated from the default (8, 0)
+        assert mock_reporter.report_time != (8, 0)  # Time was changed
+
+    @pytest.mark.asyncio
+    async def test_cmd_report_time_invalid_format(self, mock_telegram_update, mock_telegram_context, mock_api, mock_notifier):
+        """/report_time with invalid format should show error."""
+        from commands.query import cmd_report_time
+        from reporter import DailyReporter
+
+        mock_reporter = DailyReporter(mock_api, mock_notifier)
+        mock_telegram_context.args = ["invalid"]
+
+        with patch("commands.query.authorized", return_value=True), \
+             patch("main.get_reporter", return_value=mock_reporter):
+            await cmd_report_time(mock_telegram_update, mock_telegram_context)
+
+        mock_telegram_update.message.reply_text.assert_called_once()
+        call_args = mock_telegram_update.message.reply_text.call_args[0][0]
+        assert "Invalid" in call_args or "invalid" in call_args
+
+
+class TestReportStatusCommand:
+    """Tests for /report_status command."""
+
+    @pytest.mark.asyncio
+    async def test_cmd_report_status_shows_status(self, mock_telegram_update, mock_telegram_context, mock_api, mock_notifier):
+        """/report_status should show current report settings."""
+        from commands.query import cmd_report_status
+        from reporter import DailyReporter
+
+        mock_reporter = DailyReporter(mock_api, mock_notifier)
+        mock_reporter.enabled = True
+
+        with patch("commands.query.authorized", return_value=True), \
+             patch("main.get_reporter", return_value=mock_reporter):
+            await cmd_report_status(mock_telegram_update, mock_telegram_context)
+
+        mock_telegram_update.message.reply_text.assert_called_once()
+        call_args = mock_telegram_update.message.reply_text.call_args[0][0]
+        assert "enabled" in call_args.lower()
+        assert "08:00" in call_args
+        assert "UTC" in call_args
+
+    @pytest.mark.asyncio
+    async def test_cmd_report_status_shows_disabled(self, mock_telegram_update, mock_telegram_context, mock_api, mock_notifier):
+        """/report_status should show disabled status."""
+        from commands.query import cmd_report_status
+        from reporter import DailyReporter
+
+        mock_reporter = DailyReporter(mock_api, mock_notifier)
+        mock_reporter.enabled = False
+
+        with patch("commands.query.authorized", return_value=True), \
+             patch("main.get_reporter", return_value=mock_reporter):
+            await cmd_report_status(mock_telegram_update, mock_telegram_context)
+
+        mock_telegram_update.message.reply_text.assert_called_once()
+        call_args = mock_telegram_update.message.reply_text.call_args[0][0]
+        assert "disabled" in call_args.lower()
+
+
+class TestSetReportTime:
+    """Tests for set_report_time method."""
+
+    def test_set_report_time_valid(self, mock_api, mock_notifier):
+        """set_report_time should update time for valid values."""
+        from reporter import DailyReporter
+
+        reporter = DailyReporter(mock_api, mock_notifier)
+
+        result = reporter.set_report_time(14, 30)
+
+        assert result is True
+        assert reporter.report_time == (14, 30)
+
+    def test_set_report_time_invalid_hour(self, mock_api, mock_notifier):
+        """set_report_time should reject invalid hour."""
+        from reporter import DailyReporter
+
+        reporter = DailyReporter(mock_api, mock_notifier)
+        original_time = reporter.report_time
+
+        result = reporter.set_report_time(25, 0)
+
+        assert result is False
+        assert reporter.report_time == original_time
+
+    def test_set_report_time_invalid_minute(self, mock_api, mock_notifier):
+        """set_report_time should reject invalid minute."""
+        from reporter import DailyReporter
+
+        reporter = DailyReporter(mock_api, mock_notifier)
+        original_time = reporter.report_time
+
+        result = reporter.set_report_time(10, 70)
+
+        assert result is False
+        assert reporter.report_time == original_time
 
 
 class TestEnvironmentConfiguration:
