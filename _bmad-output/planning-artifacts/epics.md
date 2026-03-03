@@ -1170,12 +1170,14 @@ class StrategyAdvisor:
 
 ### Story 8.3: 建议推送与交互
 
-**作为用户，我需要** 收到 AI 策略建议推送并能选择执行，**以便** 快速调整交易策略。
+**作为用户，我需要** 收到 AI 策略建议推送并能点击按钮执行，**以便** 快速调整交易策略。
 
 **验收标准:**
 - [ ] 实现 `format_suggestions_message(suggestions: list) -> str` 格式化消息
+- [ ] 实现 `build_suggestion_keyboard(suggestions: list, request_id: str) -> InlineKeyboardMarkup` 构建按钮
 - [ ] 扩展 `monitor.py` 或创建 `advisor_monitor.py` 定时推送
-- [ ] 推送消息格式:
+- [ ] 每批建议生成唯一 `request_id` (UUID 短格式)
+- [ ] 推送消息格式 (带 Inline Keyboard):
   ```
   🤖 AI 策略分析建议
 
@@ -1198,28 +1200,80 @@ class StrategyAdvisor:
   [2] 🔴 禁用策略 #3
       原因: 该策略条件已失效
 
-  ---
-  回复 [1] [2] 执行对应操作
-  回复 [ALL] 执行全部
-  回复 [N] 忽略
+  ─────────────────────────
+  │ 执行[1] │ 执行[2] │      ← Inline Keyboard 按钮
+  │  全部执行  │  忽略  │
+  ─────────────────────────
   ```
+- [ ] 按钮点击后更新为"已执行"状态 (edit_message_reply_markup)
 - [ ] 支持命令控制: `/advisor_on`, `/advisor_off`, `/advisor_status`
 - [ ] 配置项: `ADVISOR_INTERVAL_HOURS` (默认 2)
 - [ ] 添加单元测试
+
+**技术说明:**
+```python
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+import uuid
+
+def build_suggestion_keyboard(suggestions: list[Suggestion], request_id: str) -> InlineKeyboardMarkup:
+    """构建建议操作的 Inline Keyboard"""
+    buttons = []
+
+    # 每个建议一个按钮
+    row = []
+    for i, s in enumerate(suggestions, 1):
+        icon = "🟢" if s.action == "add" else "🔴"
+        row.append(InlineKeyboardButton(
+            f"{icon} [{i}]",
+            callback_data=f"adv:{request_id}:{i}"
+        ))
+    buttons.append(row)
+
+    # 全部执行和忽略
+    buttons.append([
+        InlineKeyboardButton("✅ 全部执行", callback_data=f"adv:{request_id}:all"),
+        InlineKeyboardButton("⏭️ 忽略", callback_data=f"adv:{request_id}:ignore"),
+    ])
+
+    return InlineKeyboardMarkup(buttons)
+
+async def push_suggestions(chat_id: int, suggestions: list[Suggestion], context: dict):
+    """推送建议消息"""
+    request_id = uuid.uuid4().hex[:8]  # 短格式 UUID
+
+    # 存储待处理建议
+    pending_requests[request_id] = {
+        "suggestions": suggestions,
+        "created_at": datetime.now(),
+        "context": context
+    }
+
+    message = format_suggestions_message(suggestions, context)
+    keyboard = build_suggestion_keyboard(suggestions, request_id)
+
+    await bot.send_message(
+        chat_id,
+        text=message,
+        reply_markup=keyboard,
+        parse_mode="HTML"
+    )
+```
 
 **预估复杂度**: 中等
 
 ---
 
-### Story 8.4: 建议确认执行
+### Story 8.4: 建议确认执行 (Inline Keyboard 回调)
 
-**作为用户，我需要** 通过回复消息执行 AI 建议，**以便** 快速应用策略变更。
+**作为用户，我需要** 通过点击按钮执行 AI 建议，**以便** 快速应用策略变更。
 
 **验收标准:**
-- [ ] 实现消息回调处理: 监听用户回复
-- [ ] 支持 `[1]`, `[2]`, `[ALL]`, `[N]` 四种回复
+- [ ] 实现 `CallbackQueryHandler` 处理按钮点击
+- [ ] 解析 callback_data 格式: `adv:{request_id}:{choice}` (choice = 1/2/all/ignore)
+- [ ] 通过 `request_id` 精确关联建议，避免混淆
 - [ ] 执行添加策略: 调用 `contract.add_strategy(content, expiry, priority)`
 - [ ] 执行禁用策略: 调用 `contract.disable_strategy(strategy_id)`
+- [ ] 点击后更新按钮状态为"已执行"或移除按钮
 - [ ] 执行结果反馈:
   ```
   ✅ 已执行操作:
@@ -1230,26 +1284,105 @@ class StrategyAdvisor:
   [2] 策略 #3 已禁用
       TX: 0x5678...
   ```
-- [ ] 会话管理: 建议有效期 (默认 30 分钟内可回复)
-- [ ] 权限检查: 仅管理员可执行
+- [ ] 会话管理: 建议有效期 (默认 30 分钟)，过期点击提示"已过期"
+- [ ] 权限检查: 仅管理员按钮有效
+- [ ] 防重复点击: 同一 request_id 只能执行一次
 - [ ] 添加单元测试
 
 **技术说明:**
 ```python
-# 存储待确认的建议
-pending_suggestions: dict[str, tuple[list[Suggestion], datetime]] = {}
+from telegram.ext import CallbackQueryHandler
+from datetime import datetime, timedelta
 
-async def handle_advisor_reply(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    message_id = update.message.reply_to_message.message_id
-    key = f"{user_id}:{message_id}"
+# 存储待确认的建议 (以 request_id 为 key)
+pending_requests: dict[str, dict] = {}
+SUGGESTION_TTL = timedelta(minutes=30)
 
-    if key not in pending_suggestions:
-        await update.message.reply_text("建议已过期，请等待下次分析")
+async def handle_advisor_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """处理 Inline Keyboard 按钮点击"""
+    query = update.callback_query
+    await query.answer()  # 关闭按钮加载状态
+
+    user_id = query.from_user.id
+
+    # 权限检查
+    if not is_admin(user_id):
+        await query.answer("无权限执行", show_alert=True)
         return
 
-    suggestions, created_at = pending_suggestions[key]
-    # 处理用户回复...
+    # 解析 callback_data: "adv:a3f2b1:1" 或 "adv:a3f2b1:all"
+    _, request_id, choice = query.data.split(":")
+
+    # 查找建议
+    request = pending_requests.get(request_id)
+    if not request:
+        await query.edit_message_text("⚠️ 建议已过期，请等待下次分析")
+        return
+
+    # 检查有效期
+    if datetime.now() - request["created_at"] > SUGGESTION_TTL:
+        del pending_requests[request_id]
+        await query.edit_message_text("⚠️ 建议已过期，请等待下次分析")
+        return
+
+    # 防重复执行
+    if request.get("executed"):
+        await query.answer("已执行过，请勿重复操作", show_alert=True)
+        return
+
+    suggestions = request["suggestions"]
+    results = []
+
+    # 执行选择
+    if choice == "ignore":
+        del pending_requests[request_id]
+        await query.edit_message_text("⏭️ 已忽略本次建议")
+        return
+
+    elif choice == "all":
+        for i, s in enumerate(suggestions, 1):
+            result = await execute_suggestion(s)
+            results.append(f"[{i}] {result}")
+    else:
+        idx = int(choice) - 1
+        if 0 <= idx < len(suggestions):
+            result = await execute_suggestion(suggestions[idx])
+            results.append(f"[{choice}] {result}")
+
+    # 标记已执行
+    request["executed"] = True
+
+    # 更新消息
+    await query.edit_message_text(
+        f"✅ 已执行操作:\n\n" + "\n".join(results),
+        parse_mode="HTML"
+    )
+
+async def execute_suggestion(s: Suggestion) -> str:
+    """执行单个建议"""
+    if s.action == "add":
+        tx = await contract.add_strategy(
+            content=s.content,
+            expiry=s.expiry_hours * 3600 if s.expiry_hours else 0,
+            priority=s.priority
+        )
+        return f"策略已添加\nTX: {tx[:10]}..."
+    elif s.action == "disable":
+        tx = await contract.disable_strategy(s.strategy_id)
+        return f"策略 #{s.strategy_id} 已禁用\nTX: {tx[:10]}..."
+
+# 注册 handler
+app.add_handler(CallbackQueryHandler(handle_advisor_callback, pattern=r"^adv:"))
+```
+
+**交互流程:**
+```
+1. 系统推送建议 (request_id=a3f2b1)
+2. 用户看到带按钮的消息
+3. 用户点击 "🟢 [1]"
+4. 系统收到 callback_data="adv:a3f2b1:1"
+5. 通过 request_id 找到建议，执行第 1 个
+6. 更新消息为"已执行"
 ```
 
 **预估复杂度**: 中等
