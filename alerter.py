@@ -50,11 +50,11 @@ class ThresholdAlerter:
         self._pnl_cooldown_minutes = self._get_pnl_cooldown_minutes()
 
     def _get_pnl_cooldown_minutes(self) -> int:
-        """Get PnL alert cooldown from env (default 5 minutes)."""
+        """Get PnL alert cooldown from env (default 0 = disabled)."""
         try:
-            return max(int(os.getenv('PNL_ALERT_COOLDOWN_MINUTES', '5')), 1)
+            return max(int(os.getenv('PNL_ALERT_COOLDOWN_MINUTES', '0')), 0)
         except ValueError:
-            return 5
+            return 0
 
     def _get_pnl_threshold(self) -> float:
         """Get PnL alert threshold from env (default 5%)."""
