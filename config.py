@@ -49,6 +49,12 @@ POSITION_ALERT_THRESHOLD = float(os.getenv('POSITION_ALERT_THRESHOLD', '10'))
 ALERT_CHECK_INTERVAL = int(os.getenv('ALERT_CHECK_INTERVAL', '60'))
 ALERT_ENABLED = os.getenv('ALERT_ENABLED', 'true').lower() == 'true'
 
+# LLM Configuration (for AI Strategy Advisor - Epic 8)
+LLM_API_KEY = os.getenv('LLM_API_KEY', '')
+LLM_BASE_URL = os.getenv('LLM_BASE_URL', 'https://open.bigmodel.cn/api/paas/v4')
+LLM_MODEL = os.getenv('LLM_MODEL', 'glm-4')
+LLM_TIMEOUT = int(os.getenv('LLM_TIMEOUT', '60'))
+
 
 def is_admin(user_id: int) -> bool:
     """检查用户是否为管理员（用于高风险操作）
