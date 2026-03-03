@@ -55,6 +55,10 @@ LLM_BASE_URL = os.getenv('LLM_BASE_URL', 'https://open.bigmodel.cn/api/paas/v4')
 LLM_MODEL = os.getenv('LLM_MODEL', 'glm-4')
 LLM_TIMEOUT = int(os.getenv('LLM_TIMEOUT', '60'))
 
+# Advisor Configuration
+ADVISOR_ENABLED = os.getenv('ADVISOR_ENABLED', 'true').lower() == 'true'
+ADVISOR_INTERVAL_HOURS = int(os.getenv('ADVISOR_INTERVAL_HOURS', '2'))
+
 
 def is_admin(user_id: int) -> bool:
     """检查用户是否为管理员（用于高风险操作）

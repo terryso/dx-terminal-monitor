@@ -127,3 +127,26 @@ class TerminalAPI:
     async def get_token_tweets(self, symbol: str, limit: int = 5) -> list:
         """Get token-related tweets."""
         return await self._get(f"/tweets/{symbol}", {"limit": limit, "order": "desc"})
+
+    async def get_candles(
+        self,
+        token_address: str,
+        timeframe: str = "4h",
+        limit: int = 24
+    ) -> list:
+        """Get candlestick data for a token.
+
+        Args:
+            token_address: Token contract address
+            timeframe: Candle interval (1m, 5m, 15m, 1h, 4h, 1d)
+            limit: Number of candles to fetch
+
+        Returns:
+            List of candle objects with OHLCV data
+        """
+        now = int(time.time())
+        return await self._get(f"/candles/{token_address}", {
+            "timeframe": timeframe,
+            "to": now,
+            "countback": limit
+        })

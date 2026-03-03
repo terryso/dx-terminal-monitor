@@ -89,3 +89,12 @@ development_status:
   7-1-daily-report: done
   7-2-threshold-alert: done
   epic-7-retrospective: optional
+
+  # Epic 8: AI 策略顾问
+  epic-8: in-progress
+  8-0-llm-client: done
+  8-1-data-collector: done
+  8-2-ai-advisor: done
+  8-3-suggestion-push: todo
+  8-4-confirm-execute: todo
+  epic-8-retrospective: optional
