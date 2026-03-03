@@ -5,9 +5,10 @@ Implements threshold-based alerts for PnL and position changes.
 """
 
 import asyncio
+import datetime
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import UTC
 from typing import Any
 
 from api import TerminalAPI
@@ -15,7 +16,6 @@ from notifier import TelegramNotifier, format_usd
 
 logger = logging.getLogger(__name__)
 
-UTC = timezone.utc
 
 
 class ThresholdAlerter:
@@ -45,6 +45,16 @@ class ThresholdAlerter:
         # Previous values for comparison
         self._previous_pnl_usd: float | None = None
         self._previous_positions: dict[str, float] = {}
+        # Cooldown tracking to prevent repeated alerts
+        self._last_pnl_alert_time: datetime | None = None
+        self._pnl_cooldown_minutes = self._get_pnl_cooldown_minutes()
+
+    def _get_pnl_cooldown_minutes(self) -> int:
+        """Get PnL alert cooldown from env (default 5 minutes)."""
+        try:
+            return max(int(os.getenv('PNL_ALERT_COOLDOWN_MINUTES', '5')), 1)
+        except ValueError:
+            return 5
 
     def _get_pnl_threshold(self) -> float:
         """Get PnL alert threshold from env (default 5%)."""
@@ -102,12 +112,14 @@ class ThresholdAlerter:
                     'pct_change': pct_change
                 }
 
+        # Always update previous value to prevent repeated alerts
         self._previous_pnl_usd = current_pnl
         return None
 
     def _confirm_pnl_state(self, current_pnl: float):
         """Confirm PnL state update after successful alert send."""
         self._previous_pnl_usd = current_pnl
+        self._last_pnl_alert_time = datetime.datetime.now(UTC)
 
     async def _check_position_threshold(self) -> tuple[list[dict[str, Any]], dict[str, float]]:
         """Check for significant position changes.
@@ -158,7 +170,7 @@ class ThresholdAlerter:
 
     def _format_pnl_alert(self, data: dict[str, Any]) -> str:
         """Format PnL alert message."""
-        now = datetime.now(UTC).strftime('%Y-%m-%d %H:%M UTC')
+        now = datetime.datetime.now(UTC).strftime('%Y-%m-%d %H:%M UTC')
         change = data['change']
         sign = '+' if change >= 0 else ''
 
@@ -172,7 +184,7 @@ Change: {sign}{format_usd(str(change))} ({sign}{data['pct_change']:.1f}%)
 
     def _format_position_alert(self, data: dict[str, Any]) -> str:
         """Format position alert message."""
-        now = datetime.now(UTC).strftime('%Y-%m-%d %H:%M UTC')
+        now = datetime.datetime.now(UTC).strftime('%Y-%m-%d %H:%M UTC')
         change = data['current_value'] - data['previous_value']
         sign = '+' if change >= 0 else ''
 
@@ -190,6 +202,15 @@ Change: {sign}{format_usd(str(abs(change)))} ({sign}{data['change_pct']:.1f}%)
         # Check PnL threshold
         pnl_alert = await self._check_pnl_threshold()
         if pnl_alert:
+            # Check cooldown - skip if we sent alert recently
+            if self._last_pnl_alert_time is not None:
+                time_since_alert = datetime.datetime.now(UTC) - self._last_pnl_alert_time
+                cooldown_delta = time_since_alert.total_seconds()
+                if cooldown_delta < self._pnl_cooldown_minutes * 60:
+                    logger.debug(f"PnL alert skipped due to cooldown ({cooldown_delta:.0f}s < {self._pnl_cooldown_minutes * 60}s)")
+                    return
+
+                # Not in cooldown, proceed with alert
             message = self._format_pnl_alert(pnl_alert)
             send_success = False
             for user_id in self.notifier.notify_users:
