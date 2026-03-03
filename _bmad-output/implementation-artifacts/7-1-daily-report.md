@@ -13,7 +13,9 @@ As a user, I want to receive an automatic daily Vault status summary, so that I 
 3. Default daily push at 08:00 (configurable via `REPORT_TIME` env variable)
 4. Report content: balance, 24h PnL, position changes, active strategy count
 5. Support toggle commands: `/report_on`, `/report_off`
-6. Add unit tests
+6. Support time configuration commands: `/report_time [HH:MM]` - view or set report time
+7. Support status command: `/report_status` - show current report settings
+8. Add unit tests
 
 ## Tasks / Subtasks
 
@@ -56,6 +58,14 @@ As a user, I want to receive an automatic daily Vault status summary, so that I 
   - [x] Add state tracking for report enabled/disabled (via REPORT_ENABLED env var)
   - [x] Register commands in bot menu
   - [x] Update `/start` help text
+
+- [x] **Task 9: Add time configuration commands** (AC: #6, #7)
+  - [x] Create `cmd_report_time` in `commands/query.py` - view/set report time
+  - [x] Create `cmd_report_status` in `commands/query.py` - show report settings
+  - [x] Add `set_report_time()` method to `DailyReporter` class
+  - [x] Register commands in bot menu
+  - [x] Update `/start` help text
+  - [x] Add unit tests for new commands
 
 - [x] **Task 7: Add environment configuration** (AC: #3)
   - [x] Add `REPORT_TIME` to `config.py`
@@ -294,6 +304,78 @@ async def cmd_report_off(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     if not authorized(update):
         return
     await update.message.reply_text("Daily report is disabled. Use /report_on to enable.")
+
+async def cmd_report_time(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """View or set daily report time (AC6)."""
+    if not authorized(update):
+        return
+
+    reporter = _get_reporter()
+    if reporter is None:
+        await update.message.reply_text("Reporter not initialized.")
+        return
+
+    if not ctx.args:
+        # Show current time
+        hour, minute = reporter.report_time
+        await update.message.reply_text(
+            f"Current report time: {hour:02d}:{minute:02d} UTC\n"
+            f"Usage: /report_time HH:MM"
+        )
+        return
+
+    # Parse and set new time
+    try:
+        time_str = ctx.args[0]
+        parts = time_str.split(':')
+        if len(parts) != 2:
+            raise ValueError("Invalid format")
+        hour = int(parts[0])
+        minute = int(parts[1])
+        if not (0 <= hour <= 23 and 0 <= minute <= 59):
+            raise ValueError("Invalid range")
+
+        reporter.set_report_time(hour, minute)
+        await update.message.reply_text(f"Report time updated to {hour:02d}:{minute:02d} UTC")
+    except (ValueError, IndexError):
+        await update.message.reply_text("Invalid time format. Usage: /report_time HH:MM (e.g., 08:00)")
+
+async def cmd_report_status(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """Show current report settings (AC7)."""
+    if not authorized(update):
+        return
+
+    reporter = _get_reporter()
+    if reporter is None:
+        await update.message.reply_text("Reporter not initialized.")
+        return
+
+    status = "enabled" if reporter.enabled else "disabled"
+    hour, minute = reporter.report_time
+    await update.message.reply_text(
+        f"Daily Report Status: {status}\n"
+        f"Report Time: {hour:02d}:{minute:02d} UTC"
+    )
+```
+
+**DailyReporter methods to add:**
+```python
+def set_report_time(self, hour: int, minute: int) -> bool:
+    """Update report time.
+
+    Args:
+        hour: Hour (0-23)
+        minute: Minute (0-59)
+
+    Returns:
+        True if updated, False if invalid
+    """
+    if not (0 <= hour <= 23 and 0 <= minute <= 59):
+        logger.warning(f"Invalid report time: {hour:02d}:{minute:02d}")
+        return False
+    self.report_time = (hour, minute)
+    logger.info(f"Report time updated to {hour:02d}:{minute:02d} UTC")
+    return True
 ```
 
 ### Message Format (from epics.md)
@@ -368,8 +450,9 @@ Story 7-1 implementation completed successfully:
    - Formats daily report with all required content
    - Sends reports to all configured notify users via TelegramNotifier
    - Uses same scheduling pattern as ActivityMonitor (start/stop/start_background)
+   - Supports dynamic time updates via `set_report_time()` method
 
-2. **Added command handlers**: `cmd_report_on` and `cmd_report_off` in `commands/query.py`
+2. **Added command handlers**: `cmd_report_on`, `cmd_report_off`, `cmd_report_time`, `cmd_report_status` in `commands/query.py`
 
 3. **Updated configuration**: Added `REPORT_TIME` and `REPORT_ENABLED` to `config.py`
 
@@ -377,30 +460,29 @@ Story 7-1 implementation completed successfully:
 
 5. **Integrated with main.py**: DailyReporter initialized and auto-started in `post_init()`
 
-6. **Updated bot menu**: Added `report_on` and `report_off` commands to Telegram bot menu
+6. **Updated bot menu**: Added `report_on`, `report_off`, `report_time`, `report_status` commands to Telegram bot menu
 
-7. **Updated help text**: Added `/report_on` and `/report_off` to `/start` command help
+7. **Updated help text**: Added `/report_on`, `/report_off`, `/report_time`, `/report_status` to `/start` command help
 
-8. **All 33 unit tests pass**: Tests cover initialization, time parsing, schedule calculation, data gathering, formatting, and command handlers
+8. **All 41 unit tests pass**: Tests cover initialization, time parsing, schedule calculation, data gathering, formatting, command handlers, and time configuration
 
-9. **Code quality maintained**: main.py optimized to 113 non-empty lines (under 120 limit)
+9. **Code quality maintained**: All lint checks pass
 
 ### File List
 
 Created:
-- `reporter.py` - DailyReporter class implementation
+- `reporter.py` - DailyReporter class implementation with `set_report_time()` method
 
 Modified:
-- `commands/query.py` - Added cmd_report_on, cmd_report_off handlers and updated help text
-- `commands/__init__.py` - Registered report_on and report_off handlers
+- `commands/query.py` - Added cmd_report_on, cmd_report_off, cmd_report_time, cmd_report_status handlers and updated help text
+- `commands/__init__.py` - Registered all report handlers
+- `main.py` - Added report_time and report_status to BotCommand menu
 - `config.py` - Added REPORT_TIME and REPORT_ENABLED configuration
-- `main.py` - Integrated DailyReporter initialization and auto-start
 - `.env.example` - Added REPORT_TIME and REPORT_ENABLED documentation
-- `tests/unit/test_story_1_3_menu_help.py` - Updated expected commands list to include report_on and report_off
-
-Test file (pre-existing):
-- `tests/unit/test_story_7_1_daily_report.py` - 33 tests all passing
+- `tests/unit/test_story_1_3_menu_help.py` - Updated expected commands list
+- `tests/unit/test_story_7_1_daily_report.py` - Added 8 new tests for time commands
 
 ## Change Log
 
+- 2026-03-03: Task 9 completed - Added `/report_time` and `/report_status` commands for time configuration
 - 2026-03-03: Story 7-1 implementation completed - Daily report push feature with configurable time and toggle commands
