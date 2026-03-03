@@ -119,3 +119,7 @@ class TerminalAPI:
     async def get_launch_schedule(self) -> list:
         """Get upcoming token launch schedule."""
         return await self._get("/launch-schedule")
+
+    async def get_leaderboard(self, limit: int = 10) -> list:
+        """Get vault leaderboard sorted by total PnL."""
+        return await self._get("/leaderboard", {"limit": limit, "sortBy": "total_pnl_usd"})

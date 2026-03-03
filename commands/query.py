@@ -41,6 +41,7 @@ Commands:
 /tokens - Tradeable tokens list
 /token <symbol> - Token details
 /launches - Upcoming token launches
+/leaderboard [limit] - Vault leaderboard
 /deposits [limit] - Deposits/withdrawals history
 /deposit <amount> - Deposit ETH to vault
 /add_strategy <text> - Add new strategy
@@ -530,5 +531,45 @@ async def cmd_launches(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         lines.append(f"{i}. ${symbol}")
         lines.append(f"   Name: {name}")
         lines.append(f"   Launch Time: {launch_time}\n")
+
+    await update.message.reply_text("\n".join(lines))
+
+
+async def cmd_leaderboard(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """Query vault leaderboard."""
+    if not authorized(update):
+        return
+
+    # Parse optional limit argument
+    limit = 10
+    if ctx.args and ctx.args[0].isdigit():
+        limit = int(ctx.args[0])
+
+    # Call API
+    api = _get_api()
+    data = await api.get_leaderboard(limit)
+
+    # Handle API error
+    if isinstance(data, dict) and "error" in data:
+        await update.message.reply_text(f"Error: {data['error']}")
+        return
+
+    # Extract items from response
+    items = data.get("items", []) if isinstance(data, dict) else data
+
+    # Handle empty results
+    if not items:
+        await update.message.reply_text("No leaderboard data available")
+        return
+
+    # Format output
+    lines = [f"Vault Leaderboard (Top {len(items)})\n"]
+    for entry in items:
+        rank = entry.get("rank", "?")
+        name = entry.get("nftName", "?")
+        pnl = format_usd(entry.get("totalPnlUsd", "0"))
+        pnl_pct = format_percent(entry.get("totalPnlPercent", "0"))
+        lines.append(f"{rank}. {name}")
+        lines.append(f"   PnL: {pnl} ({pnl_pct})\n")
 
     await update.message.reply_text("\n".join(lines))
