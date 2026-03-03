@@ -9,11 +9,17 @@ from telegram.ext import Application
 
 from api import TerminalAPI
 from commands import register_handlers, set_monitor_instance
-from config import AUTO_START_MONITOR, REPORT_ENABLED, TELEGRAM_BOT_TOKEN
+from config import ALERT_ENABLED, AUTO_START_MONITOR, REPORT_ENABLED, TELEGRAM_BOT_TOKEN
 from contract import VaultContract
 from monitor import ActivityMonitor
 from notifier import TelegramNotifier
 from reporter import DailyReporter
+
+# Import alerter conditionally to avoid issues during testing
+try:
+    from alerter import ThresholdAlerter
+except ImportError:
+    ThresholdAlerter = None
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -24,6 +30,7 @@ _contract_instance = None
 _monitor_instance = None
 _notifier_instance = None
 _reporter_instance = None
+_alerter_instance = None
 
 
 def get_contract():
@@ -43,6 +50,11 @@ def set_contract(instance):
 def get_reporter():
     """获取 DailyReporter 实例。"""
     return _reporter_instance
+
+
+def get_alerter():
+    """获取 ThresholdAlerter 实例。"""
+    return _alerter_instance
 
 
 # 用于命令处理器 - 延迟调用 get_contract()
@@ -66,10 +78,13 @@ async def post_init(app: Application):
         BotCommand("monitor_status", "Check monitor status"), BotCommand("monitor_start", "Start activity monitor"),
         BotCommand("monitor_stop", "Stop activity monitor"), BotCommand("report_on", "Enable daily report"),
         BotCommand("report_off", "Disable daily report"),
+        BotCommand("alert_pnl", "Set PnL alert threshold"),
+        BotCommand("alert_position", "Set position alert threshold"),
+        BotCommand("alert_status", "Show alert settings"),
     ]
     await app.bot.set_my_commands(commands)
     logger.info("Commands menu set")
-    global _notifier_instance, _monitor_instance, _reporter_instance
+    global _notifier_instance, _monitor_instance, _reporter_instance, _alerter_instance
     _notifier_instance = TelegramNotifier(app.bot)
     _monitor_instance = ActivityMonitor(api, _on_new_activity)
     set_monitor_instance(_monitor_instance)
@@ -80,6 +95,12 @@ async def post_init(app: Application):
     if REPORT_ENABLED:
         await _reporter_instance.start_background()
         logger.info(f"Daily reporter started ({_reporter_instance.report_time[0]:02d}:{_reporter_instance.report_time[1]:02d} UTC)")
+    # Initialize threshold alerter
+    if ThresholdAlerter is not None:
+        _alerter_instance = ThresholdAlerter(api, _notifier_instance)
+        if ALERT_ENABLED:
+            await _alerter_instance.start_background()
+            logger.info(f"Threshold alerter started (PnL: {_alerter_instance.pnl_threshold}%, Position: {_alerter_instance.position_threshold}%)")
 
 
 async def _on_new_activity(activity: dict):

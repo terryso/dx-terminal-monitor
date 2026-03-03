@@ -112,6 +112,9 @@ class TestPostInitStory13:
             "monitor_stop",      # Story 4-1
             "report_on",         # Story 7-1
             "report_off",        # Story 7-1
+            "alert_pnl",         # Story 7-2
+            "alert_position",    # Story 7-2
+            "alert_status",      # Story 7-2
         ]
 
         assert len(command_names) == len(expected_commands), f"Expected {len(expected_commands)} commands, got {len(command_names)}"

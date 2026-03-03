@@ -13,6 +13,9 @@ from .admin import (
 from .monitor import cmd_monitor_start, cmd_monitor_status, cmd_monitor_stop, set_monitor_instance
 from .query import (
     cmd_activity,
+    cmd_alert_pnl,
+    cmd_alert_position,
+    cmd_alert_status,
     cmd_balance,
     cmd_deposits,
     cmd_launches,
@@ -56,6 +59,9 @@ def register_handlers(app):
     app.add_handler(CommandHandler("tweets", cmd_tweets))
     app.add_handler(CommandHandler("report_on", cmd_report_on))
     app.add_handler(CommandHandler("report_off", cmd_report_off))
+    app.add_handler(CommandHandler("alert_pnl", cmd_alert_pnl))
+    app.add_handler(CommandHandler("alert_position", cmd_alert_position))
+    app.add_handler(CommandHandler("alert_status", cmd_alert_status))
 
     # Admin commands
     app.add_handler(CommandHandler("add_strategy", cmd_add_strategy))
@@ -97,6 +103,9 @@ __all__ = [
     'cmd_tweets',
     'cmd_report_on',
     'cmd_report_off',
+    'cmd_alert_pnl',
+    'cmd_alert_position',
+    'cmd_alert_status',
     # Admin commands
     'cmd_add_strategy',
     'cmd_deposit',

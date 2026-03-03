@@ -57,6 +57,9 @@ Commands:
 /monitor_stop - Stop activity monitor
 /report_on - Enable daily report
 /report_off - Disable daily report
+/alert_pnl [percent] - Set PnL alert threshold
+/alert_position [percent] - Set position alert threshold
+/alert_status - Show alert settings
 """
     await update.message.reply_text(help_text)
 
@@ -660,3 +663,86 @@ async def cmd_report_off(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     reporter.enabled = False
     reporter.stop()
     await update.message.reply_text("Daily report disabled. Use /report_on to enable.")
+
+
+def _get_alerter():
+    """Lazy import alerter to avoid circular imports."""
+    from main import get_alerter
+    return get_alerter()
+
+
+async def cmd_alert_pnl(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """Set PnL alert threshold."""
+    if not authorized(update):
+        return
+
+    alerter = _get_alerter()
+    if alerter is None:
+        await update.message.reply_text("Alert system not initialized.")
+        return
+
+    if not ctx.args:
+        # Show current threshold
+        await update.message.reply_text(
+            f"Current PnL alert threshold: {alerter.pnl_threshold}%\n"
+            f"Usage: /alert_pnl <percent>"
+        )
+        return
+
+    try:
+        threshold = float(ctx.args[0])
+        if threshold <= 0 or threshold > 100:
+            raise ValueError("Must be 1-100")
+
+        alerter.set_pnl_threshold(threshold)
+        await update.message.reply_text(f"PnL alert threshold set to {threshold}%")
+    except ValueError:
+        await update.message.reply_text("Invalid value. Usage: /alert_pnl <percent> (1-100)")
+
+
+async def cmd_alert_position(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """Set position alert threshold."""
+    if not authorized(update):
+        return
+
+    alerter = _get_alerter()
+    if alerter is None:
+        await update.message.reply_text("Alert system not initialized.")
+        return
+
+    if not ctx.args:
+        # Show current threshold
+        await update.message.reply_text(
+            f"Current position alert threshold: {alerter.position_threshold}%\n"
+            f"Usage: /alert_position <percent>"
+        )
+        return
+
+    try:
+        threshold = float(ctx.args[0])
+        if threshold <= 0 or threshold > 100:
+            raise ValueError("Must be 1-100")
+
+        alerter.set_position_threshold(threshold)
+        await update.message.reply_text(f"Position alert threshold set to {threshold}%")
+    except ValueError:
+        await update.message.reply_text("Invalid value. Usage: /alert_position <percent> (1-100)")
+
+
+async def cmd_alert_status(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """Show current alert settings."""
+    if not authorized(update):
+        return
+
+    alerter = _get_alerter()
+    if alerter is None:
+        await update.message.reply_text("Alert system not initialized.")
+        return
+
+    status = "enabled" if alerter.enabled else "disabled"
+    await update.message.reply_text(
+        f"Alert System Status: {status}\n"
+        f"PnL Threshold: {alerter.pnl_threshold}%\n"
+        f"Position Threshold: {alerter.position_threshold}%\n"
+        f"Check Interval: {alerter.check_interval}s"
+    )

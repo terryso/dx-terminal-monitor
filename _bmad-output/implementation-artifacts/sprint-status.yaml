@@ -85,7 +85,7 @@ development_status:
   epic-6-retrospective: optional
 
   # Epic 7: 智能通知增强
-  epic-7: in-progress
+  epic-7: done
   7-1-daily-report: done
-  7-2-threshold-alert: backlog
+  7-2-threshold-alert: done
   epic-7-retrospective: optional

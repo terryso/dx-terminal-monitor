@@ -43,6 +43,12 @@ AUTO_START_MONITOR = os.getenv('AUTO_START_MONITOR', 'true').lower() == 'true'
 REPORT_TIME = os.getenv('REPORT_TIME', '08:00')
 REPORT_ENABLED = os.getenv('REPORT_ENABLED', 'true').lower() == 'true'
 
+# Threshold Alert Configuration
+PNL_ALERT_THRESHOLD = float(os.getenv('PNL_ALERT_THRESHOLD', '5'))
+POSITION_ALERT_THRESHOLD = float(os.getenv('POSITION_ALERT_THRESHOLD', '10'))
+ALERT_CHECK_INTERVAL = int(os.getenv('ALERT_CHECK_INTERVAL', '60'))
+ALERT_ENABLED = os.getenv('ALERT_ENABLED', 'true').lower() == 'true'
+
 
 def is_admin(user_id: int) -> bool:
     """检查用户是否为管理员（用于高风险操作）
