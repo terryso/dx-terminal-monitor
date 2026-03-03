@@ -9,10 +9,11 @@ from telegram.ext import Application
 
 from api import TerminalAPI
 from commands import register_handlers, set_monitor_instance
-from config import AUTO_START_MONITOR, TELEGRAM_BOT_TOKEN
+from config import AUTO_START_MONITOR, REPORT_ENABLED, TELEGRAM_BOT_TOKEN
 from contract import VaultContract
 from monitor import ActivityMonitor
 from notifier import TelegramNotifier
+from reporter import DailyReporter
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -22,6 +23,7 @@ api = TerminalAPI()
 _contract_instance = None
 _monitor_instance = None
 _notifier_instance = None
+_reporter_instance = None
 
 
 def get_contract():
@@ -38,6 +40,11 @@ def set_contract(instance):
     _contract_instance = instance
 
 
+def get_reporter():
+    """获取 DailyReporter 实例。"""
+    return _reporter_instance
+
+
 # 用于命令处理器 - 延迟调用 get_contract()
 contract = get_contract
 
@@ -48,32 +55,31 @@ async def post_init(app: Application):
         BotCommand("start", "Help"), BotCommand("balance", "Balance"), BotCommand("pnl", "PnL"),
         BotCommand("positions", "Positions"), BotCommand("activity", "Activity"), BotCommand("swaps", "Swaps"),
         BotCommand("strategies", "Strategies"), BotCommand("vault", "Vault info"),
-        BotCommand("price", "ETH price"),
-        BotCommand("token", "Token details"),
-        BotCommand("tokens", "Tradeable tokens"),
-        BotCommand("launches", "Upcoming token launches"),
-        BotCommand("leaderboard", "Vault leaderboard"),
-        BotCommand("tweets", "Token-related tweets"),
-        BotCommand("deposits", "Deposits history"),
-        BotCommand("pnl_history", "PnL trend history"),
-        BotCommand("deposit", "Deposit ETH to vault"),
-        BotCommand("add_strategy", "Add new strategy"), BotCommand("disable_strategy", "Disable strategy"),
-        BotCommand("disable_all", "Disable all strategies"), BotCommand("pause", "Pause agent trading"),
-        BotCommand("resume", "Resume agent trading"), BotCommand("update_settings", "Update vault settings"),
-        BotCommand("withdraw", "Withdraw ETH to wallet"), BotCommand("monitor_status", "Check monitor status"),
-        BotCommand("monitor_start", "Start activity monitor"), BotCommand("monitor_stop", "Stop activity monitor"),
+        BotCommand("price", "ETH price"), BotCommand("token", "Token details"),
+        BotCommand("tokens", "Tradeable tokens"), BotCommand("launches", "Upcoming token launches"),
+        BotCommand("leaderboard", "Vault leaderboard"), BotCommand("tweets", "Token-related tweets"),
+        BotCommand("deposits", "Deposits history"), BotCommand("pnl_history", "PnL trend history"),
+        BotCommand("deposit", "Deposit ETH to vault"), BotCommand("add_strategy", "Add new strategy"),
+        BotCommand("disable_strategy", "Disable strategy"), BotCommand("disable_all", "Disable all strategies"),
+        BotCommand("pause", "Pause agent trading"), BotCommand("resume", "Resume agent trading"),
+        BotCommand("update_settings", "Update vault settings"), BotCommand("withdraw", "Withdraw ETH to wallet"),
+        BotCommand("monitor_status", "Check monitor status"), BotCommand("monitor_start", "Start activity monitor"),
+        BotCommand("monitor_stop", "Stop activity monitor"), BotCommand("report_on", "Enable daily report"),
+        BotCommand("report_off", "Disable daily report"),
     ]
     await app.bot.set_my_commands(commands)
     logger.info("Commands menu set")
-    global _notifier_instance, _monitor_instance
+    global _notifier_instance, _monitor_instance, _reporter_instance
     _notifier_instance = TelegramNotifier(app.bot)
     _monitor_instance = ActivityMonitor(api, _on_new_activity)
     set_monitor_instance(_monitor_instance)
     if AUTO_START_MONITOR:
         await _monitor_instance.start_background()
         logger.info("Activity monitor auto-started")
-    else:
-        logger.info("Activity monitor initialized but not started")
+    _reporter_instance = DailyReporter(api, _notifier_instance)
+    if REPORT_ENABLED:
+        await _reporter_instance.start_background()
+        logger.info(f"Daily reporter started ({_reporter_instance.report_time[0]:02d}:{_reporter_instance.report_time[1]:02d} UTC)")
 
 
 async def _on_new_activity(activity: dict):
@@ -102,14 +108,11 @@ def main():
     retry_count, max_retries, base_delay = 0, 10, 5
     while retry_count < max_retries:
         try:
-            # 创建新的事件循环以避免 "Event loop is closed" 错误
             try:
-                loop = asyncio.get_running_loop()
-                loop.close()
+                asyncio.get_running_loop().close()
             except RuntimeError:
                 pass
             asyncio.set_event_loop(asyncio.new_event_loop())
-
             app = create_app()
             logger.info(f"Bot starting... (attempt {retry_count + 1}/{max_retries})")
             app.run_polling(allowed_updates=Update.ALL_TYPES)
@@ -119,19 +122,14 @@ def main():
             delay = min(base_delay * (2 ** (retry_count - 1)), 300)
             logger.error(f"Network error: {e}. Retrying in {delay}s...")
             time.sleep(delay)
-        except TelegramError as e:
+        except (TelegramError, Exception) as e:
             retry_count += 1
             delay = min(base_delay * retry_count, 60)
-            logger.error(f"Telegram error: {e}. Retrying in {delay}s...")
+            logger.error(f"Error: {e}. Retrying in {delay}s...")
             time.sleep(delay)
         except KeyboardInterrupt:
             logger.info("Bot stopped by user")
             break
-        except Exception as e:
-            retry_count += 1
-            delay = min(base_delay * retry_count, 60)
-            logger.error(f"Unexpected error: {e}. Retrying in {delay}s...")
-            time.sleep(delay)
     if retry_count >= max_retries:
         logger.error(f"Max retries ({max_retries}) reached. Bot stopped.")
 

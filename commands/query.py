@@ -55,6 +55,8 @@ Commands:
 /monitor_status - Check monitor status
 /monitor_start - Start activity monitor
 /monitor_stop - Stop activity monitor
+/report_on - Enable daily report
+/report_off - Disable daily report
 """
     await update.message.reply_text(help_text)
 
@@ -624,3 +626,37 @@ async def cmd_tweets(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         lines.append("")
 
     await update.message.reply_text("\n".join(lines).strip())
+
+
+async def cmd_report_on(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """Enable daily report."""
+    if not authorized(update):
+        return
+    from main import get_reporter
+    reporter = get_reporter()
+    if reporter is None:
+        await update.message.reply_text("Reporter not initialized.")
+        return
+    if reporter.enabled:
+        await update.message.reply_text("Daily report is already enabled.")
+        return
+    reporter.enabled = True
+    await reporter.start_background()
+    await update.message.reply_text("Daily report enabled. Use /report_off to disable.")
+
+
+async def cmd_report_off(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """Disable daily report."""
+    if not authorized(update):
+        return
+    from main import get_reporter
+    reporter = get_reporter()
+    if reporter is None:
+        await update.message.reply_text("Reporter not initialized.")
+        return
+    if not reporter.enabled:
+        await update.message.reply_text("Daily report is already disabled.")
+        return
+    reporter.enabled = False
+    reporter.stop()
+    await update.message.reply_text("Daily report disabled. Use /report_on to enable.")

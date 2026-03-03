@@ -39,6 +39,10 @@ NOTIFY_USERS = [
 # Monitor Control Configuration
 AUTO_START_MONITOR = os.getenv('AUTO_START_MONITOR', 'true').lower() == 'true'
 
+# Daily Report Configuration
+REPORT_TIME = os.getenv('REPORT_TIME', '08:00')
+REPORT_ENABLED = os.getenv('REPORT_ENABLED', 'true').lower() == 'true'
+
 
 def is_admin(user_id: int) -> bool:
     """检查用户是否为管理员（用于高风险操作）

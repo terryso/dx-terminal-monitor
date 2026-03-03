@@ -21,6 +21,8 @@ from .query import (
     cmd_pnl_history,
     cmd_positions,
     cmd_price,
+    cmd_report_off,
+    cmd_report_on,
     cmd_start,
     cmd_strategies,
     cmd_swaps,
@@ -52,6 +54,8 @@ def register_handlers(app):
     app.add_handler(CommandHandler("launches", cmd_launches))
     app.add_handler(CommandHandler("leaderboard", cmd_leaderboard))
     app.add_handler(CommandHandler("tweets", cmd_tweets))
+    app.add_handler(CommandHandler("report_on", cmd_report_on))
+    app.add_handler(CommandHandler("report_off", cmd_report_off))
 
     # Admin commands
     app.add_handler(CommandHandler("add_strategy", cmd_add_strategy))
@@ -91,6 +95,8 @@ __all__ = [
     'cmd_launches',
     'cmd_leaderboard',
     'cmd_tweets',
+    'cmd_report_on',
+    'cmd_report_off',
     # Admin commands
     'cmd_add_strategy',
     'cmd_deposit',
