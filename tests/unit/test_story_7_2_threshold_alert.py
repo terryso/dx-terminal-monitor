@@ -8,13 +8,12 @@ Generated: 2026-03-03
 Story: 7-2-threshold-alert
 """
 import asyncio
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
-UTC = timezone.utc
+UTC = UTC
 
 import pytest
-
 
 # ============================================================================
 # Test Data Factory
@@ -137,14 +136,14 @@ class TestThresholdAlerterInit:
 
         assert alerter.notifier == mock_notifier
 
-    def test_init_default_pnl_threshold_5(self, mock_api, mock_notifier):
+    def test_init_default_pnl_threshold_10(self, mock_api, mock_notifier):
         """Default PnL alert threshold should be 5% (AC2)."""
         from alerter import ThresholdAlerter
 
         with patch.dict('os.environ', {}, clear=True):
             alerter = ThresholdAlerter(mock_api, mock_notifier)
 
-        assert alerter.pnl_threshold == 5.0
+        assert alerter.pnl_threshold == 10.0
 
     @patch.dict('os.environ', {'PNL_ALERT_THRESHOLD': '10'})
     def test_init_reads_pnl_threshold_from_env(self, mock_api, mock_notifier):
@@ -155,14 +154,14 @@ class TestThresholdAlerterInit:
 
         assert alerter.pnl_threshold == 10.0
 
-    def test_init_default_position_threshold_10(self, mock_api, mock_notifier):
+    def test_init_default_position_threshold_15(self, mock_api, mock_notifier):
         """Default position alert threshold should be 10% (AC3)."""
         from alerter import ThresholdAlerter
 
         with patch.dict('os.environ', {}, clear=True):
             alerter = ThresholdAlerter(mock_api, mock_notifier)
 
-        assert alerter.position_threshold == 10.0
+        assert alerter.position_threshold == 15.0
 
     @patch.dict('os.environ', {'POSITION_ALERT_THRESHOLD': '15'})
     def test_init_reads_position_threshold_from_env(self, mock_api, mock_notifier):
@@ -200,14 +199,14 @@ class TestThresholdAlerterInit:
 
         assert alerter.enabled is False
 
-    def test_init_check_interval_default_60(self, mock_api, mock_notifier):
+    def test_init_check_interval_default_300(self, mock_api, mock_notifier):
         """Default check interval should be 60 seconds."""
         from alerter import ThresholdAlerter
 
         with patch.dict('os.environ', {}, clear=True):
             alerter = ThresholdAlerter(mock_api, mock_notifier)
 
-        assert alerter.check_interval == 60
+        assert alerter.check_interval == 300
 
     @patch.dict('os.environ', {'ALERT_CHECK_INTERVAL': '30'})
     def test_init_reads_check_interval_from_env(self, mock_api, mock_notifier):
@@ -250,7 +249,7 @@ class TestPnLThresholdChecking:
         from alerter import ThresholdAlerter
 
         alerter = ThresholdAlerter(mock_api, mock_notifier)
-        alerter.pnl_threshold = 5.0
+        alerter.pnl_threshold = 10.0
 
         result = await alerter._check_pnl_threshold()
 
@@ -269,7 +268,7 @@ class TestPnLThresholdChecking:
             return_value=AlertDataFactory.create_positions_data(pnl_usd="103.00")
         )
         alerter = ThresholdAlerter(mock_api, mock_notifier)
-        alerter.pnl_threshold = 5.0
+        alerter.pnl_threshold = 10.0
         alerter._previous_pnl_usd = 100.0
 
         result = await alerter._check_pnl_threshold()
@@ -286,7 +285,7 @@ class TestPnLThresholdChecking:
             return_value=AlertDataFactory.create_positions_data(pnl_usd="110.00")
         )
         alerter = ThresholdAlerter(mock_api, mock_notifier)
-        alerter.pnl_threshold = 5.0
+        alerter.pnl_threshold = 10.0
         alerter._previous_pnl_usd = 100.0
 
         result = await alerter._check_pnl_threshold()
@@ -307,7 +306,7 @@ class TestPnLThresholdChecking:
             return_value=AlertDataFactory.create_positions_data(pnl_usd="85.00")
         )
         alerter = ThresholdAlerter(mock_api, mock_notifier)
-        alerter.pnl_threshold = 5.0
+        alerter.pnl_threshold = 10.0
         alerter._previous_pnl_usd = 100.0
 
         result = await alerter._check_pnl_threshold()
@@ -325,7 +324,7 @@ class TestPnLThresholdChecking:
             return_value=AlertDataFactory.create_positions_data(pnl_usd="10.00")
         )
         alerter = ThresholdAlerter(mock_api, mock_notifier)
-        alerter.pnl_threshold = 5.0
+        alerter.pnl_threshold = 10.0
         alerter._previous_pnl_usd = 0.0
 
         result = await alerter._check_pnl_threshold()
@@ -358,7 +357,7 @@ class TestPositionThresholdChecking:
         from alerter import ThresholdAlerter
 
         alerter = ThresholdAlerter(mock_api, mock_notifier)
-        alerter.position_threshold = 10.0
+        alerter.position_threshold = 15.0
 
         alerts, positions = await alerter._check_position_threshold()
 
@@ -376,7 +375,7 @@ class TestPositionThresholdChecking:
             }
         )
         alerter = ThresholdAlerter(mock_api, mock_notifier)
-        alerter.position_threshold = 10.0
+        alerter.position_threshold = 15.0
         alerter._previous_positions = {"ETH": 1000.0}
 
         alerts, positions = await alerter._check_position_threshold()
@@ -395,7 +394,7 @@ class TestPositionThresholdChecking:
             }
         )
         alerter = ThresholdAlerter(mock_api, mock_notifier)
-        alerter.position_threshold = 10.0
+        alerter.position_threshold = 15.0
         alerter._previous_positions = {"ETH": 1000.0}
 
         alerts, positions = await alerter._check_position_threshold()
@@ -416,17 +415,17 @@ class TestPositionThresholdChecking:
                 "positions": [
                     {"symbol": "ETH", "valueUsd": "1200.00"},  # +20%
                     {"symbol": "USDC", "valueUsd": "1150.00"},  # +15%
-                    {"symbol": "WBTC", "valueUsd": "550.00"},   # +10% (at threshold)
+                    {"symbol": "WBTC", "valueUsd": "580.00"},   # +16%
                 ],
             }
         )
         alerter = ThresholdAlerter(mock_api, mock_notifier)
-        alerter.position_threshold = 10.0
+        alerter.position_threshold = 15.0
         alerter._previous_positions = {"ETH": 1000.0, "USDC": 1000.0, "WBTC": 500.0}
 
         alerts, positions = await alerter._check_position_threshold()
 
-        # All three should trigger alerts (>= 10%)
+        # All three should trigger alerts (>= 15%)
         assert len(alerts) == 3
 
     @pytest.mark.asyncio
@@ -443,7 +442,7 @@ class TestPositionThresholdChecking:
             }
         )
         alerter = ThresholdAlerter(mock_api, mock_notifier)
-        alerter.position_threshold = 10.0
+        alerter.position_threshold = 15.0
         alerter._previous_positions = {"ETH": 1000.0}
 
         alerts, positions = await alerter._check_position_threshold()
@@ -475,7 +474,7 @@ class TestAlertFormatting:
         from alerter import ThresholdAlerter
 
         alerter = ThresholdAlerter(mock_api, mock_notifier)
-        alerter.pnl_threshold = 5.0
+        alerter.pnl_threshold = 10.0
 
         data = AlertDataFactory.create_pnl_change(
             previous_pnl=100.0, current_pnl=150.0
@@ -514,7 +513,7 @@ class TestAlertFormatting:
         from alerter import ThresholdAlerter
 
         alerter = ThresholdAlerter(mock_api, mock_notifier)
-        alerter.pnl_threshold = 5.0
+        alerter.pnl_threshold = 10.0
         data = AlertDataFactory.create_pnl_change(
             previous_pnl=100.0, current_pnl=150.0
         )
@@ -573,8 +572,8 @@ class TestAlertCommands:
         self, mock_telegram_update, mock_telegram_context, mock_api, mock_notifier
     ):
         """/alert_pnl without args should show current threshold."""
-        from commands.query import cmd_alert_pnl
         from alerter import ThresholdAlerter
+        from commands.query import cmd_alert_pnl
 
         mock_alerter = ThresholdAlerter(mock_api, mock_notifier)
         mock_alerter.pnl_threshold = 7.5
@@ -592,11 +591,11 @@ class TestAlertCommands:
         self, mock_telegram_update, mock_telegram_context, mock_api, mock_notifier
     ):
         """/alert_pnl <percent> should update threshold (AC5)."""
-        from commands.query import cmd_alert_pnl
         from alerter import ThresholdAlerter
+        from commands.query import cmd_alert_pnl
 
         mock_alerter = ThresholdAlerter(mock_api, mock_notifier)
-        mock_alerter.pnl_threshold = 5.0
+        mock_alerter.pnl_threshold = 10.0
         mock_telegram_context.args = ["10"]
 
         with patch("commands.query.authorized", return_value=True), \
@@ -611,8 +610,8 @@ class TestAlertCommands:
         self, mock_telegram_update, mock_telegram_context, mock_api, mock_notifier
     ):
         """/alert_pnl should reject values outside 1-100 range."""
-        from commands.query import cmd_alert_pnl
         from alerter import ThresholdAlerter
+        from commands.query import cmd_alert_pnl
 
         mock_alerter = ThresholdAlerter(mock_api, mock_notifier)
         mock_telegram_context.args = ["150"]  # Invalid: > 100
@@ -630,8 +629,8 @@ class TestAlertCommands:
         self, mock_telegram_update, mock_telegram_context, mock_api, mock_notifier
     ):
         """/alert_position without args should show current threshold."""
-        from commands.query import cmd_alert_position
         from alerter import ThresholdAlerter
+        from commands.query import cmd_alert_position
 
         mock_alerter = ThresholdAlerter(mock_api, mock_notifier)
         mock_alerter.position_threshold = 15.0
@@ -648,11 +647,11 @@ class TestAlertCommands:
         self, mock_telegram_update, mock_telegram_context, mock_api, mock_notifier
     ):
         """/alert_position <percent> should update threshold (AC5)."""
-        from commands.query import cmd_alert_position
         from alerter import ThresholdAlerter
+        from commands.query import cmd_alert_position
 
         mock_alerter = ThresholdAlerter(mock_api, mock_notifier)
-        mock_alerter.position_threshold = 10.0
+        mock_alerter.position_threshold = 15.0
         mock_telegram_context.args = ["20"]
 
         with patch("commands.query.authorized", return_value=True), \
@@ -666,12 +665,12 @@ class TestAlertCommands:
         self, mock_telegram_update, mock_telegram_context, mock_api, mock_notifier
     ):
         """/alert_status should show all alert settings."""
-        from commands.query import cmd_alert_status
         from alerter import ThresholdAlerter
+        from commands.query import cmd_alert_status
 
         mock_alerter = ThresholdAlerter(mock_api, mock_notifier)
-        mock_alerter.pnl_threshold = 5.0
-        mock_alerter.position_threshold = 10.0
+        mock_alerter.pnl_threshold = 10.0
+        mock_alerter.position_threshold = 15.0
         mock_alerter.enabled = True
         mock_alerter.check_interval = 60
 
@@ -713,24 +712,24 @@ class TestSetThresholdMethods:
         from alerter import ThresholdAlerter
 
         alerter = ThresholdAlerter(mock_api, mock_notifier)
-        alerter.pnl_threshold = 5.0
+        alerter.pnl_threshold = 10.0
 
         result = alerter.set_pnl_threshold(150)  # Invalid: > 100
 
         assert result is False
-        assert alerter.pnl_threshold == 5.0  # Should not change
+        assert alerter.pnl_threshold == 10.0  # Should not change
 
     def test_set_position_threshold_rejects_invalid_value(self, mock_api, mock_notifier):
         """set_position_threshold should reject values outside 1-100 range."""
         from alerter import ThresholdAlerter
 
         alerter = ThresholdAlerter(mock_api, mock_notifier)
-        alerter.position_threshold = 10.0
+        alerter.position_threshold = 15.0
 
         result = alerter.set_position_threshold(-5)  # Invalid: < 1
 
         assert result is False
-        assert alerter.position_threshold == 10.0  # Should not change
+        assert alerter.position_threshold == 15.0  # Should not change
 
 
 # ============================================================================
@@ -817,7 +816,7 @@ class TestSendAlerts:
             return_value=AlertDataFactory.create_positions_data(pnl_usd="150.00")
         )
         alerter = ThresholdAlerter(mock_api, mock_notifier)
-        alerter.pnl_threshold = 5.0
+        alerter.pnl_threshold = 10.0
         alerter._previous_pnl_usd = 100.0  # 50% increase, should trigger
 
         await alerter._send_alerts()
@@ -835,7 +834,7 @@ class TestSendAlerts:
         )
         mock_notifier.notify_users = [123, 456, 789]
         alerter = ThresholdAlerter(mock_api, mock_notifier)
-        alerter.pnl_threshold = 5.0
+        alerter.pnl_threshold = 10.0
         alerter._previous_pnl_usd = 100.0
 
         await alerter._send_alerts()
@@ -885,7 +884,7 @@ class TestEnvironmentConfiguration:
 
         alerter = ThresholdAlerter(mock_api, mock_notifier)
 
-        assert alerter.pnl_threshold == 5.0  # Default
+        assert alerter.pnl_threshold == 10.0  # Default
 
     @patch.dict('os.environ', {'POSITION_ALERT_THRESHOLD': 'invalid'})
     def test_handles_invalid_position_threshold(self, mock_api, mock_notifier):
@@ -894,4 +893,4 @@ class TestEnvironmentConfiguration:
 
         alerter = ThresholdAlerter(mock_api, mock_notifier)
 
-        assert alerter.position_threshold == 10.0  # Default
+        assert alerter.position_threshold == 15.0  # Default

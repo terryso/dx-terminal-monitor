@@ -57,25 +57,25 @@ class ThresholdAlerter:
             return 0
 
     def _get_pnl_threshold(self) -> float:
-        """Get PnL alert threshold from env (default 5%)."""
+        """Get PnL alert threshold from env (default 10%)."""
         try:
-            return float(os.getenv('PNL_ALERT_THRESHOLD', '5'))
-        except ValueError:
-            return 5.0
-
-    def _get_position_threshold(self) -> float:
-        """Get position alert threshold from env (default 10%)."""
-        try:
-            return float(os.getenv('POSITION_ALERT_THRESHOLD', '10'))
+            return float(os.getenv('PNL_ALERT_THRESHOLD', '10'))
         except ValueError:
             return 10.0
 
-    def _get_check_interval(self) -> int:
-        """Get check interval from env (default 60 seconds)."""
+    def _get_position_threshold(self) -> float:
+        """Get position alert threshold from env (default 15%)."""
         try:
-            return max(int(os.getenv('ALERT_CHECK_INTERVAL', '60')), 30)
+            return float(os.getenv('POSITION_ALERT_THRESHOLD', '15'))
         except ValueError:
-            return 60
+            return 15.0
+
+    def _get_check_interval(self) -> int:
+        """Get check interval from env (default 5 minutes)."""
+        try:
+            return max(int(os.getenv('ALERT_CHECK_INTERVAL', '300')), 30)
+        except ValueError:
+            return 300
 
     async def _check_pnl_threshold(self) -> dict[str, Any] | None:
         """Check if PnL change exceeds threshold.
