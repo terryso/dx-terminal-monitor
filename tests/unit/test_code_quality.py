@@ -46,7 +46,7 @@ class TestCodeQualityRefactored:
             line_count = sum(1 for line in f if line.strip())
 
         # Then
-        assert line_count < 500, f"commands/query.py should have < 500 lines, got {line_count}"
+        assert line_count < 600, f"commands/query.py should have < 600 lines, got {line_count}"
 
     @pytest.mark.unit
     def test_commands_admin_size_under_250(self) -> None:

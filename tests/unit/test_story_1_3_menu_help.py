@@ -96,6 +96,7 @@ class TestPostInitStory13:
             "token",             # Story 6-3
             "launches",          # Story 6-4
             "leaderboard",       # Story 6-5
+            "tweets",            # Story 6-6
             "deposits",          # Story 5-1
             "pnl_history",       # Story 5-2
             "deposit",           # Story 5-3

@@ -53,6 +53,7 @@ async def post_init(app: Application):
         BotCommand("tokens", "Tradeable tokens"),
         BotCommand("launches", "Upcoming token launches"),
         BotCommand("leaderboard", "Vault leaderboard"),
+        BotCommand("tweets", "Token-related tweets"),
         BotCommand("deposits", "Deposits history"),
         BotCommand("pnl_history", "PnL trend history"),
         BotCommand("deposit", "Deposit ETH to vault"),

@@ -42,6 +42,7 @@ Commands:
 /token <symbol> - Token details
 /launches - Upcoming token launches
 /leaderboard [limit] - Vault leaderboard
+/tweets <symbol> [limit] - Token-related tweets
 /deposits [limit] - Deposits/withdrawals history
 /deposit <amount> - Deposit ETH to vault
 /add_strategy <text> - Add new strategy
@@ -573,3 +574,53 @@ async def cmd_leaderboard(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         lines.append(f"   PnL: {pnl} ({pnl_pct})\n")
 
     await update.message.reply_text("\n".join(lines))
+
+
+async def cmd_tweets(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """Query token-related tweets."""
+    if not authorized(update):
+        return
+
+    # Check for required symbol argument
+    if not ctx.args:
+        await update.message.reply_text("Usage: /tweets <symbol> [limit]")
+        return
+
+    symbol = ctx.args[0].upper()
+
+    # Parse optional limit argument
+    limit = 5
+    if len(ctx.args) > 1 and ctx.args[1].isdigit():
+        limit = int(ctx.args[1])
+
+    # Call API
+    api = _get_api()
+    data = await api.get_token_tweets(symbol, limit)
+
+    # Handle API error
+    if isinstance(data, dict) and "error" in data:
+        await update.message.reply_text(f"Error: {data['error']}")
+        return
+
+    # Handle paginated response structure
+    tweets = data.get("items", data) if isinstance(data, dict) else data
+
+    # Handle empty results
+    if not tweets:
+        await update.message.reply_text(f"No tweets found for {symbol}")
+        return
+
+    # Format output
+    lines = [f"{symbol} Related Tweets\n"]
+    for i, tweet in enumerate(tweets, 1):
+        author = tweet.get("userName", "?")
+        content = tweet.get("text", "")
+        timestamp = tweet.get("createdAt", "?")
+        link = tweet.get("linkToTweet", "")
+        lines.append(f"{i}. @{author} ({timestamp})")
+        lines.append(f'   "{content[:100]}..."' if len(content) > 100 else f'   "{content}"')
+        if link:
+            lines.append(f"   {link}")
+        lines.append("")
+
+    await update.message.reply_text("\n".join(lines).strip())

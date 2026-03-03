@@ -26,6 +26,7 @@ from .query import (
     cmd_swaps,
     cmd_token,
     cmd_tokens,
+    cmd_tweets,
     cmd_vault,
 )
 from .withdraw import create_withdraw_handler
@@ -50,6 +51,7 @@ def register_handlers(app):
     app.add_handler(CommandHandler("tokens", cmd_tokens))
     app.add_handler(CommandHandler("launches", cmd_launches))
     app.add_handler(CommandHandler("leaderboard", cmd_leaderboard))
+    app.add_handler(CommandHandler("tweets", cmd_tweets))
 
     # Admin commands
     app.add_handler(CommandHandler("add_strategy", cmd_add_strategy))
@@ -88,6 +90,7 @@ __all__ = [
     'cmd_tokens',
     'cmd_launches',
     'cmd_leaderboard',
+    'cmd_tweets',
     # Admin commands
     'cmd_add_strategy',
     'cmd_deposit',

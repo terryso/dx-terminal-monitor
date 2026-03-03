@@ -123,3 +123,7 @@ class TerminalAPI:
     async def get_leaderboard(self, limit: int = 10) -> list:
         """Get vault leaderboard sorted by total PnL."""
         return await self._get("/leaderboard", {"limit": limit, "sortBy": "total_pnl_usd"})
+
+    async def get_token_tweets(self, symbol: str, limit: int = 5) -> list:
+        """Get token-related tweets."""
+        return await self._get(f"/tweets/{symbol}", {"limit": limit, "order": "desc"})

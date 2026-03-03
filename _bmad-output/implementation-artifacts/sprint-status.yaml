@@ -75,13 +75,13 @@ development_status:
   epic-5-retrospective: optional
 
   # Epic 6: 市场数据查询
-  epic-6: in-progress
+  epic-6: done
   6-1-eth-price: done
   6-2-tokens-list: done
   6-3-token-detail: done
   6-4-launch-schedule: done
   6-5-leaderboard: done
-  6-6-token-tweets: backlog
+  6-6-token-tweets: done
   epic-6-retrospective: optional
 
   # Epic 7: 智能通知增强
