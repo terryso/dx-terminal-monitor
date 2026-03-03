@@ -46,8 +46,6 @@ inputDocuments:
 | FR16 | 查询新币上线计划 | P2 | Epic 6 |
 | FR17 | 定期报告推送 | P2 | Epic 7 |
 | FR18 | 阈值变化提醒 | P2 | Epic 7 |
-| FR19 | 策略到期提醒 | P3 | Epic 7 |
-| FR20 | Gas 价格监控 | P3 | Epic 7 |
 | FR21 | 查询排行榜 | P3 | Epic 6 |
 | FR22 | 查询代币推文 | P2 | Epic 6 |
 
@@ -846,67 +844,6 @@ async def get_token_tweets(self, symbol: str, limit: int = 5) -> dict:
 
 ---
 
-### Story 7.3: 策略到期提醒
-
-**作为用户，我需要** 在策略即将过期前收到提醒，**以便** 决定是否续期。
-
-**验收标准:**
-- [ ] 扩展 `ActivityMonitor` 检查策略过期时间
-- [ ] 默认提前 24 小时提醒（可配置）
-- [ ] 推送内容: 策略 ID、内容摘要、过期时间
-- [ ] 支持配置: `/alert_expiry 48` (小时)
-- [ ] 添加单元测试
-
-**技术说明:**
-```python
-# 消息格式
-"""
-⏰ 策略即将过期
-
-策略 #3 将在 24 小时后过期
-
-内容: 当 ETH 跌破 2800 时买入
-过期时间: 2026-03-02 12:00 UTC
-
-使用 /add_strategy 重新添加
-"""
-```
-
-**预估复杂度**: 低
-
----
-
-### Story 7.4: Gas 价格监控
-
-**作为用户，我需要** 当 Gas 价格低于阈值时收到提醒，**以便** 选择合适时机进行链上操作。
-
-**验收标准:**
-- [ ] 创建 `gas_monitor.py` 模块
-- [ ] 实现 `GasMonitor` 类
-- [ ] 配置项: GAS_ALERT_THRESHOLD (默认 20 Gwei)
-- [ ] 配置项: GAS_CHECK_INTERVAL (默认 5 分钟)
-- [ ] 触发时推送: 当前 Gas 价格、建议操作
-- [ ] 支持开关命令: `/gas_alert_on`, `/gas_alert_off`
-- [ ] 添加单元测试
-
-**技术说明:**
-```python
-# 消息格式
-"""
-⛽ Gas 价格提醒
-
-当前 Gas: 15 Gwei (低于阈值 20)
-
-建议进行链上操作:
-  - /withdraw 提取资金
-  - /update_settings 更新设置
-"""
-```
-
-**预估复杂度**: 中等
-
----
-
 ## Epic 5-7 需求覆盖
 
 | 需求 | Epic 5 | Epic 6 | Epic 7 |
@@ -922,8 +859,6 @@ async def get_token_tweets(self, symbol: str, limit: int = 5) -> dict:
 | FR22 - 代币推文 | - | ✅ 6.6 | - |
 | FR17 - 定期报告 | - | - | ✅ 7.1 |
 | FR18 - 阈值提醒 | - | - | ✅ 7.2 |
-| FR19 - 策略到期 | - | - | ✅ 7.3 |
-| FR20 - Gas 监控 | - | - | ✅ 7.4 |
 
 ---
 
@@ -937,7 +872,7 @@ async def get_token_tweets(self, symbol: str, limit: int = 5) -> dict:
 | **Phase 4** | Epic 4 | 4.1, 4.2, 4.3 | 🔵 P3 | 2-3 天 |
 | **Phase 5** | Epic 5 | 5.1, 5.2, 5.3 | 🟠 P1 | 1-2 天 |
 | **Phase 6** | Epic 6 | 6.1, 6.2, 6.3, 6.4, 6.5, 6.6 | 🟣 P2 | 2-4 天 |
-| **Phase 7** | Epic 7 | 7.1, 7.2, 7.3, 7.4 | 🟤 P2-P3 | 3-5 天 |
+| **Phase 7** | Epic 7 | 7.1, 7.2 | 🟤 P2-P3 | 1-3 天 |
 
 ---
 
@@ -984,9 +919,7 @@ Epic 6 (市场数据)
 Epic 7 (智能通知)
     └── 依赖 Epic 4 (ActivityMonitor)
         ├── Story 7.1 (定期报告) ← 依赖 Epic 4
-        ├── Story 7.2 (阈值提醒) ← 依赖 Epic 4
-        ├── Story 7.3 (策略到期) ← 依赖 api.py
-        └── Story 7.4 (Gas 监控) ← 独立
+        └── Story 7.2 (阈值提醒) ← 依赖 Epic 4
 ```
 
 ---
