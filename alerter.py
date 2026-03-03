@@ -8,7 +8,7 @@ import asyncio
 import datetime
 import logging
 import os
-from datetime import UTC
+from datetime import UTC as datetime_utc
 from typing import Any
 
 from api import TerminalAPI
@@ -119,7 +119,7 @@ class ThresholdAlerter:
     def _confirm_pnl_state(self, current_pnl: float):
         """Confirm PnL state update after successful alert send."""
         self._previous_pnl_usd = current_pnl
-        self._last_pnl_alert_time = datetime.datetime.now(UTC)
+        self._last_pnl_alert_time = datetime.datetime.now(datetime_utc)
 
     async def _check_position_threshold(self) -> tuple[list[dict[str, Any]], dict[str, float]]:
         """Check for significant position changes.
@@ -170,7 +170,7 @@ class ThresholdAlerter:
 
     def _format_pnl_alert(self, data: dict[str, Any]) -> str:
         """Format PnL alert message."""
-        now = datetime.datetime.now(UTC).strftime('%Y-%m-%d %H:%M UTC')
+        now = datetime.datetime.now(datetime_utc).strftime('%Y-%m-%d %H:%M UTC')
         change = data['change']
         sign = '+' if change >= 0 else ''
 
@@ -184,7 +184,7 @@ Change: {sign}{format_usd(str(change))} ({sign}{data['pct_change']:.1f}%)
 
     def _format_position_alert(self, data: dict[str, Any]) -> str:
         """Format position alert message."""
-        now = datetime.datetime.now(UTC).strftime('%Y-%m-%d %H:%M UTC')
+        now = datetime.datetime.now(datetime_utc).strftime('%Y-%m-%d %H:%M UTC')
         change = data['current_value'] - data['previous_value']
         sign = '+' if change >= 0 else ''
 
@@ -204,7 +204,7 @@ Change: {sign}{format_usd(str(abs(change)))} ({sign}{data['change_pct']:.1f}%)
         if pnl_alert:
             # Check cooldown - skip if we sent alert recently
             if self._last_pnl_alert_time is not None:
-                time_since_alert = datetime.datetime.now(UTC) - self._last_pnl_alert_time
+                time_since_alert = datetime.datetime.now(datetime_utc) - self._last_pnl_alert_time
                 cooldown_delta = time_since_alert.total_seconds()
                 if cooldown_delta < self._pnl_cooldown_minutes * 60:
                     logger.debug(f"PnL alert skipped due to cooldown ({cooldown_delta:.0f}s < {self._pnl_cooldown_minutes * 60}s)")
