@@ -635,7 +635,10 @@ async def cmd_report_on(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Enable daily report."""
     if not authorized(update):
         return
-    from main import get_reporter
+    try:
+        from __main__ import get_reporter
+    except ImportError:
+        from main import get_reporter
     reporter = get_reporter()
     if reporter is None:
         await update.message.reply_text("Reporter not initialized.")
@@ -652,7 +655,10 @@ async def cmd_report_off(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Disable daily report."""
     if not authorized(update):
         return
-    from main import get_reporter
+    try:
+        from __main__ import get_reporter
+    except ImportError:
+        from main import get_reporter
     reporter = get_reporter()
     if reporter is None:
         await update.message.reply_text("Reporter not initialized.")
@@ -667,7 +673,10 @@ async def cmd_report_off(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
 def _get_alerter():
     """Lazy import alerter to avoid circular imports."""
-    from main import get_alerter
+    try:
+        from __main__ import get_alerter
+    except ImportError:
+        from main import get_alerter
     return get_alerter()
 
 
