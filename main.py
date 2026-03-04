@@ -148,12 +148,28 @@ async def _on_new_activity(activity: dict):
 
 def create_app():
     """创建并配置 Telegram 应用。"""
-    app = (
-        Application.builder()
-        .token(TELEGRAM_BOT_TOKEN)
-        .post_init(post_init)
-        .build()
-    )
+    import os
+
+    from telegram.request import HTTPXRequest
+
+    proxy_url = os.environ.get('https_proxy') or os.environ.get('HTTPS_PROXY')
+    if proxy_url:
+        request = HTTPXRequest(proxy=proxy_url)
+        app = (
+            Application.builder()
+            .token(TELEGRAM_BOT_TOKEN)
+            .post_init(post_init)
+            .request(request)
+            .build()
+        )
+        logger.info(f"Using proxy: {proxy_url}")
+    else:
+        app = (
+            Application.builder()
+            .token(TELEGRAM_BOT_TOKEN)
+            .post_init(post_init)
+            .build()
+        )
     register_handlers(app)
     return app
 
