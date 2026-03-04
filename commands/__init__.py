@@ -10,7 +10,13 @@ from .admin import (
     cmd_resume,
     cmd_update_settings,
 )
-from .advisor import cmd_advisor_off, cmd_advisor_on, cmd_advisor_status, set_advisor_monitor
+from .advisor import (
+    cmd_advisor_analyze,
+    cmd_advisor_off,
+    cmd_advisor_on,
+    cmd_advisor_status,
+    set_advisor_monitor,
+)
 from .monitor import cmd_monitor_start, cmd_monitor_status, cmd_monitor_stop, set_monitor_instance
 from .query import (
     cmd_activity,
@@ -86,6 +92,7 @@ def register_handlers(app):
     app.add_handler(CommandHandler("advisor_on", cmd_advisor_on))
     app.add_handler(CommandHandler("advisor_off", cmd_advisor_off))
     app.add_handler(CommandHandler("advisor_status", cmd_advisor_status))
+    app.add_handler(CommandHandler("advisor_analyze", cmd_advisor_analyze))
 
     # Withdraw conversation handler
     app.add_handler(create_withdraw_handler())
@@ -135,4 +142,5 @@ __all__ = [
     'cmd_advisor_on',
     'cmd_advisor_off',
     'cmd_advisor_status',
+    'cmd_advisor_analyze',
 ]

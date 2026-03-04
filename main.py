@@ -97,6 +97,7 @@ async def post_init(app: Application):
         BotCommand("advisor_on", "Enable AI advisor"),
         BotCommand("advisor_off", "Disable AI advisor"),
         BotCommand("advisor_status", "AI advisor status"),
+        BotCommand("advisor_analyze", "Trigger AI analysis"),
     ]
     await app.bot.set_my_commands(commands)
     logger.info("Commands menu set")

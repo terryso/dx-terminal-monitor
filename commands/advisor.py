@@ -5,6 +5,7 @@ Commands to control the AI strategy advisor service and handle callback queries.
 """
 
 import logging
+from datetime import datetime, timedelta
 
 from telegram import Update
 from telegram.ext import ContextTypes
@@ -15,6 +16,10 @@ logger = logging.getLogger(__name__)
 
 # Will be set by main.py during initialization
 _advisor_monitor = None
+
+# Cooldown tracking for manual analysis (Story 8-5)
+_last_manual_analysis: dict[int, datetime] = {}
+MANUAL_ANALYSIS_COOLDOWN = timedelta(minutes=5)
 
 
 def set_advisor_monitor(monitor):
@@ -82,6 +87,90 @@ async def cmd_advisor_status(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         f"Interval: {interval}h\n"
         f"Last Analysis: {last_str}"
     )
+
+
+async def cmd_advisor_analyze(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """Manually trigger AI strategy analysis (Story 8-5).
+
+    Flow:
+    1. Check admin permission
+    2. Check cooldown (prevents spam even when monitor unavailable)
+    3. Check monitor initialization
+    4. Execute analysis and push results
+
+    Note: Cooldown is recorded on:
+    - Successful analysis with suggestions
+    - Successful analysis with no suggestions
+    - Monitor not initialized (prevents spam while system recovers)
+    Cooldown is NOT recorded on:
+    - Permission failure (user should not retry anyway)
+    - Analysis exceptions (user may want to retry)
+    """
+    logger.info("cmd_advisor_analyze called")
+    user_id = update.effective_user.id
+    logger.info(f"User ID: {user_id}, admin check: {is_admin(user_id)}")
+
+    # Check admin permission
+    if not is_admin(user_id):
+        await update.message.reply_text("Unauthorized: Admin only")
+        return
+
+    # Check cooldown FIRST (before monitor check) to prevent spam
+    # even when monitor is unavailable
+    last_time = _last_manual_analysis.get(user_id)
+    if last_time and datetime.now() - last_time < MANUAL_ANALYSIS_COOLDOWN:
+        remaining = MANUAL_ANALYSIS_COOLDOWN - (datetime.now() - last_time)
+        await update.message.reply_text(
+            f"Please wait {int(remaining.total_seconds() // 60)} min before next analysis"
+        )
+        return
+
+    # Check advisor monitor initialized
+    if _advisor_monitor is None:
+        # Record cooldown even on monitor init failure to prevent spam
+        # while system is recovering
+        _last_manual_analysis[user_id] = datetime.now()
+        await update.message.reply_text("Advisor monitor not initialized")
+        return
+
+    # Send status message
+    status_msg = await update.message.reply_text("Analyzing your portfolio...")
+
+    try:
+        # Execute analysis
+        suggestions = await _advisor_monitor.advisor.analyze()
+
+        # Handle no suggestions
+        if not suggestions:
+            await status_msg.edit_text("No suggestions at this time. Your portfolio looks good!")
+            _last_manual_analysis[user_id] = datetime.now()
+            return
+
+        # Collect context and push suggestions
+        context = await _advisor_monitor.advisor.collector.collect()
+
+        # Import push_suggestions here to avoid circular dependency
+        from advisor_monitor import push_suggestions
+
+        request_id = await push_suggestions(
+            chat_id=update.effective_chat.id,
+            suggestions=suggestions,
+            context=context,
+            bot=ctx.bot
+        )
+
+        # Update status message
+        await status_msg.edit_text(f"Analysis complete! {len(suggestions)} suggestion(s) generated.")
+
+        # Record call time
+        _last_manual_analysis[user_id] = datetime.now()
+        logger.info(f"Manual analysis completed by admin {user_id} (request_id={request_id})")
+
+    except Exception as e:
+        logger.error(f"Manual analysis failed: {e}")
+        await status_msg.edit_text(f"Analysis failed: {str(e)}")
+        # Note: Cooldown NOT recorded on exception - user may want to retry
+        # after fixing the underlying issue
 
 
 # Re-export handle_advisor_callback from advisor_monitor for convenience

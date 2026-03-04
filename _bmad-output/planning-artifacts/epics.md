@@ -1389,15 +1389,109 @@ app.add_handler(CallbackQueryHandler(handle_advisor_callback, pattern=r"^adv:"))
 
 ---
 
+### Story 8.5: 手动触发分析命令
+
+**作为用户，我需要** 通过 `/advisor_analyze` 命令手动触发 AI 分析，**以便** 不等待定时任务即可获得策略建议。
+
+**验收标准:**
+- [ ] 实现 `cmd_advisor_analyze` 命令处理函数
+- [ ] 命令格式: `/advisor_analyze`
+- [ ] 调用 `StrategyAdvisor.analyze()` 执行分析
+- [ ] 立即推送分析结果（带 Inline Keyboard）
+- [ ] 管理员权限检查
+- [ ] 防止频繁调用: 5 分钟内只能调用一次
+- [ ] 分析中显示 "正在分析..." 状态
+- [ ] 错误时返回友好提示
+- [ ] 添加单元测试
+
+**技术说明:**
+```python
+# commands/advisor.py
+from datetime import datetime, timedelta
+
+# 防频繁调用缓存
+_last_manual_analysis: dict[int, datetime] = {}
+MANUAL_ANALYSIS_COOLDOWN = timedelta(minutes=5)
+
+async def cmd_advisor_analyze(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """手动触发 AI 分析"""
+    if not is_admin(update.effective_user.id):
+        await update.message.reply_text("Unauthorized: Admin only")
+        return
+
+    user_id = update.effective_user.id
+
+    # 检查冷却时间
+    last_time = _last_manual_analysis.get(user_id)
+    if last_time and datetime.now() - last_time < MANUAL_ANALYSIS_COOLDOWN:
+        remaining = MANUAL_ANALYSIS_COOLDOWN - (datetime.now() - last_time)
+        await update.message.reply_text(
+            f"Please wait {int(remaining.total_seconds() // 60)} min before next analysis"
+        )
+        return
+
+    # 显示分析中状态
+    status_msg = await update.message.reply_text("Analyzing your portfolio...")
+
+    try:
+        # 获取 advisor 实例
+        if _advisor_monitor is None or _advisor_monitor.advisor is None:
+            await status_msg.edit_text("Advisor not initialized")
+            return
+
+        # 执行分析
+        suggestions = await _advisor_monitor.advisor.analyze()
+
+        if not suggestions:
+            await status_msg.edit_text("No suggestions at this time. Your portfolio looks good!")
+            return
+
+        # 推送建议
+        context = await _advisor_monitor.collector.collect()
+        request_id = await push_suggestions(
+            chat_id=update.effective_chat.id,
+            suggestions=suggestions,
+            bot=ctx.bot,
+            context=context
+        )
+
+        # 更新状态消息
+        await status_msg.edit_text(
+            f"Analysis complete! {len(suggestions)} suggestion(s) generated."
+        )
+
+        # 记录调用时间
+        _last_manual_analysis[user_id] = datetime.now()
+
+    except Exception as e:
+        logger.error("Manual analysis failed: %s", e)
+        await status_msg.edit_text(f"Analysis failed: {str(e)}")
+```
+
+**交互流程:**
+```
+1. 用户发送 /advisor_analyze
+2. 系统检查权限和冷却时间
+3. 显示 "Analyzing..." 状态
+4. 调用 LLM 执行分析
+5. 推送建议消息（带 Inline Keyboard）
+6. 更新状态为 "Analysis complete!"
+```
+
+**预估复杂度**: 低
+
+---
+
 ## Epic 8 需求覆盖
 
-| 需求 | Story 8.0 | Story 8.1 | Story 8.2 | Story 8.3 | Story 8.4 |
-|------|-----------|-----------|-----------|-----------|-----------|
-| LLM 客户端 | ✅ | - | - | - | - |
-| 数据收集 | - | ✅ | - | - | - |
-| AI 分析 | - | - | ✅ | - | - |
-| 建议推送 | - | - | - | ✅ | - |
-| 确认执行 | - | - | - | - | ✅ |
+| 需求 | Story 8.0 | Story 8.1 | Story 8.2 | Story 8.3 | Story 8.4 | Story 8.5 |
+|------|-----------|-----------|-----------|-----------|-----------|-----------|
+| LLM 客户端 | ✅ | - | - | - | - | - |
+| 数据收集 | - | ✅ | - | - | - | - |
+| AI 分析 | - | - | ✅ | - | - | ✅ |
+| 建议推送 | - | - | - | ✅ | - | ✅ |
+| 确认执行 | - | - | - | - | ✅ | - |
+| 手动触发 | - | - | - | - | - | ✅ |
 
 ---
 
@@ -1409,6 +1503,7 @@ app.add_handler(CallbackQueryHandler(handle_advisor_callback, pattern=r"^adv:"))
 | FR24 | AI 生成添加策略建议 | P1 | Epic 8 |
 | FR25 | AI 生成禁用策略建议 | P1 | Epic 8 |
 | FR26 | 策略建议推送与确认执行 | P1 | Epic 8 |
+| FR27 | 手动触发 AI 分析 | P2 | Epic 8 |
 
 ---
 
@@ -1423,7 +1518,7 @@ app.add_handler(CallbackQueryHandler(handle_advisor_callback, pattern=r"^adv:"))
 | **Phase 5** | Epic 5 | 5.1, 5.2, 5.3 | 🟠 P1 | 1-2 天 |
 | **Phase 6** | Epic 6 | 6.1, 6.2, 6.3, 6.4, 6.5, 6.6 | 🟣 P2 | 2-4 天 |
 | **Phase 7** | Epic 7 | 7.1, 7.2 | 🟤 P2-P3 | 1-3 天 |
-| **Phase 8** | Epic 8 | 8.0, 8.1, 8.2, 8.3, 8.4 | 🔴 P1 | 2-4 天 |
+| **Phase 8** | Epic 8 | 8.0, 8.1, 8.2, 8.3, 8.4, 8.5 | 🔴 P1 | 2-4 天 |
 
 ---
 
@@ -1453,10 +1548,11 @@ app.add_handler(CallbackQueryHandler(handle_advisor_callback, pattern=r"^adv:"))
 | FR20 - Gas 监控 | - | - | - | - | - | - | ✅ 7.4 | - |
 | FR21 - 排行榜 | - | - | - | - | - | ✅ 6.5 | - | - |
 | FR22 - 代币推文 | - | - | - | - | - | ✅ 6.6 | - | - |
-| FR23 - AI 分析持仓策略 | - | - | - | - | - | - | - | ✅ 8.2 |
+| FR23 - AI 分析持仓策略 | - | - | - | - | - | - | - | ✅ 8.2/8.5 |
 | FR24 - AI 添加策略建议 | - | - | - | - | - | - | - | ✅ 8.2 |
 | FR25 - AI 禁用策略建议 | - | - | - | - | - | - | - | ✅ 8.2 |
 | FR26 - 建议推送执行 | - | - | - | - | - | - | - | ✅ 8.3/8.4 |
+| FR27 - 手动触发分析 | - | - | - | - | - | - | - | ✅ 8.5 |
 | NFR1 - 私钥安全 | ✅ 1.0 | - | - | - | ✅ 5.3 | - | - | - |
 | NFR2 - 错误提示 | ✅ All | ✅ All | ✅ All | ✅ All | ✅ All | ✅ All | ✅ All | ✅ All |
 | NFR3 - 权限确认 | - | ✅ 2.x | ✅ 3.x | ✅ 4.3 | ✅ 5.3 | - | - | ✅ 8.4 |
