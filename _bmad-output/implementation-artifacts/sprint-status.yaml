@@ -95,6 +95,6 @@ development_status:
   8-0-llm-client: done
   8-1-data-collector: done
   8-2-ai-advisor: done
-  8-3-suggestion-push: todo
+  8-3-suggestion-push: done
   8-4-confirm-execute: todo
   epic-8-retrospective: optional

@@ -81,7 +81,7 @@ class TestPostInitStory13:
         call_args = mock_app.bot.set_my_commands.call_args[0][0]
         command_names = [cmd.command for cmd in call_args]
 
-        # All expected commands including the new ones from Story 1-3, 2-1, 2-2, 3-1, 3-2, 4-1, 5-1, 5-2, 5-3, 6-1, 6-4, 6-5, 7-1
+        # All expected commands including the new ones from Story 1-3, 2-1, 2-2, 3-1, 3-2, 4-1, 5-1, 5-2, 5-3, 6-1, 6-4, 6-5, 7-1, 8-3
         expected_commands = [
             "start",
             "balance",
@@ -117,6 +117,9 @@ class TestPostInitStory13:
             "alert_pnl",         # Story 7-2
             "alert_position",    # Story 7-2
             "alert_status",      # Story 7-2
+            "advisor_on",        # Story 8-3
+            "advisor_off",       # Story 8-3
+            "advisor_status",    # Story 8-3
         ]
 
         assert len(command_names) == len(expected_commands), f"Expected {len(expected_commands)} commands, got {len(command_names)}"

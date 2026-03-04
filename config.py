@@ -58,6 +58,7 @@ LLM_TIMEOUT = int(os.getenv('LLM_TIMEOUT', '60'))
 # Advisor Configuration
 ADVISOR_ENABLED = os.getenv('ADVISOR_ENABLED', 'true').lower() == 'true'
 ADVISOR_INTERVAL_HOURS = int(os.getenv('ADVISOR_INTERVAL_HOURS', '2'))
+SUGGESTION_TTL_MINUTES = int(os.getenv('SUGGESTION_TTL_MINUTES', '30'))
 
 
 def is_admin(user_id: int) -> bool:
