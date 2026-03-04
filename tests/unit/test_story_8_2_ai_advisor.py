@@ -135,6 +135,13 @@ def advisor(mock_llm, mock_api):
     return StrategyAdvisor(mock_llm, mock_api)
 
 
+@pytest.fixture(autouse=True)
+def mock_save_analysis():
+    """Mock save_analysis to avoid writing to real data files during tests."""
+    with patch("advisor_history.save_analysis", return_value="test1234"):
+        yield
+
+
 # ============================================================================
 # Test Classes - AC4: Suggestion Dataclass
 # ============================================================================

@@ -36,3 +36,7 @@ Thumbs.db
 bot.pid
 start.sh
 MEMORY.md
+
+# Data directory - ignore everything except index.html
+data/*
+!data/index.html

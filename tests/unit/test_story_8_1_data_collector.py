@@ -393,8 +393,9 @@ class TestFormatForLLM:
         # GIVEN: CollectedData with position data
         from advisor import CollectedData
 
+        # eth_balance is in wei format: 10.5 ETH = 10.5 * 1e18
         positions = data_factory.create_position_data(
-            eth_balance=10.5,
+            eth_balance="10500000000000000000",  # 10.5 ETH in wei
             total_pnl_usd=1234.56,
             tokens=[
                 {"symbol": "PEPE", "balance": "1000000", "pnlUsd": 500.0},
@@ -412,7 +413,7 @@ class TestFormatForLLM:
 
         # THEN: Should include position information
         assert "## Positions" in result or "# Positions" in result
-        assert "10.5" in result  # ETH balance
+        assert "10.500000 ETH" in result  # ETH balance (formatted)
         assert "PEPE" in result  # Token symbol
         assert "1234.56" in result or "1234" in result  # PnL
 

@@ -418,9 +418,10 @@ async def test_integration_end_to_end_flow(mock_admin_update, mock_context):
     ]
 
     # Create CollectedData object (as expected by actual code)
+    # ethBalance should be in wei (2.5 ETH = 2.5 * 10^18)
     collected_data = CollectedData(
         positions={
-            "ethBalance": "2.5000",
+            "ethBalance": "2500000000000000000",  # 2.5 ETH in wei
             "tokens": [{"symbol": "ETH"}, {"symbol": "USDC"}, {"symbol": "BTC"}],
             "totalPnlUsd": "+$350.00",
         },
@@ -473,7 +474,7 @@ async def test_integration_end_to_end_flow(mock_admin_update, mock_context):
     assert push_call["chat_id"] == mock_admin_update.effective_chat.id
     assert push_call["suggestions"] == suggestions
     # context is built from CollectedData, verify expected keys
-    assert push_call["context"]["balance"] == "2.5000"
+    assert push_call["context"]["balance"] == "2.500000 ETH"
     assert push_call["context"]["positions"] == 3
     assert push_call["context"]["strategies"] == 3
     assert push_call["context"]["pnl"] == "+$350.00"

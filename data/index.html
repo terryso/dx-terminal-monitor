@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analysis History</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:hsl(220,20%,7%);--fg:hsl(220,10%,80%);
+  --card:hsl(220,18%,10%);--border:hsl(220,15%,16%);
+  --muted:hsl(220,10%,45%);--accent-hover:hsl(220,15%,14%);
+  --primary:hsl(38,70%,55%);--primary-dim:hsla(38,70%,55%,0.15);
+  --green:hsl(145,45%,42%);--green-dim:hsla(145,45%,42%,0.15);
+  --red:hsl(0,55%,50%);
+  --code-bg:hsl(220,20%,5%);
+}
+.light{
+  --bg:hsl(0,0%,97%);--fg:hsl(220,15%,15%);
+  --card:hsl(0,0%,100%);--border:hsl(220,15%,88%);
+  --muted:hsl(220,10%,55%);--accent-hover:hsl(220,10%,94%);
+  --primary:hsl(38,70%,45%);--primary-dim:hsla(38,70%,45%,0.12);
+  --green:hsl(145,50%,35%);--green-dim:hsla(145,50%,35%,0.1);
+  --red:hsl(0,55%,48%);
+  --code-bg:hsl(220,10%,94%);
+}
+
+body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:var(--bg);color:var(--fg);line-height:1.6;padding:48px 20px}
+.container{max-width:720px;margin:0 auto}
+
+header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:40px}
+h1{font-size:18px;font-weight:600;letter-spacing:-0.3px}
+.subtitle{font-size:13px;color:var(--muted);margin-top:4px}
+
+.theme-btn{
+  background:none;border:1px solid var(--border);color:var(--muted);
+  font-family:inherit;font-size:12px;padding:5px 10px;border-radius:4px;cursor:pointer;
+  transition:color .2s,border-color .2s;
+}
+.theme-btn:hover{color:var(--fg);border-color:var(--fg)}
+
+.record{border:1px solid var(--border);border-radius:4px;margin-bottom:10px;overflow:hidden}
+.record-header{
+  padding:14px 18px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;
+  transition:background .15s;
+}
+.record-header:hover{background:var(--accent-hover)}
+.meta{display:flex;gap:14px;align-items:center;font-size:13px}
+.time{font-family:'IBM Plex Mono',monospace;color:var(--muted);font-size:12px}
+.count{color:var(--muted)}
+
+.badge{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;
+  padding:3px 8px;border-radius:3px;
+}
+.badge-pending{background:var(--primary-dim);color:var(--primary)}
+.badge-executed{background:var(--green-dim);color:var(--green)}
+
+.detail{display:none;padding:18px;border-top:1px solid var(--border)}
+.detail.open{display:block}
+
+.section{margin-top:18px}.section:first-child{margin-top:0}
+.section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.section-title{font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted)}
+.toggle{
+  background:none;border:none;color:var(--muted);font-family:inherit;
+  font-size:11px;cursor:pointer;padding:2px 0;transition:color .15s;
+}
+.toggle:hover{color:var(--fg)}
+
+.code{
+  background:var(--code-bg);border-radius:4px;padding:14px;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.7;
+  max-height:320px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;
+  color:var(--muted);display:none;
+}
+.code.show{display:block}
+
+.suggestions{list-style:none;display:flex;flex-direction:column;gap:6px}
+.sug{
+  padding:12px 14px;background:var(--code-bg);border-radius:4px;
+  border-left:2px solid var(--green);
+}
+.sug.disable{border-left-color:var(--red)}
+
+.sug-head{display:flex;gap:10px;align-items:center;margin-bottom:4px;font-family:'IBM Plex Mono',monospace;font-size:11px}
+.action-add{color:var(--green);font-weight:600}
+.action-disable{color:var(--red);font-weight:600}
+.sug-meta{color:var(--muted)}
+.sug-content{font-size:13px;margin-bottom:6px}
+.sug-reason{font-size:12px;color:var(--muted);line-height:1.5}
+
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+.empty{text-align:center;padding:60px 0;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div>
+      <h1>Analysis History</h1>
+      <p class="subtitle">Advisor analysis records</p>
+    </div>
+    <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">Light</button>
+  </header>
+  <div id="records"><p class="empty">Loading...</p></div>
+</div>
+
+<script>
+const PRIORITY=['LOW','MED','HIGH'];
+
+function toggleTheme(){
+  const isLight=document.documentElement.classList.toggle('light');
+  document.getElementById('themeBtn').textContent=isLight?'Dark':'Light';
+  localStorage.setItem('theme',isLight?'light':'dark');
+}
+
+(function initTheme(){
+  const saved=localStorage.getItem('theme');
+  const prefer=window.matchMedia('(prefers-color-scheme:light)').matches;
+  if(saved==='light'||(!saved&&prefer)){
+    document.documentElement.classList.add('light');
+    document.getElementById('themeBtn').textContent='Dark';
+  }
+})();
+
+function esc(t){if(!t)return'';const d=document.createElement('div');d.textContent=t;return d.innerHTML}
+
+function fmtTime(iso){
+  return new Date(iso).toLocaleString('zh-CN',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+}
+
+function tog(id){document.getElementById(id).classList.toggle('open')}
+function togCode(id,e){e.stopPropagation();const el=document.getElementById(id);el.classList.toggle('show');}
+
+async function load(){
+  const c=document.getElementById('records');
+  try{
+    const r=await fetch('advisor_history.json');
+    if(!r.ok)throw 0;
+    const data=await r.json();
+    if(!data.length){c.innerHTML='<p class="empty">No records</p>';return;}
+    c.innerHTML=data.map(rec=>`
+      <div class="record">
+        <div class="record-header" onclick="tog('d-${rec.id}')">
+          <div class="meta">
+            <span class="time">${fmtTime(rec.timestamp)}</span>
+            <span class="count">${rec.suggestions.length} suggestions</span>
+          </div>
+          <span class="badge ${rec.executed?'badge-executed':'badge-pending'}">${rec.executed?'EXECUTED':'PENDING'}</span>
+        </div>
+        <div class="detail" id="d-${rec.id}">
+          <div class="section">
+            <div class="section-head">
+              <span class="section-title">Request</span>
+              <button class="toggle" onclick="togCode('req-${rec.id}',event)">Show / Hide</button>
+            </div>
+            <div class="code" id="req-${rec.id}">${esc(rec.request)}</div>
+          </div>
+          <div class="section">
+            <div class="section-head">
+              <span class="section-title">Response</span>
+              <button class="toggle" onclick="togCode('res-${rec.id}',event)">Show / Hide</button>
+            </div>
+            <div class="code" id="res-${rec.id}">${esc(rec.response)}</div>
+          </div>
+          <div class="section">
+            <span class="section-title">Suggestions</span>
+            <ul class="suggestions" style="margin-top:8px">
+              ${rec.suggestions.map(s=>`
+                <li class="sug ${s.action}">
+                  <div class="sug-head">
+                    <span class="action-${s.action}">${s.action.toUpperCase()}</span>
+                    <span class="sug-meta">${PRIORITY[s.priority]||'MED'}</span>
+                    ${s.expiry_hours?`<span class="sug-meta">${s.expiry_hours}h</span>`:''}
+                    ${s.strategy_id!=null?`<span class="sug-meta">#${s.strategy_id}</span>`:''}
+                  </div>
+                  ${s.content?`<p class="sug-content">${esc(s.content)}</p>`:''}
+                  <p class="sug-reason">${esc(s.reason)}</p>
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }catch(e){c.innerHTML='<p class="empty">Failed to load</p>';}
+}
+load();
+</script>
+</body>
+</html>

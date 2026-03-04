@@ -60,6 +60,11 @@ ADVISOR_ENABLED = os.getenv('ADVISOR_ENABLED', 'true').lower() == 'true'
 ADVISOR_INTERVAL_HOURS = int(os.getenv('ADVISOR_INTERVAL_HOURS', '2'))
 SUGGESTION_TTL_MINUTES = int(os.getenv('SUGGESTION_TTL_MINUTES', '30'))
 
+# AI Advisor History (Story 8-6)
+ADVISOR_HISTORY_ENABLED = os.getenv('ADVISOR_HISTORY_ENABLED', 'false').lower() == 'true'
+ADVISOR_HISTORY_MAX = int(os.getenv('ADVISOR_HISTORY_MAX', '30'))
+ADVISOR_SURGE_DOMAIN = os.getenv('ADVISOR_SURGE_DOMAIN', 'dx-advisor.surge.sh')
+
 
 def is_admin(user_id: int) -> bool:
     """检查用户是否为管理员（用于高风险操作）

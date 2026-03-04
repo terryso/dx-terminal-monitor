@@ -211,9 +211,11 @@ class StrategyDataCollector:
     # Positions
     if data.positions:
       lines.append("## Positions")
-      eth_balance = data.positions.get("ethBalance", "N/A")
+      from utils.formatters import format_eth
+      eth_balance_raw = data.positions.get("ethBalance", "N/A")
+      eth_balance = format_eth(eth_balance_raw) if eth_balance_raw != "N/A" else "N/A"
       total_pnl = data.positions.get("overallPnlUsd", data.positions.get("totalPnlUsd", "N/A"))
-      lines.append(f"ETH Balance: {eth_balance}")
+      lines.append(f"ETH Balance: {eth_balance} ETH")
       lines.append(f"Total PnL (USD): {total_pnl}")
 
       # Support both API formats: positions/tokenSymbol and tokens/symbol
@@ -241,10 +243,10 @@ class StrategyDataCollector:
       ]
       for s in active_strategies:
         sid = s.get("strategyId", s.get("id", "?"))
-        content = s.get("content", "")[:100]
+        content = s.get("content", "")
         priority = s.get("strategyPriority", s.get("priority", 1))
         expiry = s.get("expiry", 0)
-        lines.append(f"  #{sid} (P{priority}): {content}...")
+        lines.append(f"  #{sid} (P{priority}): {content}")
         if expiry:
           from utils.formatters import format_time
           lines.append(f"    Expires: {format_time(expiry)}")
@@ -368,6 +370,11 @@ class StrategyAdvisor:
     self.llm = llm
     self.api = api
     self.collector = StrategyDataCollector(api)
+    self._last_record_id: str | None = None
+
+  @property
+  def last_record_id(self) -> str | None:
+    return self._last_record_id
 
   async def analyze(self) -> list[Suggestion]:
     """Analyze current data and generate strategy suggestions.
@@ -393,6 +400,9 @@ class StrategyAdvisor:
       # Format for LLM
       formatted_data = self.collector.format_for_llm(data)
 
+      # Build full request content (for saving)
+      full_request = f"{SYSTEM_PROMPT}\n\n{formatted_data}"
+
       # Call LLM
       response = await self.llm.chat(SYSTEM_PROMPT, formatted_data)
 
@@ -405,7 +415,18 @@ class StrategyAdvisor:
       suggestions = self._parse_suggestions(response)
 
       # Filter suggestions to respect strategy limit
-      return self._filter_by_strategy_limit(suggestions, slots_available)
+      filtered_suggestions = self._filter_by_strategy_limit(suggestions, slots_available)
+
+      # Save analysis record (Story 8-6)
+      from advisor_history import save_analysis
+      record_id = save_analysis(
+        request=full_request,
+        response=response,
+        suggestions=[s.__dict__ for s in filtered_suggestions]
+      )
+      self._last_record_id = record_id
+
+      return filtered_suggestions
 
     except Exception as e:
       logger.error("Analysis failed: %s", e)

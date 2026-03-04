@@ -120,9 +120,12 @@ async def cmd_advisor_analyze(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     last_time = _last_manual_analysis.get(user_id)
     if last_time and datetime.now() - last_time < MANUAL_ANALYSIS_COOLDOWN:
         remaining = MANUAL_ANALYSIS_COOLDOWN - (datetime.now() - last_time)
-        await update.message.reply_text(
-            f"Please wait {int(remaining.total_seconds() // 60)} min before next analysis"
-        )
+        remaining_secs = int(remaining.total_seconds())
+        if remaining_secs >= 60:
+            msg = f"Please wait {remaining_secs // 60} min before next analysis"
+        else:
+            msg = f"Please wait {remaining_secs} seconds before next analysis"
+        await update.message.reply_text(msg)
         return
 
     # Check advisor monitor initialized
@@ -187,7 +190,8 @@ async def cmd_advisor_analyze(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             chat_id=update.effective_chat.id,
             suggestions=suggestions,
             context=context,
-            bot=ctx.bot
+            bot=ctx.bot,
+            record_id=_advisor_monitor.advisor.last_record_id
         )
 
         # Update status message

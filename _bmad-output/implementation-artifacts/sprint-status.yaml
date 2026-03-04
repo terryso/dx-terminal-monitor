@@ -1,4 +1,4 @@
-# generated: 2026-03-02
+# generated: 2026-03-04
 # project: dx-terminal-monitor
 # project_key: NOKEY
 # tracking_system: file-system
@@ -33,7 +33,7 @@
 # - SM typically creates next story after previous one is 'done' to incorporate learnings
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
-generated: 2026-03-02
+generated: 2026-03-04
 project: dx-terminal-monitor
 project_key: NOKEY
 tracking_system: file-system
@@ -98,4 +98,5 @@ development_status:
   8-3-suggestion-push: done
   8-4-callback-execution: done
   8-5-manual-trigger: done
+  8-6-analysis-history: done
   epic-8-retrospective: optional

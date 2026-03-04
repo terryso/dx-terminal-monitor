@@ -4,7 +4,7 @@
 title: Story 8.6 - 分析历史记录与网页查看
 epic: Epic 8 - AI 策略顾问
 created: 2026-03-04
-status: planning
+status: done
 priority: P2
 ---
 

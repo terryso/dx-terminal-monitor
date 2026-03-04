@@ -82,6 +82,13 @@ def push_factory():
     return SuggestionPushFactory()
 
 
+@pytest.fixture(autouse=True)
+def mock_sync_to_surge():
+    """Mock sync_to_surge to avoid actual surge CLI calls during tests."""
+    with patch("advisor_monitor.sync_to_surge"):
+        yield
+
+
 @pytest.fixture
 def mock_bot():
     """Create mock Telegram Bot instance."""

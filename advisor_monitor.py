@@ -14,16 +14,17 @@ from datetime import datetime, timedelta
 from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ContextTypes
 
+import config
 from advisor import StrategyAdvisor, Suggestion
+from advisor_history import get_view_url, mark_executed, sync_to_surge
 from api import TerminalAPI
-from config import SUGGESTION_TTL_MINUTES
 from utils.formatters import format_eth, format_usd
 
 logger = logging.getLogger(__name__)
 
 # Storage for pending suggestion requests
 pending_requests: dict[str, dict] = {}
-SUGGESTION_TTL = timedelta(minutes=SUGGESTION_TTL_MINUTES)
+SUGGESTION_TTL = timedelta(minutes=config.SUGGESTION_TTL_MINUTES)
 
 
 def format_suggestions_message(suggestions: list[Suggestion] | list[dict], context: dict) -> str:
@@ -119,11 +120,27 @@ def build_suggestion_keyboard(
     return InlineKeyboardMarkup(buttons)
 
 
+def _add_web_link_to_message(message: str) -> str:
+    """Add web link to message if ADVISOR_HISTORY_ENABLED.
+
+    Args:
+        message: Original message text
+
+    Returns:
+        Updated message with web link if enabled, original message otherwise
+    """
+    if config.ADVISOR_HISTORY_ENABLED:
+        sync_to_surge()
+        return message + f"\n\n📎 <a href='{get_view_url()}'>查看详细分析历史</a>"
+    return message
+
+
 async def push_suggestions(
     chat_id: int,
     suggestions: list[Suggestion] | list[dict],
     context: dict,
-    bot: Bot
+    bot: Bot,
+    record_id: str | None = None
 ) -> str:
     """Push suggestions to user with interactive buttons.
 
@@ -132,6 +149,7 @@ async def push_suggestions(
         suggestions: List of Suggestion objects or dicts
         context: Context data for message formatting
         bot: Telegram Bot instance
+        record_id: Optional record ID from advisor history (for execution tracking)
 
     Returns:
         request_id for this batch
@@ -144,18 +162,25 @@ async def push_suggestions(
         "created_at": datetime.now(),
         "context": context,
         "executed": False,
+        "record_id": record_id,  # Story 8-6: Link to analysis history
     }
 
     # Build message and keyboard
     message = format_suggestions_message(suggestions, context)
     keyboard = build_suggestion_keyboard(suggestions, request_id)
 
+    # Add web link if history is enabled (Story 8-6)
+    if config.ADVISOR_HISTORY_ENABLED:
+        sync_to_surge()
+        message += f"\n\n📎 <a href='{get_view_url()}'>查看详细分析历史</a>"
+
     # Send message
     await bot.send_message(
         chat_id,
         text=message,
         reply_markup=keyboard,
-        parse_mode="HTML"
+        parse_mode="HTML",
+        disable_web_page_preview=True
     )
 
     logger.info(f"Pushed {len(suggestions)} suggestions (request_id={request_id})")
@@ -219,7 +244,8 @@ class AdvisorMonitor:
                         self.admin_chat_id,
                         suggestions,
                         context,
-                        self.bot
+                        self.bot,
+                        record_id=self.advisor.last_record_id
                     )
                 else:
                     logger.info("No actionable suggestions from AI analysis")
@@ -418,6 +444,11 @@ async def handle_advisor_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE
             result = await execute_suggestion(s)
             results.append(f"[{i}] {result}")
 
+        # Fix: mark record as executed
+        record_id = request.get("record_id")
+        if record_id:
+            mark_executed(record_id)
+
         del pending_requests[request_id]
         await query.edit_message_text(
             query.message.text + "\n\n<b>Executed All:</b>\n" + "\n".join(results),
@@ -434,6 +465,11 @@ async def handle_advisor_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE
 
         suggestion = suggestions[idx]
         result = await execute_suggestion(suggestion)
+
+        # Fix: mark record as executed
+        record_id = request.get("record_id")
+        if record_id:
+            mark_executed(record_id)
 
         del pending_requests[request_id]
         await query.edit_message_text(
