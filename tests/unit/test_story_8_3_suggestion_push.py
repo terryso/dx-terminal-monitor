@@ -467,7 +467,7 @@ class TestAdvisorMonitorClass:
         advisor = StrategyAdvisor(mock_llm, mock_api)
         callback = AsyncMock()
 
-        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789)
+        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock())
         assert monitor.advisor is advisor
         assert monitor.api is mock_api
 
@@ -479,7 +479,7 @@ class TestAdvisorMonitorClass:
         advisor = StrategyAdvisor(mock_llm, mock_api)
         callback = AsyncMock()
 
-        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789)
+        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock())
         assert monitor.callback is callback
 
     def test_advisor_monitor_accepts_admin_chat_id(self, mock_llm, mock_api):
@@ -490,7 +490,7 @@ class TestAdvisorMonitorClass:
         advisor = StrategyAdvisor(mock_llm, mock_api)
         callback = AsyncMock()
 
-        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789)
+        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock())
         assert monitor.admin_chat_id == 123456789
 
     def test_advisor_monitor_has_interval_hours_config(self, mock_llm, mock_api):
@@ -504,6 +504,7 @@ class TestAdvisorMonitorClass:
         monitor = AdvisorMonitor(
             advisor, mock_api, callback,
             admin_chat_id=123456789,
+            bot=MagicMock(),
             interval_hours=4
         )
         assert monitor.interval_seconds == 4 * 3600
@@ -516,7 +517,7 @@ class TestAdvisorMonitorClass:
         advisor = StrategyAdvisor(mock_llm, mock_api)
         callback = AsyncMock()
 
-        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789)
+        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock())
         assert monitor.interval_seconds == 2 * 3600
 
     def test_advisor_monitor_has_start_method(self, mock_llm, mock_api):
@@ -527,7 +528,7 @@ class TestAdvisorMonitorClass:
         advisor = StrategyAdvisor(mock_llm, mock_api)
         callback = AsyncMock()
 
-        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789)
+        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock())
         assert hasattr(monitor, "start")
         assert callable(monitor.start)
 
@@ -539,7 +540,7 @@ class TestAdvisorMonitorClass:
         advisor = StrategyAdvisor(mock_llm, mock_api)
         callback = AsyncMock()
 
-        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789)
+        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock())
         assert hasattr(monitor, "stop")
         assert callable(monitor.stop)
 
@@ -551,7 +552,7 @@ class TestAdvisorMonitorClass:
         advisor = StrategyAdvisor(mock_llm, mock_api)
         callback = AsyncMock()
 
-        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789)
+        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock())
         assert hasattr(monitor, "start_background")
         assert callable(monitor.start_background)
 
@@ -563,7 +564,7 @@ class TestAdvisorMonitorClass:
         advisor = StrategyAdvisor(mock_llm, mock_api)
         callback = AsyncMock()
 
-        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789)
+        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock())
         assert hasattr(monitor, "running")
         assert monitor.running is False
 
@@ -575,7 +576,7 @@ class TestAdvisorMonitorClass:
         advisor = StrategyAdvisor(mock_llm, mock_api)
         callback = AsyncMock()
 
-        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789)
+        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock())
         assert hasattr(monitor, "last_analysis")
 
 
@@ -593,7 +594,7 @@ class TestAdvisorMonitorAsync:
         advisor = StrategyAdvisor(mock_llm, mock_api)
         callback = AsyncMock()
 
-        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789)
+        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock())
         assert inspect.iscoroutinefunction(monitor.start)
 
     @pytest.mark.asyncio
@@ -607,7 +608,7 @@ class TestAdvisorMonitorAsync:
         advisor = StrategyAdvisor(mock_llm, mock_api)
         callback = AsyncMock()
 
-        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789)
+        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock())
 
         task = await monitor.start_background()
         assert isinstance(task, asyncio.Task)
@@ -625,7 +626,7 @@ class TestAdvisorMonitorAsync:
         advisor = StrategyAdvisor(mock_llm, mock_api)
         callback = AsyncMock()
 
-        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789)
+        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock())
         monitor.running = True
 
         monitor.stop()
@@ -1442,6 +1443,7 @@ class TestIntegration:
             advisor, mock_api,
             callback=push_suggestions,
             admin_chat_id=123456789,
+            bot=mock_bot,
             interval_hours=0.001  # Very short for testing
         )
 
