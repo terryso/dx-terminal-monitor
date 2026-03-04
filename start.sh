@@ -35,7 +35,13 @@ kill_existing() {
     if [ -n "$OTHER_PIDS" ]; then
         echo "Killing other instances..."
         echo "$OTHER_PIDS" | xargs kill 2>/dev/null
-        sleep 1
+        sleep 2
+        # 强制杀掉残留进程
+        REMAINING_PIDS=$(pgrep -f "python.*$PROCESS_NAME" 2>/dev/null | grep -v $$)
+        if [ -n "$REMAINING_PIDS" ]; then
+            echo "Force killing remaining instances..."
+            echo "$REMAINING_PIDS" | xargs kill -9 2>/dev/null
+        fi
     fi
 }
 
@@ -45,7 +51,9 @@ start() {
     cd "$SCRIPT_DIR"
 
     # 激活虚拟环境（如果存在）
-    if [ -d "venv" ]; then
+    if [ -d ".venv" ]; then
+        source .venv/bin/activate
+    elif [ -d "venv" ]; then
         source venv/bin/activate
     fi
 
