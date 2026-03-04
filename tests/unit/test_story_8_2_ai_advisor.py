@@ -142,6 +142,13 @@ def mock_save_analysis():
         yield
 
 
+@pytest.fixture(autouse=True)
+def mock_sync_to_surge():
+    """Mock sync_to_surge to avoid actual surge CLI calls during tests."""
+    with patch("advisor_history.sync_to_surge"):
+        yield
+
+
 # ============================================================================
 # Test Classes - AC4: Suggestion Dataclass
 # ============================================================================
