@@ -183,12 +183,14 @@ class AdvisorMonitor:
         api: TerminalAPI,
         callback: Callable,
         admin_chat_id: int,
+        bot: Bot,
         interval_hours: int = 2
     ):
         self.advisor = advisor
         self.api = api
         self.callback = callback
         self.admin_chat_id = admin_chat_id
+        self.bot = bot
         self.interval_seconds = interval_hours * 3600
         self.running = False
         self._task: asyncio.Task | None = None
@@ -212,7 +214,8 @@ class AdvisorMonitor:
                     await self.callback(
                         self.admin_chat_id,
                         suggestions,
-                        context
+                        context,
+                        self.bot
                     )
                 else:
                     logger.info("No actionable suggestions from AI analysis")

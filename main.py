@@ -130,7 +130,7 @@ async def post_init(app: Application):
         admin_chat_id = ADMIN_USERS[0] if ADMIN_USERS else None
         if admin_chat_id:
             _advisor_monitor_instance = AdvisorMonitor(
-                advisor, api, push_suggestions, admin_chat_id, ADVISOR_INTERVAL_HOURS
+                advisor, api, push_suggestions, admin_chat_id, app.bot, ADVISOR_INTERVAL_HOURS
             )
             set_advisor_monitor(_advisor_monitor_instance)
             # Register callback handler for inline keyboard
