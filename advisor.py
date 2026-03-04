@@ -229,8 +229,10 @@ class StrategyDataCollector:
           symbol = t.get("tokenSymbol", t.get("symbol", "?"))
           # Support both currentValueUsd (API) and balance (test)
           val = t.get("currentValueUsd", t.get("balance", "0"))
-          pnl = t.get("totalPnlUsd", t.get("pnlUsd", "0"))
-          lines.append(f"  - {symbol}: ${val} (PnL: ${pnl})")
+          # Show unrealized PnL (floating) for decision-making, plus realized for context
+          unrealized_pnl = t.get("unrealizedPnlUsd", t.get("pnlUsd", "0"))
+          realized_pnl = t.get("realizedPnlUsd", "0")
+          lines.append(f"  - {symbol}: ${val} (Unrealized: ${unrealized_pnl}, Realized: ${realized_pnl})")
       lines.append("")
 
     # Strategies
