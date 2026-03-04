@@ -362,6 +362,7 @@ class StrategyAdvisor:
   """
 
   MAX_SUGGESTIONS = 3
+  MAX_STRATEGIES = 8  # Contract limit
 
   def __init__(self, llm: LLMClient, api: TerminalAPI):
     self.llm = llm
@@ -378,6 +379,17 @@ class StrategyAdvisor:
       # Collect data
       data = await self.collector.collect()
 
+      # Count current active strategies
+      current_time = int(datetime.now().timestamp())
+      active_strategies = [
+        s for s in (data.strategies or [])
+        if s.get('active', True) and (s.get('expiry', 0) == 0 or s.get('expiry', 0) > current_time)
+      ]
+      current_count = len(active_strategies)
+      slots_available = self.MAX_STRATEGIES - current_count
+
+      logger.info("Current active strategies: %d, slots available: %d", current_count, slots_available)
+
       # Format for LLM
       formatted_data = self.collector.format_for_llm(data)
 
@@ -392,12 +404,49 @@ class StrategyAdvisor:
       # Parse suggestions
       suggestions = self._parse_suggestions(response)
 
-      # Limit to max suggestions
-      return suggestions[:self.MAX_SUGGESTIONS]
+      # Filter suggestions to respect strategy limit
+      return self._filter_by_strategy_limit(suggestions, slots_available)
 
     except Exception as e:
       logger.error("Analysis failed: %s", e)
       return []
+
+  def _filter_by_strategy_limit(self, suggestions: list[Suggestion], slots_available: int) -> list[Suggestion]:
+    """Filter suggestions to respect max strategy limit.
+
+    Prioritizes:
+    1. All "disable" suggestions (they free up slots)
+    2. "add" suggestions up to available slots
+
+    Args:
+        suggestions: List of parsed suggestions
+        slots_available: Number of new strategies that can be added
+
+    Returns:
+        Filtered list of suggestions
+    """
+    if slots_available < 0:
+      slots_available = 0
+
+    result = []
+    add_count = 0
+
+    # First pass: include all disable suggestions
+    for s in suggestions:
+      if s.action == "disable":
+        result.append(s)
+
+    # Second pass: include add suggestions up to limit
+    for s in suggestions:
+      if s.action == "add":
+        if add_count < slots_available:
+          result.append(s)
+          add_count += 1
+        else:
+          logger.info("Skipping add suggestion (no slots available): %s", s.content[:50] if s.content else "")
+
+    # Limit to max suggestions
+    return result[:self.MAX_SUGGESTIONS]
 
   def _parse_suggestions(self, response: str) -> list[Suggestion]:
     """Parse LLM response into Suggestion objects.
