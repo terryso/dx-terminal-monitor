@@ -12,6 +12,26 @@ Terminal Markets Vault 监控与管理 Telegram Bot。
 
 ## 功能
 
+### 🤖 AI 策略顾问（核心功能）
+
+**智能交易策略推荐** - 由 LLM (Claude/OpenAI) 驱动
+
+- **定时自动分析** - 按可配置的间隔自动分析持仓、策略和市场数据
+- **智能建议** - AI 生成可执行的交易策略建议：
+  - 添加新策略（含优先级和有效期）
+  - 根据市场情况识别需要禁用的策略
+- **一键执行** - 通过 Telegram 查看 AI 建议后一键执行
+- **交互式审批流程** - 可单独执行或批量执行所有建议
+- **可配置分析频率** - 默认每 2 小时分析一次
+
+**命令：**
+| 命令 | 功能 |
+|------|------|
+| `/advisor_on` | 启用 AI 顾问 |
+| `/advisor_off` | 禁用 AI 顾问 |
+| `/advisor_status` | 查看顾问状态 |
+| `/advisor_analyze` | 立即触发分析 |
+
 ### 查询命令（所有用户）
 - 查询 Vault 余额和持仓
 - 查看 PnL 盈亏详情
@@ -70,6 +90,18 @@ PRIVATE_KEY=your_private_key
 
 # API 基础 URL
 API_BASE_URL=https://api.terminal.markets/api/v1
+
+# AI 策略顾问（可选）
+ADVISOR_ENABLED=true
+ADVISOR_INTERVAL_HOURS=2
+SUGGESTION_TTL_MINUTES=30
+
+# LLM 提供商 (anthropic 或 openai)
+LLM_PROVIDER=anthropic
+ANTHROPIC_API_KEY=your_anthropic_key
+# 或使用 OpenAI:
+# LLM_PROVIDER=openai
+# OPENAI_API_KEY=your_openai_key
 ```
 
 ### 获取 Telegram 凭证
@@ -113,6 +145,10 @@ python main.py
 | `/monitor_status` | 监控状态 |
 | `/monitor_start` | 启动监控 |
 | `/monitor_stop` | 停止监控 |
+| `/advisor_on` | 启用 AI 顾问 |
+| `/advisor_off` | 禁用 AI 顾问 |
+| `/advisor_status` | 顾问状态 |
+| `/advisor_analyze` | 触发分析 |
 
 ### `/update_settings` 参数
 

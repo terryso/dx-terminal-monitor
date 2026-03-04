@@ -12,6 +12,26 @@ A Telegram bot for monitoring and managing Terminal Markets Vault.
 
 ## Features
 
+### 🤖 AI Strategy Advisor (Highlight)
+
+**Intelligent Trading Strategy Recommendations** - Powered by LLM (Claude/OpenAI)
+
+- **Automatic Periodic Analysis** - Analyzes your positions, strategies, and market data at configurable intervals
+- **Smart Suggestions** - AI generates actionable trading strategy recommendations:
+  - Add new strategies with priority and validity period
+  - Identify strategies to disable based on market conditions
+- **One-Click Execution** - Review AI suggestions via Telegram and execute with a single tap
+- **Interactive Approval Flow** - Execute individual suggestions or all at once
+- **Configurable Intervals** - Set analysis frequency (default: 2 hours)
+
+**Commands:**
+| Command | Description |
+|---------|-------------|
+| `/advisor_on` | Enable AI advisor |
+| `/advisor_off` | Disable AI advisor |
+| `/advisor_status` | Check advisor status |
+| `/advisor_analyze` | Trigger immediate analysis |
+
 ### Query Commands (All Users)
 - Query vault balance and positions
 - View PnL details
@@ -70,6 +90,18 @@ PRIVATE_KEY=your_private_key
 
 # API base URL
 API_BASE_URL=https://api.terminal.markets/api/v1
+
+# AI Strategy Advisor (optional)
+ADVISOR_ENABLED=true
+ADVISOR_INTERVAL_HOURS=2
+SUGGESTION_TTL_MINUTES=30
+
+# LLM Provider (anthropic or openai)
+LLM_PROVIDER=anthropic
+ANTHROPIC_API_KEY=your_anthropic_key
+# Or for OpenAI:
+# LLM_PROVIDER=openai
+# OPENAI_API_KEY=your_openai_key
 ```
 
 ### Getting Telegram Credentials
@@ -113,6 +145,10 @@ python main.py
 | `/monitor_status` | Monitor status |
 | `/monitor_start` | Start monitor |
 | `/monitor_stop` | Stop monitor |
+| `/advisor_on` | Enable AI advisor |
+| `/advisor_off` | Disable AI advisor |
+| `/advisor_status` | Advisor status |
+| `/advisor_analyze` | Trigger analysis |
 
 ### `/update_settings` Parameters
 
