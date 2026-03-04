@@ -120,98 +120,73 @@ class TestMainFunction:
 
             mock_print.assert_called_with("Error: TELEGRAM_BOT_TOKEN not set")
 
-    @pytest.mark.asyncio
-    async def test_main_retries_on_network_error(self) -> None:
+    def test_main_retries_on_network_error(self) -> None:
         """Test main retries on NetworkError."""
-        # This tests the retry logic structure
-        # We can't easily test the full loop, but we can verify the error handling
+        mock_app = MagicMock()
+        mock_app.run_polling.side_effect = NetworkError("Connection failed")
 
         with patch("main.TELEGRAM_BOT_TOKEN", "test_token"), \
-             patch("main.Application.builder") as mock_builder:
-
-            # Set up mock application
-            mock_app = MagicMock()
-            mock_app.run_polling.side_effect = NetworkError("Connection failed")
-            mock_builder.return_value.token.return_value.post_init.return_value.build.return_value = mock_app
-
+             patch("main.create_app", return_value=mock_app), \
+             patch("main.time.sleep"), \
+             patch("main.logger"):
             from main import main
+            main()
 
-            # Run main - it should retry and eventually exit
-            # We limit retries by patching time.sleep
-            with patch("main.time.sleep"), \
-                 patch("main.logger"):
-                main()
+        # Should have attempted run_polling multiple times (max_retries = 10)
+        assert mock_app.run_polling.call_count == 10
 
-            # Should have attempted run_polling multiple times (max_retries = 10)
-            assert mock_app.run_polling.call_count == 10
-
-    @pytest.mark.asyncio
-    async def test_main_retries_on_timeout(self) -> None:
+    def test_main_retries_on_timeout(self) -> None:
         """Test main retries on TimedOut error."""
+        mock_app = MagicMock()
+        mock_app.run_polling.side_effect = TimedOut("Timeout")
+
         with patch("main.TELEGRAM_BOT_TOKEN", "test_token"), \
-             patch("main.Application.builder") as mock_builder:
-
-            mock_app = MagicMock()
-            mock_app.run_polling.side_effect = TimedOut("Timeout")
-            mock_builder.return_value.token.return_value.post_init.return_value.build.return_value = mock_app
-
+             patch("main.create_app", return_value=mock_app), \
+             patch("main.time.sleep"), \
+             patch("main.logger"):
             from main import main
+            main()
 
-            with patch("main.time.sleep"), \
-                 patch("main.logger"):
-                main()
+        assert mock_app.run_polling.call_count == 10
 
-            assert mock_app.run_polling.call_count == 10
-
-    @pytest.mark.asyncio
-    async def test_main_retries_on_telegram_error(self) -> None:
+    def test_main_retries_on_telegram_error(self) -> None:
         """Test main retries on generic TelegramError."""
+        mock_app = MagicMock()
+        mock_app.run_polling.side_effect = TelegramError("Generic error")
+
         with patch("main.TELEGRAM_BOT_TOKEN", "test_token"), \
-             patch("main.Application.builder") as mock_builder:
-
-            mock_app = MagicMock()
-            mock_app.run_polling.side_effect = TelegramError("Generic error")
-            mock_builder.return_value.token.return_value.post_init.return_value.build.return_value = mock_app
-
+             patch("main.create_app", return_value=mock_app), \
+             patch("main.time.sleep"), \
+             patch("main.logger"):
             from main import main
+            main()
 
-            with patch("main.time.sleep"), \
-                 patch("main.logger"):
-                main()
+        assert mock_app.run_polling.call_count == 10
 
-            assert mock_app.run_polling.call_count == 10
-
-    @pytest.mark.asyncio
-    async def test_main_retries_on_unexpected_error(self) -> None:
+    def test_main_retries_on_unexpected_error(self) -> None:
         """Test main retries on unexpected exceptions."""
+        mock_app = MagicMock()
+        mock_app.run_polling.side_effect = RuntimeError("Unexpected!")
+
         with patch("main.TELEGRAM_BOT_TOKEN", "test_token"), \
-             patch("main.Application.builder") as mock_builder:
-
-            mock_app = MagicMock()
-            mock_app.run_polling.side_effect = RuntimeError("Unexpected!")
-            mock_builder.return_value.token.return_value.post_init.return_value.build.return_value = mock_app
-
+             patch("main.create_app", return_value=mock_app), \
+             patch("main.time.sleep"), \
+             patch("main.logger"):
             from main import main
-
-            with patch("main.time.sleep"), \
-                 patch("main.logger"):
-                main()
+            main()
 
             assert mock_app.run_polling.call_count == 10
 
     def test_main_exits_on_keyboard_interrupt(self) -> None:
         """Test main exits gracefully on KeyboardInterrupt."""
+        mock_app = MagicMock()
+        mock_app.run_polling.side_effect = KeyboardInterrupt()
+
         with patch("main.TELEGRAM_BOT_TOKEN", "test_token"), \
-             patch("main.Application.builder") as mock_builder:
-
-            mock_app = MagicMock()
-            mock_app.run_polling.side_effect = KeyboardInterrupt()
-            mock_builder.return_value.token.return_value.post_init.return_value.build.return_value = mock_app
-
+             patch("main.create_app", return_value=mock_app), \
+             patch("main.logger"):
             from main import main
+            main()  # Should exit without error
 
-            with patch("main.logger"):
-                main()  # Should exit without error
-
-            # Should only have attempted once
-            assert mock_app.run_polling.call_count == 1
+        # Should only have attempted once
+        assert mock_app.run_polling.call_count == 1
