@@ -39,7 +39,7 @@ class TerminalAPI:
 
     async def _get(self, endpoint: str, params: dict = None) -> dict:
         url = f"{self.base_url}{endpoint}"
-        async with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession(trust_env=True) as session:
             async with session.get(url, params=params) as resp:
                 if resp.status == 200:
                     return await resp.json()

@@ -147,7 +147,15 @@ async def cmd_advisor_analyze(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             return
 
         # Collect context and push suggestions
-        context = await _advisor_monitor.advisor.collector.collect()
+        collected = await _advisor_monitor.advisor.collector.collect()
+
+        # Convert CollectedData to dict for push_suggestions
+        context = {
+            'balance': collected.positions.get('ethBalance', 'N/A') if collected.positions else 'N/A',
+            'positions': len(collected.positions.get('tokens', [])) if collected.positions else 0,
+            'strategies': len(collected.strategies) if collected.strategies else 0,
+            'pnl': collected.positions.get('totalPnlUsd', 'N/A') if collected.positions else 'N/A',
+        }
 
         # Import push_suggestions here to avoid circular dependency
         from advisor_monitor import push_suggestions
