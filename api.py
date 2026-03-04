@@ -79,7 +79,7 @@ class TerminalAPI:
                 if attempt < HTTP_MAX_RETRIES - 1:
                     await asyncio.sleep(HTTP_RETRY_DELAY * (attempt + 1))
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 last_error = "Request timeout"
                 logger.warning(
                     "HTTP request timeout (attempt %d/%d): %s",
