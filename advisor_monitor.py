@@ -184,15 +184,15 @@ class AdvisorMonitor:
         api: TerminalAPI,
         callback: Callable,
         admin_chat_id: int,
-        interval_hours: int = 2,
-        bot: "Bot" = None
+        bot: Bot,
+        interval_hours: int = 2
     ):
         self.advisor = advisor
         self.api = api
         self.callback = callback
         self.admin_chat_id = admin_chat_id
-        self.interval_seconds = interval_hours * 3600
         self.bot = bot
+        self.interval_seconds = interval_hours * 3600
         self.running = False
         self._task: asyncio.Task | None = None
         self.last_analysis: datetime | None = None
