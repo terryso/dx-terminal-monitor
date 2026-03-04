@@ -12,6 +12,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from advisor import CollectedData
 from commands.advisor import (
     MANUAL_ANALYSIS_COOLDOWN,
     _last_manual_analysis,
@@ -68,14 +69,25 @@ def mock_suggestion_add() -> dict:
 
 
 @pytest.fixture
-def mock_context_data() -> dict:
-    """Create mock context data for analysis."""
-    return {
-        "balance": "1.5000 ETH",
-        "positions": 3,
-        "strategies": 2,
-        "pnl": "+$150.00",
-    }
+def mock_collected_data() -> CollectedData:
+    """Create mock CollectedData for analysis."""
+    return CollectedData(
+        positions={
+            "ethBalance": "1.5000",
+            "tokens": [{"symbol": "ETH"}, {"symbol": "USDC"}, {"symbol": "BTC"}],
+            "totalPnlUsd": "+$150.00",
+        },
+        strategies=[
+            {"id": 1, "content": "Strategy 1"},
+            {"id": 2, "content": "Strategy 2"},
+        ],
+        vault={"paused": False},
+        eth_price={"price": 3000, "change24h": 2.5},
+        tokens={},
+        candles={},
+        collected_at="2026-03-04T12:00:00",
+        errors=[],
+    )
 
 
 # ============================================================================
@@ -117,7 +129,7 @@ async def test_cooldown_rejects_repeated_calls(mock_admin_update, mock_context):
 
 
 @pytest.mark.asyncio
-async def test_cooldown_allows_after_5_minutes(mock_admin_update, mock_context, mock_suggestion_add, mock_context_data):
+async def test_cooldown_allows_after_5_minutes(mock_admin_update, mock_context, mock_suggestion_add, mock_collected_data):
     """Test that calls are allowed after 5 minute cooldown expires."""
     user_id = mock_admin_update.effective_user.id
 
@@ -127,7 +139,7 @@ async def test_cooldown_allows_after_5_minutes(mock_admin_update, mock_context, 
     # Mock the advisor monitor
     mock_advisor = MagicMock()
     mock_advisor.analyze = AsyncMock(return_value=[mock_suggestion_add])
-    mock_advisor.collector.collect = AsyncMock(return_value=mock_context_data)
+    mock_advisor.collector.collect = AsyncMock(return_value=mock_collected_data)
 
     mock_monitor = MagicMock()
     mock_monitor.advisor = mock_advisor
@@ -158,7 +170,7 @@ async def test_cooldown_allows_after_5_minutes(mock_admin_update, mock_context, 
 
 
 @pytest.mark.asyncio
-async def test_successful_analysis_flow(mock_admin_update, mock_context, mock_suggestion_add, mock_context_data):
+async def test_successful_analysis_flow(mock_admin_update, mock_context, mock_suggestion_add, mock_collected_data):
     """Test complete successful analysis flow with suggestions returned."""
     user_id = mock_admin_update.effective_user.id
 
@@ -169,7 +181,7 @@ async def test_successful_analysis_flow(mock_admin_update, mock_context, mock_su
     # Mock the advisor monitor
     mock_advisor = MagicMock()
     mock_advisor.analyze = AsyncMock(return_value=[mock_suggestion_add])
-    mock_advisor.collector.collect = AsyncMock(return_value=mock_context_data)
+    mock_advisor.collector.collect = AsyncMock(return_value=mock_collected_data)
 
     mock_monitor = MagicMock()
     mock_monitor.advisor = mock_advisor
@@ -187,7 +199,7 @@ async def test_successful_analysis_flow(mock_admin_update, mock_context, mock_su
 
 
 @pytest.mark.asyncio
-async def test_analysis_shows_status_message(mock_admin_update, mock_context, mock_suggestion_add, mock_context_data):
+async def test_analysis_shows_status_message(mock_admin_update, mock_context, mock_suggestion_add, mock_collected_data):
     """Test that 'Analyzing your portfolio...' status message is shown."""
     user_id = mock_admin_update.effective_user.id
     if user_id in _last_manual_analysis:
@@ -195,7 +207,7 @@ async def test_analysis_shows_status_message(mock_admin_update, mock_context, mo
 
     mock_advisor = MagicMock()
     mock_advisor.analyze = AsyncMock(return_value=[mock_suggestion_add])
-    mock_advisor.collector.collect = AsyncMock(return_value=mock_context_data)
+    mock_advisor.collector.collect = AsyncMock(return_value=mock_collected_data)
 
     mock_monitor = MagicMock()
     mock_monitor.advisor = mock_advisor
@@ -330,7 +342,7 @@ def test_cooldown_is_5_minutes():
 
 
 @pytest.mark.asyncio
-async def test_multiple_suggestions_count(mock_admin_update, mock_context, mock_context_data):
+async def test_multiple_suggestions_count(mock_admin_update, mock_context, mock_collected_data):
     """Test that analysis with multiple suggestions shows correct count."""
     user_id = mock_admin_update.effective_user.id
     if user_id in _last_manual_analysis:
@@ -344,7 +356,7 @@ async def test_multiple_suggestions_count(mock_admin_update, mock_context, mock_
 
     mock_advisor = MagicMock()
     mock_advisor.analyze = AsyncMock(return_value=suggestions)
-    mock_advisor.collector.collect = AsyncMock(return_value=mock_context_data)
+    mock_advisor.collector.collect = AsyncMock(return_value=mock_collected_data)
 
     mock_monitor = MagicMock()
     mock_monitor.advisor = mock_advisor
@@ -405,19 +417,31 @@ async def test_integration_end_to_end_flow(mock_admin_update, mock_context):
         },
     ]
 
-    context_data = {
-        "balance": "2.5000 ETH",
-        "positions": 5,
-        "strategies": 3,
-        "pnl": "+$350.00",
-        "eth_price": "$3,000.00",
-    }
+    # Create CollectedData object (as expected by actual code)
+    collected_data = CollectedData(
+        positions={
+            "ethBalance": "2.5000",
+            "tokens": [{"symbol": "ETH"}, {"symbol": "USDC"}, {"symbol": "BTC"}],
+            "totalPnlUsd": "+$350.00",
+        },
+        strategies=[
+            {"id": 1, "content": "Strategy 1"},
+            {"id": 2, "content": "Strategy 2"},
+            {"id": 3, "content": "Strategy 3"},
+        ],
+        vault={"paused": False},
+        eth_price={"price": 3000, "change24h": 2.5},
+        tokens={},
+        candles={},
+        collected_at="2026-03-04T12:00:00",
+        errors=[],
+    )
 
     # Mock the advisor monitor with realistic behavior
     mock_advisor = MagicMock()
     mock_advisor.analyze = AsyncMock(return_value=suggestions)
     mock_advisor.collector = MagicMock()
-    mock_advisor.collector.collect = AsyncMock(return_value=context_data)
+    mock_advisor.collector.collect = AsyncMock(return_value=collected_data)
 
     mock_monitor = MagicMock()
     mock_monitor.advisor = mock_advisor
@@ -448,7 +472,11 @@ async def test_integration_end_to_end_flow(mock_admin_update, mock_context):
     push_call = push_suggestions_calls[0]
     assert push_call["chat_id"] == mock_admin_update.effective_chat.id
     assert push_call["suggestions"] == suggestions
-    assert push_call["context"] == context_data
+    # context is built from CollectedData, verify expected keys
+    assert push_call["context"]["balance"] == "2.5000"
+    assert push_call["context"]["positions"] == 3
+    assert push_call["context"]["strategies"] == 3
+    assert push_call["context"]["pnl"] == "+$350.00"
     assert push_call["bot"] == mock_context.bot
 
     # 3. Final status message shows correct count
