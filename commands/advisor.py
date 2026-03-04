@@ -5,7 +5,6 @@ Commands to control the AI strategy advisor service and handle callback queries.
 """
 
 import logging
-import time
 from datetime import datetime, timedelta
 
 from telegram import Update
