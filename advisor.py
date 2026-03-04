@@ -13,6 +13,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Literal
 
+import config
 from api import TerminalAPI
 from llm import LLMClient
 
@@ -389,13 +390,17 @@ class StrategyAdvisor:
       filtered_suggestions = self._filter_by_strategy_limit(suggestions, slots_available)
 
       # Save analysis record (Story 8-6)
-      from advisor_history import save_analysis
+      from advisor_history import save_analysis, sync_to_surge
       record_id = save_analysis(
         request=full_request,
         response=response,
         suggestions=[s.__dict__ for s in filtered_suggestions]
       )
       self._last_record_id = record_id
+
+      # Sync to surge if history is enabled
+      if config.ADVISOR_HISTORY_ENABLED:
+        sync_to_surge()
 
       return filtered_suggestions
 
