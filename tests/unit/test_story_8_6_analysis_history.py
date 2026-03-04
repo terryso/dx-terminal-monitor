@@ -348,7 +348,9 @@ class TestAdvisorMonitorIntegration:
 
     def test_push_suggestions_includes_web_link_when_enabled(self, monkeypatch):
         """push_suggestions should include web link when ADVISOR_HISTORY_ENABLED is True."""
+        # Mock both config references (same pattern as disabled test)
         monkeypatch.setattr("config.ADVISOR_HISTORY_ENABLED", True)
+        monkeypatch.setattr("advisor_monitor.config.ADVISOR_HISTORY_ENABLED", True)
 
         from advisor_history import get_view_url
         from advisor_monitor import push_suggestions

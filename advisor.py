@@ -10,6 +10,7 @@ import logging
 import re
 from dataclasses import dataclass, field
 from datetime import datetime
+from pathlib import Path
 from typing import Literal
 
 from api import TerminalAPI
@@ -293,57 +294,27 @@ class StrategyDataCollector:
     return "\n".join(lines)
 
 
-# System prompt for AI strategy advisor
-SYSTEM_PROMPT = """You are a professional cryptocurrency trading strategy advisor.
+# Default system prompt (used as fallback if advisor_prompt.txt not found)
+DEFAULT_SYSTEM_PROMPT = """You are a professional cryptocurrency trading strategy advisor.
 
 Your role is to analyze the user's current positions, active strategies, and market data to provide actionable trading strategy recommendations.
 
-## Guidelines for Recommendations
-
-1. **Be Conservative**: Only suggest strategies that have clear technical or fundamental justification
-2. **Consider Risk**: Factor in current market volatility and position concentration
-3. **Avoid Redundancy**: Don't suggest strategies similar to existing active ones
-4. **Timeliness**: Consider time-sensitive opportunities based on candlestick trends
-5. **Clear Logic**: Each suggestion must have a clear, explainable reason
-6. **Token Support**: ONLY suggest strategies involving tokens from the "Supported Tokens" list provided in the data. DO NOT suggest strategies involving BTC, SOL, or any tokens not in the list.
-
-## Output Format
-
-You MUST respond with a valid JSON object in this exact format:
-```json
-{
-  "suggestions": [
-    {
-      "action": "add",
-      "content": "When ETH breaks 3000, sell 50% of position",
-      "priority": 2,
-      "expiry_hours": 24,
-      "reason": "ETH breaking key resistance may trigger market correction"
-    },
-    {
-      "action": "disable",
-      "strategy_id": 3,
-      "reason": "Strategy condition has become invalid due to market changes"
-    }
-  ]
-}
-```
-
-## Priority Levels
-- 0 (LOW): Non-urgent, opportunistic strategies
-- 1 (MEDIUM): Standard strategies (default)
-- 2 (HIGH): Time-sensitive or risk-management strategies
-
-## Important Notes
-- Return empty suggestions array if no actionable recommendations
-- Maximum 3 suggestions per analysis to avoid overwhelming user
-- Never suggest adding more than 8 total strategies (contract limit)
-- Always verify strategy_id exists before suggesting disable action
-- NEVER suggest strategies involving tokens not in the Supported Tokens list
-- DO NOT suggest disabling expired strategies (expiry timestamp in the past) - they are already inactive
-- Only suggest disabling strategies that are still active but have become invalid or redundant
-
 Analyze the following data and provide your recommendations:"""
+
+# System prompt loaded from file
+PROMPT_FILE = Path(__file__).parent / "advisor_prompt.txt"
+
+
+def _load_system_prompt() -> str:
+  """Load system prompt from advisor_prompt.txt file."""
+  try:
+    return PROMPT_FILE.read_text().strip()
+  except FileNotFoundError:
+    logger.warning("advisor_prompt.txt not found, using default prompt")
+    return DEFAULT_SYSTEM_PROMPT
+
+
+SYSTEM_PROMPT = _load_system_prompt()
 
 
 class StrategyAdvisor:
