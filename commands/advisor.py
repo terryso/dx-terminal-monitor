@@ -5,6 +5,7 @@ Commands to control the AI strategy advisor service and handle callback queries.
 """
 
 import logging
+import time
 from datetime import datetime, timedelta
 
 from telegram import Update
@@ -149,12 +150,35 @@ async def cmd_advisor_analyze(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         # Collect context and push suggestions
         collected = await _advisor_monitor.advisor.collector.collect()
 
-        # Convert CollectedData to dict for push_suggestions
+        # Build context with proper formatting
+        from utils.formatters import format_eth, format_usd
+
+        balance = "N/A"
+        pnl = "N/A"
+        token_count = 0
+        strategy_count = 0
+
+        if collected.positions and "error" not in collected.positions:
+            raw_balance = collected.positions.get('ethBalance', 0)
+            balance = f"{format_eth(str(raw_balance))} ETH"
+            raw_pnl = collected.positions.get('overallPnlUsd', collected.positions.get('totalPnlUsd', 0))
+            pnl = format_usd(raw_pnl)
+            token_count = len(collected.positions.get('positions', collected.positions.get('tokens', [])))
+
+        if collected.strategies and not (isinstance(collected.strategies, dict) and "error" in collected.strategies):
+            import time
+            current_time = int(time.time())
+            active_strategies = [
+                s for s in collected.strategies
+                if s.get('active', True) and (s.get('expiry', 0) == 0 or s.get('expiry', 0) > current_time)
+            ]
+            strategy_count = len(active_strategies)
+
         context = {
-            'balance': collected.positions.get('ethBalance', 'N/A') if collected.positions else 'N/A',
-            'positions': len(collected.positions.get('tokens', [])) if collected.positions else 0,
-            'strategies': len(collected.strategies) if collected.strategies else 0,
-            'pnl': collected.positions.get('totalPnlUsd', 'N/A') if collected.positions else 'N/A',
+            'balance': balance,
+            'positions': token_count,
+            'strategies': strategy_count,
+            'pnl': pnl,
         }
 
         # Import push_suggestions here to avoid circular dependency

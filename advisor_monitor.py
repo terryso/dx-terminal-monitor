@@ -245,7 +245,7 @@ class AdvisorMonitor:
                 raw_balance = positions.get('ethBalance', 0)
                 formatted = format_eth(str(raw_balance))
                 balance = f"{formatted} ETH"
-                logger.debug("Balance: %s -> %s ETH", raw_balance, formatted)
+                logger.info("Balance: %s -> %s ETH", raw_balance, formatted)
                 # Use format_usd for PnL
                 raw_pnl = positions.get('overallPnlUsd', 0)
                 pnl = format_usd(raw_pnl)
