@@ -231,26 +231,34 @@ class AdvisorMonitor:
         """Build context dict for message formatting."""
         import time
 
+        balance = "N/A"
+        pnl = "N/A"
+        token_count = 0
+        strategy_count = 0
+
         try:
             positions = await self.api.get_positions()
-            strategies = await self.api.get_strategies()
-
-            balance = "N/A"
-            pnl = "N/A"
-            token_count = 0
-            strategy_count = 0
 
             # Check for valid positions response (not error dict)
             if positions and not (isinstance(positions, dict) and "error" in positions):
                 # Use format_eth to convert Wei to ETH
                 raw_balance = positions.get('ethBalance', 0)
-                balance = f"{format_eth(str(raw_balance))} ETH"
+                formatted = format_eth(str(raw_balance))
+                balance = f"{formatted} ETH"
+                logger.debug("Balance: %s -> %s ETH", raw_balance, formatted)
                 # Use format_usd for PnL
                 raw_pnl = positions.get('overallPnlUsd', 0)
                 pnl = format_usd(raw_pnl)
                 # Get positions list
                 token_count = len(positions.get('positions', []))
+            else:
+                logger.warning("Positions API returned error or empty: %s", positions)
 
+        except Exception as e:
+            logger.error("Failed to get positions: %s", e)
+
+        try:
+            strategies = await self.api.get_strategies()
             # Check for valid strategies response and filter non-expired
             current_time = int(time.time())
             if strategies and not (isinstance(strategies, dict) and "error" in strategies):
@@ -260,16 +268,15 @@ class AdvisorMonitor:
                     if s.get('active', True) and (s.get('expiry', 0) == 0 or s.get('expiry', 0) > current_time)
                 ]
                 strategy_count = len(active_strategies)
-
-            return {
-                "balance": balance,
-                "positions": token_count,
-                "strategies": strategy_count,
-                "pnl": pnl,
-            }
         except Exception as e:
-            logger.error("Failed to build context: %s", e)
-            return {}
+            logger.error("Failed to get strategies: %s", e)
+
+        return {
+            "balance": balance,
+            "positions": token_count,
+            "strategies": strategy_count,
+            "pnl": pnl,
+        }
 
     def stop(self):
         """Stop the monitor loop."""
