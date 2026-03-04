@@ -203,6 +203,9 @@ class AdvisorMonitor:
         logger.info(f"Advisor monitor started (interval: {self.interval_seconds}s)")
 
         while self.running:
+            # Wait for interval before first/next analysis
+            await asyncio.sleep(self.interval_seconds)
+
             try:
                 # Analyze
                 suggestions = await self.advisor.analyze()
@@ -223,9 +226,6 @@ class AdvisorMonitor:
 
             except Exception as e:
                 logger.error("Advisor analysis failed: %s", e)
-
-            # Wait for next interval
-            await asyncio.sleep(self.interval_seconds)
 
     async def _build_context(self) -> dict:
         """Build context dict for message formatting."""
