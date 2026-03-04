@@ -27,7 +27,7 @@ import pytest
 @pytest.fixture(autouse=True)
 def mock_sync_to_surge():
     """Mock sync_to_surge to avoid actual surge CLI calls during tests."""
-    with patch("advisor_monitor.sync_to_surge"):
+    with patch("advisor_history.sync_to_surge"):
         yield
 
 
@@ -365,15 +365,13 @@ class TestAdvisorMonitorIntegration:
 
         mock_bot.send_message = mock_send
 
-        # Mock sync_to_surge
-        with patch("advisor_monitor.sync_to_surge"):
-            import asyncio
-            asyncio.run(push_suggestions(
-                chat_id=123456,
-                suggestions=[{"action": "add", "content": "test", "reason": "test reason"}],
-                context={"balance": "1.0 ETH", "positions": 1, "strategies": 0, "pnl": "$100"},
-                bot=mock_bot
-            ))
+        import asyncio
+        asyncio.run(push_suggestions(
+            chat_id=123456,
+            suggestions=[{"action": "add", "content": "test", "reason": "test reason"}],
+            context={"balance": "1.0 ETH", "positions": 1, "strategies": 0, "pnl": "$100"},
+            bot=mock_bot
+        ))
 
         assert len(sent_messages) == 1
         message_text = sent_messages[0]["text"]

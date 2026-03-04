@@ -16,7 +16,7 @@ from telegram.ext import ContextTypes
 
 import config
 from advisor import StrategyAdvisor, Suggestion
-from advisor_history import get_view_url, mark_executed, sync_to_surge
+from advisor_history import get_view_url, mark_executed
 from api import TerminalAPI
 from utils.formatters import format_eth, format_usd
 
@@ -130,7 +130,6 @@ def _add_web_link_to_message(message: str) -> str:
         Updated message with web link if enabled, original message otherwise
     """
     if config.ADVISOR_HISTORY_ENABLED:
-        sync_to_surge()
         return message + f"\n\n📎 <a href='{get_view_url()}'>查看详细分析历史</a>"
     return message
 
@@ -171,7 +170,6 @@ async def push_suggestions(
 
     # Add web link if history is enabled (Story 8-6)
     if config.ADVISOR_HISTORY_ENABLED:
-        sync_to_surge()
         message += f"\n\n📎 <a href='{get_view_url()}'>查看详细分析历史</a>"
 
     # Send message
