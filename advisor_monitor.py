@@ -17,6 +17,7 @@ from telegram.ext import ContextTypes
 from advisor import StrategyAdvisor, Suggestion
 from api import TerminalAPI
 from config import SUGGESTION_TTL_MINUTES
+from utils.formatters import format_eth, format_usd
 
 logger = logging.getLogger(__name__)
 
@@ -183,13 +184,15 @@ class AdvisorMonitor:
         api: TerminalAPI,
         callback: Callable,
         admin_chat_id: int,
-        interval_hours: int = 2
+        interval_hours: int = 2,
+        bot: "Bot" = None
     ):
         self.advisor = advisor
         self.api = api
         self.callback = callback
         self.admin_chat_id = admin_chat_id
         self.interval_seconds = interval_hours * 3600
+        self.bot = bot
         self.running = False
         self._task: asyncio.Task | None = None
         self.last_analysis: datetime | None = None
@@ -212,7 +215,8 @@ class AdvisorMonitor:
                     await self.callback(
                         self.admin_chat_id,
                         suggestions,
-                        context
+                        context,
+                        self.bot
                     )
                 else:
                     logger.info("No actionable suggestions from AI analysis")
@@ -227,7 +231,7 @@ class AdvisorMonitor:
         """Build context dict for message formatting."""
         try:
             positions = await self.api.get_positions()
-            vault = await self.api.get_vault()
+            strategies = await self.api.get_strategies()
 
             balance = "N/A"
             pnl = "N/A"
@@ -235,14 +239,15 @@ class AdvisorMonitor:
             strategy_count = 0
 
             if positions and "error" not in positions:
-                balance = f"{positions.get('ethBalance', 0):.4f} ETH"
-                pnl_data = positions.get('pnl', {})
-                pnl = f"+${pnl_data.get('usd', 0):.2f}"
-                token_count = len(positions.get('tokens', []))
+                # Use format_eth to convert Wei to ETH
+                balance = f"{format_eth(positions.get('ethBalance', '0'))} ETH"
+                # Use format_usd for PnL
+                pnl = format_usd(positions.get('overallPnlUsd', '0'))
+                # Get positions list
+                token_count = len(positions.get('positions', []))
 
-            if vault and "error" not in vault:
+            if strategies and not (isinstance(strategies, dict) and "error" in strategies):
                 # Count active strategies
-                strategies = vault.get('strategies', [])
                 strategy_count = len([s for s in strategies if s.get('active', True)])
 
             return {

@@ -199,22 +199,34 @@ class StrategyDataCollector:
     lines.append(f"Collected at: {data.collected_at}")
     lines.append("")
 
+    # Supported Tokens (IMPORTANT: LLM must only suggest strategies for these tokens)
+    if data.tokens:
+      lines.append("## Supported Tokens")
+      lines.append("IMPORTANT: You can ONLY suggest strategies involving these tokens:")
+      tokens_list = data.tokens if isinstance(data.tokens, list) else data.tokens.get("items", [])
+      symbols = [t.get("symbol", "?") for t in tokens_list if t.get("symbol")]
+      lines.append(f"  {', '.join(symbols)}")
+      lines.append("")
+
     # Positions
     if data.positions:
       lines.append("## Positions")
       eth_balance = data.positions.get("ethBalance", "N/A")
-      total_pnl = data.positions.get("totalPnlUsd", "N/A")
+      total_pnl = data.positions.get("overallPnlUsd", data.positions.get("totalPnlUsd", "N/A"))
       lines.append(f"ETH Balance: {eth_balance}")
       lines.append(f"Total PnL (USD): {total_pnl}")
 
-      tokens = data.positions.get("tokens", [])
+      # Support both API formats: positions/tokenSymbol and tokens/symbol
+      tokens = data.positions.get("positions", data.positions.get("tokens", []))
       if tokens:
         lines.append(f"Held Tokens ({len(tokens)}):")
         for t in tokens[:10]:
-          symbol = t.get("symbol", "?")
-          balance = t.get("balance", "0")
-          pnl = t.get("pnlUsd", "0")
-          lines.append(f"  - {symbol}: {balance} (PnL: ${pnl})")
+          # Support both tokenSymbol (API) and symbol (test)
+          symbol = t.get("tokenSymbol", t.get("symbol", "?"))
+          # Support both currentValueUsd (API) and balance (test)
+          val = t.get("currentValueUsd", t.get("balance", "0"))
+          pnl = t.get("totalPnlUsd", t.get("pnlUsd", "0"))
+          lines.append(f"  - {symbol}: ${val} (PnL: ${pnl})")
       lines.append("")
 
     # Strategies
@@ -222,9 +234,9 @@ class StrategyDataCollector:
       lines.append("## Active Strategies")
       strategies = data.strategies if isinstance(data.strategies, list) else []
       for s in strategies:
-        sid = s.get("id", "?")
+        sid = s.get("strategyId", s.get("id", "?"))
         content = s.get("content", "")[:100]
-        priority = s.get("priority", 1)
+        priority = s.get("strategyPriority", s.get("priority", 1))
         expiry = s.get("expiry", 0)
         lines.append(f"  #{sid} (P{priority}): {content}...")
         if expiry:
@@ -241,7 +253,7 @@ class StrategyDataCollector:
     # Market Data
     if data.eth_price:
       lines.append("## Market Data")
-      price = data.eth_price.get("price", "N/A")
+      price = data.eth_price.get("priceUsd", data.eth_price.get("price", "N/A"))
       change = data.eth_price.get("change24h", "N/A")
       lines.append(f"ETH Price: ${price}")
       lines.append(f"24h Change: {change}%")
@@ -282,6 +294,7 @@ Your role is to analyze the user's current positions, active strategies, and mar
 3. **Avoid Redundancy**: Don't suggest strategies similar to existing active ones
 4. **Timeliness**: Consider time-sensitive opportunities based on candlestick trends
 5. **Clear Logic**: Each suggestion must have a clear, explainable reason
+6. **Token Support**: ONLY suggest strategies involving tokens from the "Supported Tokens" list provided in the data. DO NOT suggest strategies involving BTC, SOL, or any tokens not in the list.
 
 ## Output Format
 
@@ -291,10 +304,10 @@ You MUST respond with a valid JSON object in this exact format:
   "suggestions": [
     {
       "action": "add",
-      "content": "When BTC breaks 70000, sell 50% of ETH position",
+      "content": "When ETH breaks 3000, sell 50% of position",
       "priority": 2,
       "expiry_hours": 24,
-      "reason": "BTC breaking key resistance may trigger market correction"
+      "reason": "ETH breaking key resistance may trigger market correction"
     },
     {
       "action": "disable",
@@ -315,6 +328,7 @@ You MUST respond with a valid JSON object in this exact format:
 - Maximum 3 suggestions per analysis to avoid overwhelming user
 - Never suggest adding more than 8 total strategies (contract limit)
 - Always verify strategy_id exists before suggesting disable action
+- NEVER suggest strategies involving tokens not in the Supported Tokens list
 
 Analyze the following data and provide your recommendations:"""
 
