@@ -1,13 +1,22 @@
+import asyncio
+import logging
 import time
 
 import aiohttp
 
 from config import API_BASE_URL, VAULT_ADDRESS
 
+logger = logging.getLogger(__name__)
+
 # Token symbol -> address 缓存
 _token_cache: dict[str, str] = {}
 _token_cache_time: float = 0
 TOKEN_CACHE_TTL = 3600  # 1 hour
+
+# HTTP 请求配置
+HTTP_TIMEOUT = aiohttp.ClientTimeout(total=30)
+HTTP_MAX_RETRIES = 3
+HTTP_RETRY_DELAY = 1.0
 
 
 async def _build_token_cache(api: "TerminalAPI"):
@@ -38,12 +47,49 @@ class TerminalAPI:
         self.vault = VAULT_ADDRESS
 
     async def _get(self, endpoint: str, params: dict = None) -> dict:
+        """发送 GET 请求，带重试机制。
+
+        Args:
+            endpoint: API 端点
+            params: 查询参数
+
+        Returns:
+            API 响应字典，或包含 "error" 键的错误字典
+        """
         url = f"{self.base_url}{endpoint}"
-        async with aiohttp.ClientSession(trust_env=True) as session:
-            async with session.get(url, params=params) as resp:
-                if resp.status == 200:
-                    return await resp.json()
-                return {"error": f"HTTP {resp.status}"}
+        last_error = None
+
+        for attempt in range(HTTP_MAX_RETRIES):
+            try:
+                async with aiohttp.ClientSession(
+                    trust_env=True,
+                    timeout=HTTP_TIMEOUT
+                ) as session:
+                    async with session.get(url, params=params) as resp:
+                        if resp.status == 200:
+                            return await resp.json()
+                        return {"error": f"HTTP {resp.status}"}
+
+            except aiohttp.ClientError as e:
+                last_error = e
+                logger.warning(
+                    "HTTP request failed (attempt %d/%d): %s - %s",
+                    attempt + 1, HTTP_MAX_RETRIES, endpoint, e
+                )
+                if attempt < HTTP_MAX_RETRIES - 1:
+                    await asyncio.sleep(HTTP_RETRY_DELAY * (attempt + 1))
+
+            except asyncio.TimeoutError:
+                last_error = "Request timeout"
+                logger.warning(
+                    "HTTP request timeout (attempt %d/%d): %s",
+                    attempt + 1, HTTP_MAX_RETRIES, endpoint
+                )
+                if attempt < HTTP_MAX_RETRIES - 1:
+                    await asyncio.sleep(HTTP_RETRY_DELAY * (attempt + 1))
+
+        logger.error("HTTP request failed after %d retries: %s", HTTP_MAX_RETRIES, endpoint)
+        return {"error": f"Request failed: {last_error}"}
 
     async def get_vault(self) -> dict:
         """获取 Vault 基本信息"""

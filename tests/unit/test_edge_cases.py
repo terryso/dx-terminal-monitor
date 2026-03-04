@@ -123,7 +123,8 @@ class TestMainFunction:
     def test_main_retries_on_network_error(self) -> None:
         """Test main retries on NetworkError."""
         mock_app = MagicMock()
-        mock_app.run_polling.side_effect = NetworkError("Connection failed")
+        # Simulate 10 failures then KeyboardInterrupt to exit the infinite loop
+        mock_app.run_polling.side_effect = [NetworkError("Connection failed")] * 10 + [KeyboardInterrupt()]
 
         with patch("main.TELEGRAM_BOT_TOKEN", "test_token"), \
              patch("main.create_app", return_value=mock_app), \
@@ -132,13 +133,14 @@ class TestMainFunction:
             from main import main
             main()
 
-        # Should have attempted run_polling multiple times (max_retries = 10)
-        assert mock_app.run_polling.call_count == 10
+        # Should have attempted run_polling 11 times (10 failures + 1 KeyboardInterrupt)
+        assert mock_app.run_polling.call_count == 11
 
     def test_main_retries_on_timeout(self) -> None:
         """Test main retries on TimedOut error."""
         mock_app = MagicMock()
-        mock_app.run_polling.side_effect = TimedOut("Timeout")
+        # Simulate 10 failures then KeyboardInterrupt to exit the infinite loop
+        mock_app.run_polling.side_effect = [TimedOut("Timeout")] * 10 + [KeyboardInterrupt()]
 
         with patch("main.TELEGRAM_BOT_TOKEN", "test_token"), \
              patch("main.create_app", return_value=mock_app), \
@@ -147,12 +149,13 @@ class TestMainFunction:
             from main import main
             main()
 
-        assert mock_app.run_polling.call_count == 10
+        assert mock_app.run_polling.call_count == 11
 
     def test_main_retries_on_telegram_error(self) -> None:
         """Test main retries on generic TelegramError."""
         mock_app = MagicMock()
-        mock_app.run_polling.side_effect = TelegramError("Generic error")
+        # Simulate 10 failures then KeyboardInterrupt to exit the infinite loop
+        mock_app.run_polling.side_effect = [TelegramError("Generic error")] * 10 + [KeyboardInterrupt()]
 
         with patch("main.TELEGRAM_BOT_TOKEN", "test_token"), \
              patch("main.create_app", return_value=mock_app), \
@@ -161,12 +164,13 @@ class TestMainFunction:
             from main import main
             main()
 
-        assert mock_app.run_polling.call_count == 10
+        assert mock_app.run_polling.call_count == 11
 
     def test_main_retries_on_unexpected_error(self) -> None:
         """Test main retries on unexpected exceptions."""
         mock_app = MagicMock()
-        mock_app.run_polling.side_effect = RuntimeError("Unexpected!")
+        # Simulate 10 failures then KeyboardInterrupt to exit the infinite loop
+        mock_app.run_polling.side_effect = [RuntimeError("Unexpected!")] * 10 + [KeyboardInterrupt()]
 
         with patch("main.TELEGRAM_BOT_TOKEN", "test_token"), \
              patch("main.create_app", return_value=mock_app), \
@@ -175,7 +179,7 @@ class TestMainFunction:
             from main import main
             main()
 
-            assert mock_app.run_polling.call_count == 10
+        assert mock_app.run_polling.call_count == 11
 
     def test_main_exits_on_keyboard_interrupt(self) -> None:
         """Test main exits gracefully on KeyboardInterrupt."""

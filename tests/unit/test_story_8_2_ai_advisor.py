@@ -850,7 +850,7 @@ class TestSuggestionValidation:
             Suggestion(action="disable", strategy_id=-5)
 
     def test_content_length_limit(self):
-        """Content must not exceed MAX_CONTENT_LENGTH."""
+        """Content must not exceed MAX_CONTENT_BYTES."""
         from advisor import Suggestion
 
         long_content = "x" * 2000
@@ -962,4 +962,4 @@ class TestJSONParsingValidation:
 
         if len(result) > 0:
             from advisor import Suggestion
-            assert len(result[0].content) <= Suggestion.MAX_CONTENT_LENGTH
+            assert len(result[0].content.encode('utf-8')) <= Suggestion.MAX_CONTENT_LENGTH

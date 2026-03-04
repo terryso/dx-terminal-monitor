@@ -55,7 +55,7 @@ class StrategyDataFactory:
         id: int = 1,
         content: str = "Hold PEPE until 2x",
         priority: int = 1,
-        expiry: int = 1703000000,
+        expiry: int = 0,  # 0 = never expires (active)
         **overrides
     ) -> dict:
         """Create mock strategy data."""

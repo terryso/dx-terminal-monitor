@@ -1553,9 +1553,120 @@ async def cmd_advisor_analyze(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 | FR25 - AI 禁用策略建议 | - | - | - | - | - | - | - | ✅ 8.2 |
 | FR26 - 建议推送执行 | - | - | - | - | - | - | - | ✅ 8.3/8.4 |
 | FR27 - 手动触发分析 | - | - | - | - | - | - | - | ✅ 8.5 |
+| FR28 - 分析历史查看 | - | - | - | - | - | - | - | ✅ 8.6 |
 | NFR1 - 私钥安全 | ✅ 1.0 | - | - | - | ✅ 5.3 | - | - | - |
 | NFR2 - 错误提示 | ✅ All | ✅ All | ✅ All | ✅ All | ✅ All | ✅ All | ✅ All | ✅ All |
 | NFR3 - 权限确认 | - | ✅ 2.x | ✅ 3.x | ✅ 4.3 | ✅ 5.3 | - | - | ✅ 8.4 |
 | NFR4 - Gas 限制 | ✅ All | ✅ All | ✅ All | - | ✅ 5.3 | - | - | ✅ 8.4 |
+
+---
+
+## Epic 8 新增功能需求（更新）
+
+| ID | 需求 | 优先级 | Epic |
+|----|------|--------|------|
+| FR23 | 定时 AI 分析持仓与策略 | P1 | Epic 8 |
+| FR24 | AI 生成添加策略建议 | P1 | Epic 8 |
+| FR25 | AI 生成禁用策略建议 | P1 | Epic 8 |
+| FR26 | 策略建议推送与确认执行 | P1 | Epic 8 |
+| FR27 | 手动触发 AI 分析 | P2 | Epic 8 |
+| FR28 | 分析历史记录与网页查看 | P2 | Epic 8 |
+
+---
+
+### Story 8.6: 分析历史记录与网页查看
+
+**作为用户，我需要** 查看历史 AI 分析的完整数据，**以便** 调试提示词和理解 AI 的决策过程。
+
+**背景:**
+
+目前每次 AI 分析后只能看到最终的简化建议，无法查看：
+- 发送给 LLM 的完整提示词
+- LLM 的原始响应
+
+这导致难以调试和优化 system prompt。
+
+**验收标准:**
+
+- [ ] 每次分析完成自动保存到 `data/advisor_history.json`
+- [ ] 存储内容包含：
+  - `id`: 记录 ID（8位 UUID）
+  - `timestamp`: 时间戳
+  - `request`: 发送给 LLM 的完整提示词（system + user message）
+  - `response`: LLM 原始 JSON 响应
+  - `suggestions`: 解析后的建议列表
+  - `executed`: 是否已执行
+  - `executed_at`: 执行时间
+- [ ] 最多保留 30 条记录，超出自动删除最旧记录
+- [ ] 创建静态网页 `data/advisor-web/index.html`
+- [ ] 网页功能：时间线展示历史、查看完整提示词、LLM 响应、解析后的建议
+- [ ] 分析完成后自动同步到 surge.sh
+- [ ] TG 推送建议时附加查看链接
+- [ ] 添加单元测试
+
+**技术说明:**
+
+```python
+# advisor_history.py
+import json
+import uuid
+from datetime import datetime
+from pathlib import Path
+
+HISTORY_FILE = Path("data/advisor_history.json")
+MAX_RECORDS = 30
+
+def save_analysis(request: str, response: str, suggestions: list) -> str:
+    """保存分析记录，返回记录 ID"""
+    history = load_history()
+    record_id = uuid.uuid4().hex[:8]
+    record = {
+        "id": record_id,
+        "timestamp": datetime.now().isoformat(),
+        "request": request,
+        "response": response,
+        "suggestions": suggestions,
+        "executed": False,
+        "executed_at": None
+    }
+    history.insert(0, record)
+    if len(history) > MAX_RECORDS:
+        history = history[:MAX_RECORDS]
+    _save_history(history)
+    return record_id
+```
+
+**静态网页目录结构:**
+
+```
+data/
+├── advisor_history.json     # 数据文件
+└── advisor-web/
+    └── index.html           # 单页应用
+```
+
+**首次部署:**
+
+```bash
+npm install -g surge
+cd data/advisor-web
+surge . dx-advisor.surge.sh
+```
+
+**预估复杂度**: 中等
+
+---
+
+## Epic 8 需求覆盖（更新）
+
+| 需求 | Story 8.0 | Story 8.1 | Story 8.2 | Story 8.3 | Story 8.4 | Story 8.5 | Story 8.6 |
+|------|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
+| LLM 客户端 | ✅ | - | - | - | - | - | - |
+| 数据收集 | - | ✅ | - | - | - | - | - |
+| AI 分析 | - | - | ✅ | - | - | ✅ | - |
+| 建议推送 | - | - | - | ✅ | - | ✅ | ✅ |
+| 确认执行 | - | - | - | - | ✅ | - | - |
+| 手动触发 | - | - | - | - | - | ✅ | - |
+| 历史查看 | - | - | - | - | - | - | ✅ |
 
 ---

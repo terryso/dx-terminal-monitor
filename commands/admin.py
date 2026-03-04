@@ -90,9 +90,9 @@ async def cmd_add_strategy(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     if not content.strip():
         await update.message.reply_text("Error: Strategy content cannot be empty")
         return
-    MAX_STRATEGY_LENGTH = 500
-    if len(content) > MAX_STRATEGY_LENGTH:
-        await update.message.reply_text(f"Error: Strategy too long (max {MAX_STRATEGY_LENGTH} chars)")
+    # Contract limits to 1024 bytes
+    if len(content.encode('utf-8')) > 1024:
+        await update.message.reply_text(f"Error: Strategy too long (max 1024 bytes)")
         return
     logger.info(f"Admin {update.effective_user.id} adding strategy: {content[:50]}...")
     result = await _get_contract().add_strategy(content)

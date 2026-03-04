@@ -549,9 +549,11 @@ class TestAddStrategyMethod:
         vc = create_mocked_vault_contract(mock_web3_components)
 
         # When - call add_strategy with custom parameters
+        import time
+        future_expiry = int(time.time()) + 86400  # 24 hours from now
         result = await vc.add_strategy(
             content="High priority strategy",
-            expiry=1735689600,  # Some future timestamp
+            expiry=future_expiry,
             priority=2,  # HIGH priority
         )
 
@@ -562,7 +564,7 @@ class TestAddStrategyMethod:
         # Verify the contract was called with custom parameters
         mock_contract.functions.addStrategy.assert_called_once_with(
             "High priority strategy",
-            1735689600,
+            future_expiry,
             2,
         )
 

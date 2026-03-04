@@ -1735,7 +1735,7 @@ class TestCmdAddStrategy:
     ) -> None:
         """Test error when strategy content exceeds length limit.
 
-        Verifies: Input validation - content length limit (500 chars)
+        Verifies: Input validation - content length limit (1024 bytes)
         """
         # Given - admin user with content too long
         mock_telegram_update.effective_user.id = 123456789  # Admin user
@@ -1744,8 +1744,8 @@ class TestCmdAddStrategy:
         mock_contract_instance = MagicMock()
         mock_contract_instance.add_strategy = AsyncMock()
 
-        # Content longer than 500 chars
-        long_content = "a" * 501
+        # Content longer than 1024 bytes (use multi-byte chars to test byte limit)
+        long_content = "买" * 400  # Each Chinese char is ~3 bytes, total ~1200 bytes
 
         with patch("commands.admin.is_admin", return_value=True), \
              patch("commands.admin._get_contract") as mock_get_contract:
@@ -1759,7 +1759,7 @@ class TestCmdAddStrategy:
         # Then
         mock_telegram_update.message.reply_text.assert_called_once()
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "过长" in call_args or "long" in call_args.lower() or "500" in call_args
+        assert "过长" in call_args or "long" in call_args.lower() or "1024" in call_args
         # Verify contract was NOT called
         mock_contract_instance.add_strategy.assert_not_called()
 

@@ -130,7 +130,8 @@ async def post_init(app: Application):
         admin_chat_id = ADMIN_USERS[0] if ADMIN_USERS else None
         if admin_chat_id:
             _advisor_monitor_instance = AdvisorMonitor(
-                advisor, api, push_suggestions, admin_chat_id, ADVISOR_INTERVAL_HOURS
+                advisor, api, push_suggestions, admin_chat_id, ADVISOR_INTERVAL_HOURS,
+                bot=app.bot
             )
             set_advisor_monitor(_advisor_monitor_instance)
             # Register callback handler for inline keyboard
@@ -179,8 +180,8 @@ def main():
     if not TELEGRAM_BOT_TOKEN:
         print("Error: TELEGRAM_BOT_TOKEN not set")
         return
-    retry_count, max_retries, base_delay = 0, 10, 5
-    while retry_count < max_retries:
+    retry_count, base_delay = 0, 5
+    while True:  # Infinite retry - always recover from network issues
         try:
             try:
                 asyncio.get_running_loop().close()
@@ -188,7 +189,7 @@ def main():
                 pass
             asyncio.set_event_loop(asyncio.new_event_loop())
             app = create_app()
-            logger.info(f"Bot starting... (attempt {retry_count + 1}/{max_retries})")
+            logger.info(f"Bot starting... (attempt {retry_count + 1})")
             app.run_polling(allowed_updates=Update.ALL_TYPES)
             retry_count = 0
         except (TimedOut, NetworkError) as e:
@@ -204,8 +205,6 @@ def main():
         except KeyboardInterrupt:
             logger.info("Bot stopped by user")
             break
-    if retry_count >= max_retries:
-        logger.error(f"Max retries ({max_retries}) reached. Bot stopped.")
 
 
 if __name__ == "__main__":

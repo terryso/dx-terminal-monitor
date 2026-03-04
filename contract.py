@@ -271,8 +271,8 @@ class VaultContract:
         Add a new trading strategy.
 
         Args:
-            content: Strategy text content
-            expiry: Expiration timestamp (0 = never expires)
+            content: Strategy text content (max 1024 bytes)
+            expiry: Expiration timestamp (0 = never expires, must be future if > 0)
             priority: Priority level (0=LOW, 1=MEDIUM, 2=HIGH)
 
         Returns:
@@ -284,6 +284,25 @@ class VaultContract:
                 - blockNumber: int - on success
                 - error: str - on failure
         """
+        # Validate content
+        if not content or not content.strip():
+            return {"success": False, "error": "Strategy content cannot be empty"}
+
+        content_bytes = content.encode('utf-8')
+        if len(content_bytes) > 1024:
+            return {"success": False, "error": f"Strategy too long (max 1024 bytes, got {len(content_bytes)})"}
+
+        # Validate expiry (must be 0 or future timestamp)
+        import time
+        if expiry < 0:
+            return {"success": False, "error": "Expiry must be non-negative"}
+        if expiry > 0 and expiry <= int(time.time()):
+            return {"success": False, "error": "Expiry must be a future timestamp"}
+
+        # Validate priority (0=LOW, 1=MEDIUM, 2=HIGH)
+        if priority not in (0, 1, 2):
+            return {"success": False, "error": "Priority must be 0 (Low), 1 (Medium), or 2 (High)"}
+
         try:
             tx_func = self.contract.functions.addStrategy(content, expiry, priority)
             result = await self._send_transaction(tx_func)
