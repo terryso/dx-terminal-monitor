@@ -229,6 +229,8 @@ class AdvisorMonitor:
 
     async def _build_context(self) -> dict:
         """Build context dict for message formatting."""
+        import time
+
         try:
             positions = await self.api.get_positions()
             strategies = await self.api.get_strategies()
@@ -238,17 +240,26 @@ class AdvisorMonitor:
             token_count = 0
             strategy_count = 0
 
-            if positions and "error" not in positions:
+            # Check for valid positions response (not error dict)
+            if positions and not (isinstance(positions, dict) and "error" in positions):
                 # Use format_eth to convert Wei to ETH
-                balance = f"{format_eth(positions.get('ethBalance', '0'))} ETH"
+                raw_balance = positions.get('ethBalance', 0)
+                balance = f"{format_eth(str(raw_balance))} ETH"
                 # Use format_usd for PnL
-                pnl = format_usd(positions.get('overallPnlUsd', '0'))
+                raw_pnl = positions.get('overallPnlUsd', 0)
+                pnl = format_usd(raw_pnl)
                 # Get positions list
                 token_count = len(positions.get('positions', []))
 
+            # Check for valid strategies response and filter non-expired
+            current_time = int(time.time())
             if strategies and not (isinstance(strategies, dict) and "error" in strategies):
-                # Count active strategies
-                strategy_count = len([s for s in strategies if s.get('active', True)])
+                # Count active, non-expired strategies
+                active_strategies = [
+                    s for s in strategies
+                    if s.get('active', True) and (s.get('expiry', 0) == 0 or s.get('expiry', 0) > current_time)
+                ]
+                strategy_count = len(active_strategies)
 
             return {
                 "balance": balance,

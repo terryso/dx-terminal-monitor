@@ -233,14 +233,23 @@ class StrategyDataCollector:
     if data.strategies:
       lines.append("## Active Strategies")
       strategies = data.strategies if isinstance(data.strategies, list) else []
-      for s in strategies:
+      current_time = int(datetime.now().timestamp())
+      # Filter to only show non-expired strategies
+      active_strategies = [
+        s for s in strategies
+        if s.get('expiry', 0) == 0 or s.get('expiry', 0) > current_time
+      ]
+      for s in active_strategies:
         sid = s.get("strategyId", s.get("id", "?"))
         content = s.get("content", "")[:100]
         priority = s.get("strategyPriority", s.get("priority", 1))
         expiry = s.get("expiry", 0)
         lines.append(f"  #{sid} (P{priority}): {content}...")
         if expiry:
-          lines.append(f"    Expires: {expiry}")
+          from utils.formatters import format_time
+          lines.append(f"    Expires: {format_time(expiry)}")
+      if not active_strategies:
+        lines.append("  (No active strategies)")
       lines.append("")
 
     # Vault Status
@@ -329,6 +338,8 @@ You MUST respond with a valid JSON object in this exact format:
 - Never suggest adding more than 8 total strategies (contract limit)
 - Always verify strategy_id exists before suggesting disable action
 - NEVER suggest strategies involving tokens not in the Supported Tokens list
+- DO NOT suggest disabling expired strategies (expiry timestamp in the past) - they are already inactive
+- Only suggest disabling strategies that are still active but have become invalid or redundant
 
 Analyze the following data and provide your recommendations:"""
 
