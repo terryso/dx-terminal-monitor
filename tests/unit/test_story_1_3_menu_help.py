@@ -120,6 +120,7 @@ class TestPostInitStory13:
             "advisor_on",        # Story 8-3
             "advisor_off",       # Story 8-3
             "advisor_status",    # Story 8-3
+            "advisor_analyze",   # Story 8-5
         ]
 
         assert len(command_names) == len(expected_commands), f"Expected {len(expected_commands)} commands, got {len(command_names)}"
