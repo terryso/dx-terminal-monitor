@@ -24,6 +24,10 @@ A Telegram bot for monitoring and managing Terminal Markets Vault.
 - **Interactive Approval Flow** - Execute individual suggestions or all at once
 - **Configurable Intervals** - Set analysis frequency (default: 2 hours)
 
+> ⚠️ **Prerequisites**: This feature requires:
+> - `PRIVATE_KEY` - for signing strategy transactions (add/disable)
+> - `LLM_PROVIDER` + `ANTHROPIC_API_KEY` or `OPENAI_API_KEY` - for AI analysis
+
 **Commands:**
 | Command | Description |
 |---------|-------------|

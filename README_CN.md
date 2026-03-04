@@ -24,6 +24,10 @@ Terminal Markets Vault 监控与管理 Telegram Bot。
 - **交互式审批流程** - 可单独执行或批量执行所有建议
 - **可配置分析频率** - 默认每 2 小时分析一次
 
+> ⚠️ **必要条件**：使用此功能需要配置：
+> - `PRIVATE_KEY` - 用于签名策略交易（添加/禁用）
+> - `LLM_PROVIDER` + `ANTHROPIC_API_KEY` 或 `OPENAI_API_KEY` - 用于 AI 分析
+
 **命令：**
 | 命令 | 功能 |
 |------|------|
