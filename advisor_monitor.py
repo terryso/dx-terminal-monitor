@@ -16,7 +16,7 @@ from telegram.ext import ContextTypes
 
 import config
 from advisor import StrategyAdvisor, Suggestion
-from advisor_history import get_view_url, mark_executed
+from advisor_history import get_view_url
 from api import TerminalAPI
 from utils.formatters import format_eth, format_usd
 
@@ -442,11 +442,6 @@ async def handle_advisor_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE
             result = await execute_suggestion(s)
             results.append(f"[{i}] {result}")
 
-        # Fix: mark record as executed
-        record_id = request.get("record_id")
-        if record_id:
-            mark_executed(record_id)
-
         del pending_requests[request_id]
         await query.edit_message_text(
             query.message.text + "\n\n<b>Executed All:</b>\n" + "\n".join(results),
@@ -463,11 +458,6 @@ async def handle_advisor_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE
 
         suggestion = suggestions[idx]
         result = await execute_suggestion(suggestion)
-
-        # Fix: mark record as executed
-        record_id = request.get("record_id")
-        if record_id:
-            mark_executed(record_id)
 
         del pending_requests[request_id]
         await query.edit_message_text(

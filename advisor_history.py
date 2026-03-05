@@ -34,16 +34,12 @@ def save_analysis(request: str, response: str, suggestions: list) -> str:
     history = load_history()
 
     record_id = uuid.uuid4().hex[:8]
-    # If no suggestions, mark as executed immediately (nothing for user to do)
-    no_suggestions = not suggestions or len(suggestions) == 0
     record = {
         "id": record_id,
         "timestamp": datetime.now().isoformat(),
         "request": request,
         "response": response,
         "suggestions": suggestions,
-        "executed": no_suggestions,
-        "executed_at": datetime.now().isoformat() if no_suggestions else None
     }
 
     history.insert(0, record)
@@ -74,22 +70,6 @@ def _save_history(history: list):
     HISTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
     with open(HISTORY_FILE, "w", encoding="utf-8") as f:
         json.dump(history, f, ensure_ascii=False, indent=2)
-
-
-def mark_executed(record_id: str):
-    """Mark a record as executed.
-
-    Args:
-        record_id: The record ID to mark
-    """
-    history = load_history()
-    for record in history:
-        if record["id"] == record_id:
-            record["executed"] = True
-            record["executed_at"] = datetime.now().isoformat()
-            break
-    _save_history(history)
-    logger.info(f"Marked record as executed: {record_id}")
 
 
 def sync_to_surge():

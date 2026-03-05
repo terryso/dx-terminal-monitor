@@ -4,7 +4,7 @@ Failing acceptance tests for Story 8-6: Analysis History and Web Viewer
 This module contains RED phase tests that will FAIL until the feature is implemented.
 Tests cover:
 - AC1: Config items (ADVISOR_HISTORY_ENABLED, ADVISOR_HISTORY_MAX, ADVISOR_SURGE_DOMAIN)
-- AC2: Analysis data storage (save_analysis, load_history, mark_executed)
+- AC2: Analysis data storage (save_analysis, load_history)
 - AC3: Static web page (data/index.html)
 - AC4: Conditional sync and push (sync_to_surge, get_view_url, web link attachment)
 
@@ -113,13 +113,11 @@ class TestAdvisorHistoryStorage:
         from advisor_history import (
             get_view_url,
             load_history,
-            mark_executed,
             save_analysis,
             sync_to_surge,
         )
         assert callable(save_analysis)
         assert callable(load_history)
-        assert callable(mark_executed)
         assert callable(sync_to_surge)
         assert callable(get_view_url)
 
@@ -148,8 +146,6 @@ class TestAdvisorHistoryStorage:
         assert record["request"] == "Full system prompt\n\nUser data here"
         assert record["response"] == '{"suggestions": [...]}'
         assert record["suggestions"] == suggestions
-        assert record["executed"] is False
-        assert record["executed_at"] is None
 
     def test_save_analysis_inserts_newest_first(self, tmp_path, monkeypatch):
         """New records should be inserted at the beginning of the history list."""
@@ -205,40 +201,6 @@ class TestAdvisorHistoryStorage:
 
         history = load_history()
         assert history == []
-
-    def test_mark_executed_updates_record_status(self, tmp_path, monkeypatch):
-        """mark_executed should set executed=True and executed_at timestamp."""
-        history_file = tmp_path / "advisor_history.json"
-        monkeypatch.setattr("advisor_history.HISTORY_FILE", history_file)
-
-        from advisor_history import load_history, mark_executed, save_analysis
-
-        record_id = save_analysis("test prompt", "test response", [])
-
-        # Mark as executed
-        mark_executed(record_id)
-
-        history = load_history()
-        record = next((r for r in history if r["id"] == record_id), None)
-        assert record is not None
-        assert record["executed"] is True
-        assert record["executed_at"] is not None
-
-    def test_mark_executed_does_nothing_for_nonexistent_id(self, tmp_path, monkeypatch):
-        """mark_executed should handle non-existent record ID gracefully."""
-        history_file = tmp_path / "advisor_history.json"
-        monkeypatch.setattr("advisor_history.HISTORY_FILE", history_file)
-
-        from advisor_history import load_history, mark_executed, save_analysis
-
-        save_analysis("test", "test", [])
-
-        # Try to mark non-existent ID
-        mark_executed("nonexistent")
-
-        # Should not raise exception, history should still contain 1 record
-        history = load_history()
-        assert len(history) == 1
 
 
 # =============================================================================
