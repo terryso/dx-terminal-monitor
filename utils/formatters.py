@@ -29,21 +29,11 @@ def format_percent(value) -> str:
 
 
 def format_time(timestamp) -> str:
-    """格式化 Unix 时间戳为可读时间（相对时间）。"""
+    """格式化 Unix 时间戳为可读时间（带时区）。"""
     try:
         ts = int(timestamp)
         dt = datetime.fromtimestamp(ts, tz=UTC)
-        now = datetime.now(UTC)
-        diff = int((now - dt).total_seconds())
-
-        if diff < 60:
-            return f"{diff}s ago"
-        elif diff < 3600:
-            return f"{diff // 60}m ago"
-        elif diff < 86400:
-            return f"{diff // 3600}h ago"
-        else:
-            return dt.strftime("%m-%d %H:%M")
+        return dt.strftime("%Y-%m-%d %H:%M UTC")
     except (ValueError, TypeError):
         return "?"
 
