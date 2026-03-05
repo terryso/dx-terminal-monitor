@@ -88,34 +88,49 @@ def _get_surge_token() -> str | None:
 
 
 def sync_to_surge():
-    """Sync data directory to surge.sh.
+    """Sync data directory to surge.sh with retry.
 
     Logs failure but does not raise exception.
     """
-    try:
-        token = _get_surge_token()
-        cmd = ["surge", str(WEB_DIR), ADVISOR_SURGE_DOMAIN]
-        if token:
-            cmd.extend(["--token", token])
+    max_retries = 3
+    retry_delay = 2  # seconds
 
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=60
-        )
+    for attempt in range(max_retries):
+        try:
+            token = _get_surge_token()
+            cmd = ["surge", str(WEB_DIR), ADVISOR_SURGE_DOMAIN]
+            if token:
+                cmd.extend(["--token", token])
 
-        if result.returncode == 0:
-            logger.info(f"Synced to surge.sh: https://{ADVISOR_SURGE_DOMAIN}")
-        else:
-            logger.warning(f"Surge sync failed: {result.stderr}")
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=60
+            )
 
-    except FileNotFoundError:
-        logger.warning("Surge CLI not installed, skip sync")
-    except subprocess.TimeoutExpired:
-        logger.warning("Surge sync timeout")
-    except Exception as e:
-        logger.error(f"Surge sync error: {e}")
+            if result.returncode == 0:
+                logger.info(f"Synced to surge.sh: https://{ADVISOR_SURGE_DOMAIN}")
+                return  # Success
+            else:
+                logger.warning(f"Surge sync failed (attempt {attempt + 1}/{max_retries}): {result.stderr}")
+                if attempt < max_retries - 1:
+                    import time
+                    time.sleep(retry_delay)
+
+        except FileNotFoundError:
+            logger.warning("Surge CLI not installed, skip sync")
+            return
+        except subprocess.TimeoutExpired:
+            logger.warning(f"Surge sync timeout (attempt {attempt + 1}/{max_retries})")
+            if attempt < max_retries - 1:
+                import time
+                time.sleep(retry_delay)
+        except Exception as e:
+            logger.error(f"Surge sync error: {e}")
+            return
+
+    logger.error(f"Surge sync failed after {max_retries} attempts")
 
 
 def get_view_url() -> str:
