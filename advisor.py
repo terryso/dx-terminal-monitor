@@ -161,14 +161,15 @@ class StrategyDataCollector:
     """Collect candlestick data for held tokens."""
     candles = {}
 
-    if not positions or "tokens" not in positions:
+    if not positions:
       return candles
 
-    held_tokens = positions.get("tokens", [])[:self.MAX_TOKENS_FOR_CANDLES]
+    # Support both API formats: positions (from API) or tokens (from test)
+    held_tokens = positions.get("positions", positions.get("tokens", []))[:self.MAX_TOKENS_FOR_CANDLES]
 
     for token in held_tokens:
       addr = token.get("tokenAddress")
-      symbol = token.get("symbol", "UNKNOWN")
+      symbol = token.get("tokenSymbol", token.get("symbol", "UNKNOWN"))
 
       if not addr:
         continue
@@ -179,11 +180,14 @@ class StrategyDataCollector:
         try:
           limit = self.CANDLE_LIMITS.get(tf, 24)
           data = await self.api.get_candles(addr, tf, limit)
-          if isinstance(data, list):
+          # API returns UDF format (dict with s, h, l, c, t, v arrays)
+          if isinstance(data, dict) and data.get("s") == "ok":
             candles[symbol][tf] = data
+          else:
+            candles[symbol][tf] = {}
         except Exception as e:
           logger.warning("Failed to fetch %s candles for %s: %s", tf, symbol, e)
-          candles[symbol][tf] = []
+          candles[symbol][tf] = {}
 
     return candles
 
@@ -196,6 +200,29 @@ class StrategyDataCollector:
     Returns:
         Formatted text suitable for LLM context
     """
+    def format_price(value):
+      """Format price showing all zeros for clarity.
+
+      Examples:
+        0.0000001902 ETH
+        0.0019 ETH
+        1.2345 ETH
+      """
+      if value == 0:
+        return "0"
+
+      abs_val = abs(value)
+      sign = "-" if value < 0 else ""
+
+      if abs_val >= 1:
+        return f"{sign}{value:.4f}"
+      elif abs_val >= 0.001:
+        return f"{sign}{value:.6f}"
+      else:
+        # Show all zeros for very small values, strip trailing zeros
+        formatted = f"{sign}{value:.10f}".rstrip('0').rstrip('.')
+        return formatted
+
     lines = []
     lines.append("# Data Collection Report")
     lines.append(f"Collected at: {data.collected_at}")
@@ -278,18 +305,76 @@ class StrategyDataCollector:
       lines.append(f"24h Change: {change}%")
       lines.append("")
 
-    # Candlestick Trends
+    # Candlestick Trends (enhanced with technical analysis)
     if data.candles:
-      lines.append("## Token Trends (Candlestick Analysis)")
+      lines.append("## Token Price Charts & Technical Analysis")
+      lines.append("Use this data to identify trends, support/resistance, and entry/exit points.")
+      lines.append("")
       for symbol, tf_data in data.candles.items():
         lines.append(f"### {symbol}")
-        for tf, candle_list in tf_data.items():
-          if candle_list and len(candle_list) > 0:
-            latest = candle_list[-1] if candle_list else {}
-            close = latest.get("close", "N/A")
-            lines.append(f"  {tf}: Latest close ${close}")
+        for tf, candle_data in tf_data.items():
+          if candle_data and isinstance(candle_data, dict):
+            # Handle UDF format (o, h, l, c, t, v arrays)
+            opens = candle_data.get("o", [])
+            highs = candle_data.get("h", [])
+            lows = candle_data.get("l", [])
+            closes = candle_data.get("c", [])
+            volumes = candle_data.get("v", [])
+            _times = candle_data.get("t", [])  # noqa: F841
+
+            if closes and len(closes) > 0:
+              lines.append(f"  **{tf} Chart ({len(closes)} candles)**")
+
+              # Price summary
+              latest_close = closes[-1]
+              first_close = closes[0]
+              price_change_pct = ((latest_close - first_close) / first_close * 100) if first_close else 0
+              trend = "UP" if price_change_pct > 0 else "DOWN" if price_change_pct < 0 else "FLAT"
+
+              lines.append(f"  Current Price: {format_price(latest_close)}")
+              lines.append(f"  Period Change: {price_change_pct:+.2f}% ({trend})")
+
+              # Support/Resistance levels
+              period_high = max(highs) if highs else latest_close
+              period_low = min(lows) if lows else latest_close
+              lines.append(f"  Period High: {format_price(period_high)}")
+              lines.append(f"  Period Low: {format_price(period_low)}")
+
+              # Volatility (using range as % of price)
+              if period_low > 0:
+                volatility = (period_high - period_low) / period_low * 100
+                lines.append(f"  Volatility: {volatility:.2f}%")
+
+              # Recent momentum (last 3 candles)
+              if len(closes) >= 3:
+                recent_change = ((closes[-1] - closes[-3]) / closes[-3] * 100) if closes[-3] else 0
+                momentum = "Bullish" if recent_change > 0 else "Bearish" if recent_change < 0 else "Neutral"
+                lines.append(f"  Recent Momentum (3 candles): {recent_change:+.2f}% ({momentum})")
+
+              # Volume trend
+              if volumes and len(volumes) >= 2:
+                recent_vol = sum(volumes[-3:]) / 3 if len(volumes) >= 3 else volumes[-1]
+                avg_vol = sum(volumes) / len(volumes)
+                vol_trend = "Increasing" if recent_vol > avg_vol else "Decreasing"
+                lines.append(f"  Volume Trend: {vol_trend} (avg: {avg_vol:.0f}, recent: {recent_vol:.0f})")
+
+              # Candle data for detailed analysis (last 5)
+              if len(closes) > 1:
+                lines.append("  Recent Candles (oldest to newest):")
+                start_idx = max(0, len(closes) - 5)
+                for idx in range(start_idx, len(closes)):
+                  co, ch, cl, cc = opens[idx], highs[idx], lows[idx], closes[idx]
+                  vol = volumes[idx] if volumes else 0
+                  candle_type = "Green" if cc > co else "Red" if cc < co else "Doji"
+                  lines.append(f"    [{idx-start_idx+1}] {candle_type}: O={format_price(co)} H={format_price(ch)} L={format_price(cl)} C={format_price(cc)} Vol={vol:.0f}")
+
+              lines.append("")
+            else:
+              lines.append(f"  {tf}: No data available")
+              lines.append("")
           else:
             lines.append(f"  {tf}: No data")
+            lines.append("")
         lines.append("")
 
     # Errors
