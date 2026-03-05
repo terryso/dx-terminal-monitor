@@ -213,10 +213,11 @@ class StrategyDataCollector:
     # Positions
     if data.positions:
       lines.append("## Positions")
-      from utils.formatters import format_eth
+      from utils.formatters import format_eth, format_usd
       eth_balance_raw = data.positions.get("ethBalance", "N/A")
       eth_balance = format_eth(eth_balance_raw) if eth_balance_raw != "N/A" else "N/A"
-      total_pnl = data.positions.get("overallPnlUsd", data.positions.get("totalPnlUsd", "N/A"))
+      total_pnl_raw = data.positions.get("overallPnlUsd", data.positions.get("totalPnlUsd", "N/A"))
+      total_pnl = format_usd(total_pnl_raw) if total_pnl_raw != "N/A" else "N/A"
       lines.append(f"ETH Balance: {eth_balance} ETH")
       lines.append(f"Total PnL (USD): {total_pnl}")
 
@@ -228,11 +229,14 @@ class StrategyDataCollector:
           # Support both tokenSymbol (API) and symbol (test)
           symbol = t.get("tokenSymbol", t.get("symbol", "?"))
           # Support both currentValueUsd (API) and balance (test)
-          val = t.get("currentValueUsd", t.get("balance", "0"))
+          val_raw = t.get("currentValueUsd", t.get("balance", "0"))
+          val = format_usd(val_raw)
           # Show unrealized PnL (floating) for decision-making, plus realized for context
-          unrealized_pnl = t.get("unrealizedPnlUsd", t.get("pnlUsd", "0"))
-          realized_pnl = t.get("realizedPnlUsd", "0")
-          lines.append(f"  - {symbol}: ${val} (Unrealized: ${unrealized_pnl}, Realized: ${realized_pnl})")
+          unrealized_pnl_raw = t.get("unrealizedPnlUsd", t.get("pnlUsd", "0"))
+          unrealized_pnl = format_usd(unrealized_pnl_raw)
+          realized_pnl_raw = t.get("realizedPnlUsd", "0")
+          realized_pnl = format_usd(realized_pnl_raw)
+          lines.append(f"  - {symbol}: {val} (Unrealized: {unrealized_pnl}, Realized: {realized_pnl})")
       lines.append("")
 
     # Strategies

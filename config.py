@@ -64,6 +64,7 @@ SUGGESTION_TTL_MINUTES = int(os.getenv('SUGGESTION_TTL_MINUTES', '30'))
 ADVISOR_HISTORY_ENABLED = os.getenv('ADVISOR_HISTORY_ENABLED', 'false').lower() == 'true'
 ADVISOR_HISTORY_MAX = int(os.getenv('ADVISOR_HISTORY_MAX', '30'))
 ADVISOR_SURGE_DOMAIN = os.getenv('ADVISOR_SURGE_DOMAIN', 'dx-advisor.surge.sh')
+SURGE_TOKEN = os.getenv('SURGE_TOKEN', '')
 
 
 def is_admin(user_id: int) -> bool:

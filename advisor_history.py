@@ -11,7 +11,7 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 
-from config import ADVISOR_HISTORY_MAX, ADVISOR_SURGE_DOMAIN
+from config import ADVISOR_HISTORY_MAX, ADVISOR_SURGE_DOMAIN, SURGE_TOKEN
 
 logger = logging.getLogger(__name__)
 
@@ -72,14 +72,34 @@ def _save_history(history: list):
         json.dump(history, f, ensure_ascii=False, indent=2)
 
 
+SURGE_TOKEN_FILE = Path.home() / ".surge" / "token"
+
+
+def _get_surge_token() -> str | None:
+    """Get surge token from config or file.
+
+    Priority: config.SURGE_TOKEN > ~/.surge/token
+    """
+    if SURGE_TOKEN:
+        return SURGE_TOKEN
+    if SURGE_TOKEN_FILE.exists():
+        return SURGE_TOKEN_FILE.read_text().strip()
+    return None
+
+
 def sync_to_surge():
     """Sync data directory to surge.sh.
 
     Logs failure but does not raise exception.
     """
     try:
+        token = _get_surge_token()
+        cmd = ["surge", str(WEB_DIR), ADVISOR_SURGE_DOMAIN]
+        if token:
+            cmd.extend(["--token", token])
+
         result = subprocess.run(
-            ["surge", str(WEB_DIR), ADVISOR_SURGE_DOMAIN],
+            cmd,
             capture_output=True,
             text=True,
             timeout=60
