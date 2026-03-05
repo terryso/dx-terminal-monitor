@@ -150,10 +150,8 @@ async function load(){
       <div class="record">
         <div class="record-header" onclick="tog('d-${rec.id}')">
           <div class="meta">
-            <span class="time">${fmtTime(rec.timestamp)}</span>
-            <span class="count">${rec.suggestions.length} suggestions</span>
-          </div>
-          <span class="badge ${rec.executed?'badge-executed':'badge-pending'}">${rec.executed?'EXECUTED':'PENDING'}</span>
+          <span class="time">${fmtTime(rec.timestamp)}</span>
+          <span class="count">${rec.suggestions.length} suggestions</span>
         </div>
         <div class="detail" id="d-${rec.id}">
           <div class="section">
