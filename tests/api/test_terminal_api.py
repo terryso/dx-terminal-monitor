@@ -16,7 +16,9 @@ from api import TerminalAPI
 
 def pytest_configure(config):
     """Register custom markers."""
-    config.addinivalue_line("markers", "api: marks tests as API integration tests (deselect with '-m \"not api\"')")
+    config.addinivalue_line(
+        "markers", "api: marks tests as API integration tests (deselect with '-m \"not api\"')"
+    )
 
 
 @pytest.mark.api
@@ -129,8 +131,10 @@ class TestTerminalAPIPerformance:
         start = time.time()
         try:
             await api_client.get_positions()
-        except (aiohttp.client_exceptions.ClientConnectorError,
-                aiohttp.client_exceptions.ConnectionTimeoutError):
+        except (
+            aiohttp.client_exceptions.ClientConnectorError,
+            aiohttp.client_exceptions.ConnectionTimeoutError,
+        ):
             pytest.skip("API unreachable - network or server issue")
         elapsed = time.time() - start
 

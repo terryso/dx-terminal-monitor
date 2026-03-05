@@ -14,6 +14,7 @@ import pytest
 # Tests for cmd_monitor_status (AC 5, AC 10)
 # =============================================================================
 
+
 class TestCmdMonitorStatusRefactored:
     """Tests for /monitor_status command after refactoring."""
 
@@ -96,6 +97,7 @@ class TestCmdMonitorStatusRefactored:
 # Tests for cmd_monitor_start (AC 5)
 # =============================================================================
 
+
 class TestCmdMonitorStartRefactored:
     """Tests for /monitor_start command after refactoring."""
 
@@ -149,6 +151,7 @@ class TestCmdMonitorStartRefactored:
 # Tests for cmd_monitor_stop (AC 5)
 # =============================================================================
 
+
 class TestCmdMonitorStopRefactored:
     """Tests for /monitor_stop command after refactoring."""
 
@@ -201,6 +204,7 @@ class TestCmdMonitorStopRefactored:
 # Tests for set_monitor_instance (Dependency Injection)
 # =============================================================================
 
+
 class TestSetMonitorInstance:
     """Tests for set_monitor_instance dependency injection."""
 
@@ -217,6 +221,7 @@ class TestSetMonitorInstance:
 
         # Then - verify it was set (need to re-import to check)
         import commands.monitor as monitor_module
+
         assert monitor_module._monitor_instance is mock_monitor
 
     @pytest.mark.integration
@@ -230,4 +235,5 @@ class TestSetMonitorInstance:
 
         # Then - should not raise
         import commands.monitor as monitor_module
+
         assert monitor_module._monitor_instance is None

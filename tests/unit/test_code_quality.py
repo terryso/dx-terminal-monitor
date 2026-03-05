@@ -15,6 +15,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 # Tests for file size limits (AC 12, AC 13)
 # =============================================================================
 
+
 class TestCodeQualityRefactored:
     """Tests for code quality after refactoring."""
 

@@ -1,4 +1,5 @@
 """Withdraw command module - ETH withdrawal with confirmation flow."""
+
 import logging
 
 from telegram import Update
@@ -6,6 +7,7 @@ from telegram.ext import CommandHandler, ContextTypes, ConversationHandler, Mess
 from web3 import Web3
 
 from config import is_admin
+from utils.error_handler import safe_command
 
 logger = logging.getLogger(__name__)
 
@@ -20,15 +22,18 @@ _pending_withdrawals = {}
 def _get_api():
     """Lazy import api to avoid circular imports."""
     from main import api
+
     return api
 
 
 def _get_contract():
     """Lazy import contract to avoid circular imports."""
     from main import contract
+
     return contract()
 
 
+@safe_command
 async def cmd_withdraw(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Withdraw command entry - request confirmation."""
     # Admin permission check (high-risk operation)
@@ -53,7 +58,7 @@ async def cmd_withdraw(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("Amount must be greater than 0")
             return END
         # Validate precision (max 6 decimal places for ETH)
-        if len(args[0].split('.')[-1]) > 6 if '.' in args[0] else False:
+        if len(args[0].split(".")[-1]) > 6 if "." in args[0] else False:
             await update.message.reply_text("Amount precision too high (max 6 decimals)")
             return END
     except ValueError:
@@ -65,7 +70,7 @@ async def cmd_withdraw(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     # Get current balance for pre-check
     try:
         vault_data = await api.get_vault()
-        balance_eth = float(vault_data.get('balance', 0))
+        balance_eth = float(vault_data.get("balance", 0))
     except Exception as e:
         logger.warning(f"Failed to fetch balance: {e}")
         balance_eth = None  # Cannot get balance, skip pre-check
@@ -73,8 +78,7 @@ async def cmd_withdraw(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     # Balance check
     if balance_eth is not None and amount_eth > balance_eth:
         await update.message.reply_text(
-            f"Insufficient balance. Available: {balance_eth:.4f} ETH\n"
-            f"Requested: {amount_eth} ETH"
+            f"Insufficient balance. Available: {balance_eth:.4f} ETH\nRequested: {amount_eth} ETH"
         )
         return END
 
@@ -84,23 +88,22 @@ async def cmd_withdraw(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
     # Confirmation
     await update.message.reply_text(
-        f"Confirm withdrawal of {amount_eth} ETH to your wallet?\n"
-        f"[Y] Confirm\n"
-        f"[N] Cancel"
+        f"Confirm withdrawal of {amount_eth} ETH to your wallet?\n[Y] Confirm\n[N] Cancel"
     )
     return WAITING_CONFIRMATION
 
 
+@safe_command
 async def handle_withdraw_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Handle withdrawal confirmation."""
     user_id = update.effective_user.id
     response = update.message.text.strip().upper()
 
-    if response not in ('Y', 'N', 'YES', 'NO'):
+    if response not in ("Y", "N", "YES", "NO"):
         await update.message.reply_text("Please reply Y to confirm or N to cancel")
         return WAITING_CONFIRMATION
 
-    if response in ('N', 'NO'):
+    if response in ("N", "NO"):
         # Cancel operation
         _pending_withdrawals.pop(user_id, None)
         await update.message.reply_text("Withdrawal cancelled")
@@ -113,7 +116,7 @@ async def handle_withdraw_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE
         return END
 
     # Convert to Wei
-    amount_wei = int(Web3.to_wei(amount_eth, 'ether'))
+    amount_wei = int(Web3.to_wei(amount_eth, "ether"))
 
     # Log admin action for audit
     logger.info(f"Admin {user_id} withdrawing {amount_eth} ETH")
@@ -124,10 +127,7 @@ async def handle_withdraw_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE
     if result.get("success"):
         tx_hash = result.get("transactionHash", "")
         logger.info(f"Withdrawal confirmed: {amount_eth} ETH by user {user_id}, tx: {tx_hash}")
-        await update.message.reply_text(
-            f"Withdrawn {amount_eth} ETH\n"
-            f"TX: {tx_hash}"
-        )
+        await update.message.reply_text(f"Withdrawn {amount_eth} ETH\nTX: {tx_hash}")
     else:
         error = result.get("error", "Unknown error")
         await update.message.reply_text(f"Withdrawal failed: {error}")
@@ -135,6 +135,7 @@ async def handle_withdraw_confirm(update: Update, ctx: ContextTypes.DEFAULT_TYPE
     return END
 
 
+@safe_command
 async def handle_withdraw_cancel(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Handle withdrawal cancellation via /cancel command."""
     user_id = update.effective_user.id

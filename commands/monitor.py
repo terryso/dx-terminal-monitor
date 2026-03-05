@@ -1,10 +1,12 @@
 """Monitor commands module - monitoring service control commands."""
+
 import logging
 
 from telegram import Update
 from telegram.ext import ContextTypes
 
 from config import is_admin
+from utils.error_handler import safe_command
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +20,7 @@ def set_monitor_instance(instance):
     _monitor_instance = instance
 
 
+@safe_command
 async def cmd_monitor_status(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Check monitor service status."""
     # Admin permission check
@@ -43,6 +46,7 @@ async def cmd_monitor_status(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     )
 
 
+@safe_command
 async def cmd_monitor_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Start monitor service."""
     # Admin permission check
@@ -65,11 +69,11 @@ async def cmd_monitor_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     logger.info(f"Admin {update.effective_user.id} started activity monitor")
 
     await update.message.reply_text(
-        f"Monitor started\n"
-        f"Poll interval: {_monitor_instance.poll_interval}s"
+        f"Monitor started\nPoll interval: {_monitor_instance.poll_interval}s"
     )
 
 
+@safe_command
 async def cmd_monitor_stop(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Stop monitor service."""
     # Admin permission check

@@ -21,6 +21,7 @@ class TestAuthorizedFunction:
         # When allowed_users is empty, should return True
         with patch("utils.permissions.ALLOWED_USERS", []):
             from utils.permissions import authorized
+
             result = authorized(update)
 
         # Then
@@ -34,6 +35,7 @@ class TestAuthorizedFunction:
 
         with patch("utils.permissions.ALLOWED_USERS", [123456789]):
             from utils.permissions import authorized
+
             result = authorized(update)
 
         # Then
@@ -48,6 +50,7 @@ class TestAuthorizedFunction:
         # Patch where the function is defined (main module)
         with patch("utils.permissions.ALLOWED_USERS", [123456789]):
             from utils.permissions import authorized
+
             result = authorized(update)
 
         # Then

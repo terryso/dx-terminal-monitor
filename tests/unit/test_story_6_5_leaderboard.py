@@ -254,9 +254,10 @@ class TestCmdLeaderboard:
         mock_api = AsyncMock()
         mock_api.get_leaderboard = AsyncMock(return_value=mock_leaderboard_response)
 
-        with patch("commands.query.authorized", return_value=True), patch(
-            "commands.query._get_api"
-        ) as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.query import cmd_leaderboard
 
@@ -301,9 +302,10 @@ class TestCmdLeaderboard:
         mock_api = AsyncMock()
         mock_api.get_leaderboard = AsyncMock(return_value=mock_empty_leaderboard_response)
 
-        with patch("commands.query.authorized", return_value=True), patch(
-            "commands.query._get_api"
-        ) as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.query import cmd_leaderboard
 
@@ -327,9 +329,10 @@ class TestCmdLeaderboard:
         mock_api = AsyncMock()
         mock_api.get_leaderboard = AsyncMock(return_value=mock_api_error_response)
 
-        with patch("commands.query.authorized", return_value=True), patch(
-            "commands.query._get_api"
-        ) as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.query import cmd_leaderboard
 
@@ -353,9 +356,10 @@ class TestCmdLeaderboard:
         mock_api = AsyncMock()
         mock_api.get_leaderboard = AsyncMock(return_value=mock_leaderboard_response)
 
-        with patch("commands.query.authorized", return_value=True), patch(
-            "commands.query._get_api"
-        ) as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.query import cmd_leaderboard
 
@@ -379,9 +383,10 @@ class TestCmdLeaderboard:
         mock_api = AsyncMock()
         mock_api.get_leaderboard = AsyncMock(return_value=mock_leaderboard_response)
 
-        with patch("commands.query.authorized", return_value=True), patch(
-            "commands.query._get_api"
-        ) as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.query import cmd_leaderboard
 
@@ -479,9 +484,10 @@ class TestOutputFormatting:
         mock_api = AsyncMock()
         mock_api.get_leaderboard = AsyncMock(return_value=mock_leaderboard_response)
 
-        with patch("commands.query.authorized", return_value=True), patch(
-            "commands.query._get_api"
-        ) as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.query import cmd_leaderboard
 
@@ -508,9 +514,10 @@ class TestOutputFormatting:
         mock_api = AsyncMock()
         mock_api.get_leaderboard = AsyncMock(return_value=mock_leaderboard_response)
 
-        with patch("commands.query.authorized", return_value=True), patch(
-            "commands.query._get_api"
-        ) as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.query import cmd_leaderboard
 

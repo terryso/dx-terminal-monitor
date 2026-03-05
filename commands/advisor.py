@@ -11,6 +11,7 @@ from telegram import Update
 from telegram.ext import ContextTypes
 
 from config import is_admin
+from utils.error_handler import safe_command
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +29,7 @@ def set_advisor_monitor(monitor):
     _advisor_monitor = monitor
 
 
+@safe_command
 async def cmd_advisor_on(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Enable AI strategy advisor."""
     if not is_admin(update.effective_user.id):
@@ -47,6 +49,7 @@ async def cmd_advisor_on(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("AI Strategy Advisor enabled")
 
 
+@safe_command
 async def cmd_advisor_off(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Disable AI strategy advisor."""
     if not is_admin(update.effective_user.id):
@@ -66,6 +69,7 @@ async def cmd_advisor_off(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("AI Strategy Advisor disabled")
 
 
+@safe_command
 async def cmd_advisor_status(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Show AI strategy advisor status."""
     if not is_admin(update.effective_user.id):
@@ -89,6 +93,7 @@ async def cmd_advisor_status(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     )
 
 
+@safe_command
 async def cmd_advisor_analyze(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Manually trigger AI strategy analysis (Story 8-5).
 
@@ -161,26 +166,35 @@ async def cmd_advisor_analyze(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         strategy_count = 0
 
         if collected.positions and "error" not in collected.positions:
-            raw_balance = collected.positions.get('ethBalance', 0)
+            raw_balance = collected.positions.get("ethBalance", 0)
             balance = f"{format_eth(str(raw_balance))} ETH"
-            raw_pnl = collected.positions.get('overallPnlUsd', collected.positions.get('totalPnlUsd', 0))
+            raw_pnl = collected.positions.get(
+                "overallPnlUsd", collected.positions.get("totalPnlUsd", 0)
+            )
             pnl = format_usd(raw_pnl)
-            token_count = len(collected.positions.get('positions', collected.positions.get('tokens', [])))
+            token_count = len(
+                collected.positions.get("positions", collected.positions.get("tokens", []))
+            )
 
-        if collected.strategies and not (isinstance(collected.strategies, dict) and "error" in collected.strategies):
+        if collected.strategies and not (
+            isinstance(collected.strategies, dict) and "error" in collected.strategies
+        ):
             import time
+
             current_time = int(time.time())
             active_strategies = [
-                s for s in collected.strategies
-                if s.get('active', True) and (s.get('expiry', 0) == 0 or s.get('expiry', 0) > current_time)
+                s
+                for s in collected.strategies
+                if s.get("active", True)
+                and (s.get("expiry", 0) == 0 or s.get("expiry", 0) > current_time)
             ]
             strategy_count = len(active_strategies)
 
         context = {
-            'balance': balance,
-            'positions': token_count,
-            'strategies': strategy_count,
-            'pnl': pnl,
+            "balance": balance,
+            "positions": token_count,
+            "strategies": strategy_count,
+            "pnl": pnl,
         }
 
         # Import push_suggestions here to avoid circular dependency
@@ -191,11 +205,13 @@ async def cmd_advisor_analyze(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             suggestions=suggestions,
             context=context,
             bot=ctx.bot,
-            record_id=_advisor_monitor.advisor.last_record_id
+            record_id=_advisor_monitor.advisor.last_record_id,
         )
 
         # Update status message
-        await status_msg.edit_text(f"Analysis complete! {len(suggestions)} suggestion(s) generated.")
+        await status_msg.edit_text(
+            f"Analysis complete! {len(suggestions)} suggestion(s) generated."
+        )
 
         # Record call time
         _last_manual_analysis[user_id] = datetime.now()
@@ -212,4 +228,5 @@ async def cmd_advisor_analyze(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 async def handle_advisor_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Handle inline keyboard callbacks - delegates to advisor_monitor."""
     from advisor_monitor import handle_advisor_callback as _handle
+
     await _handle(update, ctx)

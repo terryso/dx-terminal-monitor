@@ -1,4 +1,5 @@
 """DX Terminal Monitor Bot 入口模块。"""
+
 import asyncio
 import logging
 import time
@@ -32,7 +33,9 @@ try:
 except ImportError:
     ThresholdAlerter = None
 
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+)
 logger = logging.getLogger(__name__)
 
 # 全局实例
@@ -76,20 +79,36 @@ contract = get_contract
 async def post_init(app: Application):
     """应用初始化后的回调。"""
     commands = [
-        BotCommand("start", "Help"), BotCommand("balance", "Balance"), BotCommand("pnl", "PnL"),
-        BotCommand("positions", "Positions"), BotCommand("activity", "Activity"), BotCommand("swaps", "Swaps"),
-        BotCommand("strategies", "Strategies"), BotCommand("vault", "Vault info"),
-        BotCommand("price", "ETH price"), BotCommand("token", "Token details"),
-        BotCommand("tokens", "Tradeable tokens"), BotCommand("launches", "Upcoming token launches"),
-        BotCommand("leaderboard", "Vault leaderboard"), BotCommand("tweets", "Token-related tweets"),
-        BotCommand("deposits", "Deposits history"), BotCommand("pnl_history", "PnL trend history"),
-        BotCommand("deposit", "Deposit ETH to vault"), BotCommand("add_strategy", "Add new strategy"),
-        BotCommand("disable_strategy", "Disable strategy"), BotCommand("disable_all", "Disable all strategies"),
-        BotCommand("pause", "Pause agent trading"), BotCommand("resume", "Resume agent trading"),
-        BotCommand("update_settings", "Update vault settings"), BotCommand("withdraw", "Withdraw ETH to wallet"),
-        BotCommand("monitor_status", "Check monitor status"), BotCommand("monitor_start", "Start activity monitor"),
-        BotCommand("monitor_stop", "Stop activity monitor"), BotCommand("report_on", "Enable daily report"),
-        BotCommand("report_off", "Disable daily report"), BotCommand("report_time", "Set report time"),
+        BotCommand("start", "Help"),
+        BotCommand("balance", "Balance"),
+        BotCommand("pnl", "PnL"),
+        BotCommand("positions", "Positions"),
+        BotCommand("activity", "Activity"),
+        BotCommand("swaps", "Swaps"),
+        BotCommand("strategies", "Strategies"),
+        BotCommand("vault", "Vault info"),
+        BotCommand("price", "ETH price"),
+        BotCommand("token", "Token details"),
+        BotCommand("tokens", "Tradeable tokens"),
+        BotCommand("launches", "Upcoming token launches"),
+        BotCommand("leaderboard", "Vault leaderboard"),
+        BotCommand("tweets", "Token-related tweets"),
+        BotCommand("deposits", "Deposits history"),
+        BotCommand("pnl_history", "PnL trend history"),
+        BotCommand("deposit", "Deposit ETH to vault"),
+        BotCommand("add_strategy", "Add new strategy"),
+        BotCommand("disable_strategy", "Disable strategy"),
+        BotCommand("disable_all", "Disable all strategies"),
+        BotCommand("pause", "Pause agent trading"),
+        BotCommand("resume", "Resume agent trading"),
+        BotCommand("update_settings", "Update vault settings"),
+        BotCommand("withdraw", "Withdraw ETH to wallet"),
+        BotCommand("monitor_status", "Check monitor status"),
+        BotCommand("monitor_start", "Start activity monitor"),
+        BotCommand("monitor_stop", "Stop activity monitor"),
+        BotCommand("report_on", "Enable daily report"),
+        BotCommand("report_off", "Disable daily report"),
+        BotCommand("report_time", "Set report time"),
         BotCommand("report_status", "Show report settings"),
         BotCommand("alert_pnl", "Set PnL alert threshold"),
         BotCommand("alert_position", "Set position alert threshold"),
@@ -101,7 +120,12 @@ async def post_init(app: Application):
     ]
     await app.bot.set_my_commands(commands)
     logger.info("Commands menu set")
-    global _notifier_instance, _monitor_instance, _reporter_instance, _alerter_instance, _advisor_monitor_instance
+    global \
+        _notifier_instance, \
+        _monitor_instance, \
+        _reporter_instance, \
+        _alerter_instance, \
+        _advisor_monitor_instance
     _notifier_instance = TelegramNotifier(app.bot)
     _monitor_instance = ActivityMonitor(api, _on_new_activity)
     set_monitor_instance(_monitor_instance)
@@ -111,13 +135,17 @@ async def post_init(app: Application):
     _reporter_instance = DailyReporter(api, _notifier_instance)
     if REPORT_ENABLED:
         await _reporter_instance.start_background()
-        logger.info(f"Daily reporter started ({_reporter_instance.report_time[0]:02d}:{_reporter_instance.report_time[1]:02d} UTC)")
+        logger.info(
+            f"Daily reporter started ({_reporter_instance.report_time[0]:02d}:{_reporter_instance.report_time[1]:02d} UTC)"
+        )
     # Initialize threshold alerter
     if ThresholdAlerter is not None:
         _alerter_instance = ThresholdAlerter(api, _notifier_instance)
         if ALERT_ENABLED:
             await _alerter_instance.start_background()
-            logger.info(f"Threshold alerter started (PnL: {_alerter_instance.pnl_threshold}%, Position: {_alerter_instance.position_threshold}%)")
+            logger.info(
+                f"Threshold alerter started (PnL: {_alerter_instance.pnl_threshold}%, Position: {_alerter_instance.position_threshold}%)"
+            )
     # Initialize AI strategy advisor
     if ADVISOR_ENABLED:
         from telegram.ext import CallbackQueryHandler
@@ -135,6 +163,7 @@ async def post_init(app: Application):
             set_advisor_monitor(_advisor_monitor_instance)
             # Register callback handler for inline keyboard
             from commands.advisor import handle_advisor_callback
+
             app.add_handler(CallbackQueryHandler(handle_advisor_callback, pattern=r"^adv:"))
             await _advisor_monitor_instance.start_background()
             logger.info(f"Advisor monitor started ({ADVISOR_INTERVAL_HOURS}h interval)")
@@ -152,7 +181,7 @@ def create_app():
 
     from telegram.request import HTTPXRequest
 
-    proxy_url = os.environ.get('https_proxy') or os.environ.get('HTTPS_PROXY')
+    proxy_url = os.environ.get("https_proxy") or os.environ.get("HTTPS_PROXY")
     if proxy_url:
         request = HTTPXRequest(proxy=proxy_url)
         app = (
@@ -164,12 +193,7 @@ def create_app():
         )
         logger.info(f"Using proxy: {proxy_url}")
     else:
-        app = (
-            Application.builder()
-            .token(TELEGRAM_BOT_TOKEN)
-            .post_init(post_init)
-            .build()
-        )
+        app = Application.builder().token(TELEGRAM_BOT_TOKEN).post_init(post_init).build()
     register_handlers(app)
     return app
 

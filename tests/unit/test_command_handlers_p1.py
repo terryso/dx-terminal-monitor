@@ -12,6 +12,7 @@ import pytest
 # Tests for cmd_activity
 # =============================================================================
 
+
 class TestCmdActivity:
     """Tests for /activity command."""
 
@@ -37,8 +38,10 @@ class TestCmdActivity:
             ]
         }
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api") as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_api = MagicMock()
             mock_api.get_activity = AsyncMock(return_value=mock_api_response)
             mock_get_api.return_value = mock_api
@@ -74,8 +77,10 @@ class TestCmdActivity:
             ]
         }
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api") as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_api = MagicMock()
             mock_api.get_activity = AsyncMock(return_value=mock_api_response)
             mock_get_api.return_value = mock_api
@@ -109,8 +114,10 @@ class TestCmdActivity:
             ]
         }
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api") as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_api = MagicMock()
             mock_api.get_activity = AsyncMock(return_value=mock_api_response)
             mock_get_api.return_value = mock_api
@@ -134,14 +141,32 @@ class TestCmdActivity:
         # Given
         mock_api_response = {
             "items": [
-                {"type": "swap", "timestamp": 1700000000, "swap": {"tokenSymbol": "USDC", "side": "sell", "ethAmount": "100000000000000000"}},
-                {"type": "deposit", "timestamp": 1700000100, "deposit": {"amountWei": "500000000000000000"}},
-                {"type": "withdrawal", "timestamp": 1700000200, "withdrawal": {"amountWei": "200000000000000000"}},
+                {
+                    "type": "swap",
+                    "timestamp": 1700000000,
+                    "swap": {
+                        "tokenSymbol": "USDC",
+                        "side": "sell",
+                        "ethAmount": "100000000000000000",
+                    },
+                },
+                {
+                    "type": "deposit",
+                    "timestamp": 1700000100,
+                    "deposit": {"amountWei": "500000000000000000"},
+                },
+                {
+                    "type": "withdrawal",
+                    "timestamp": 1700000200,
+                    "withdrawal": {"amountWei": "200000000000000000"},
+                },
             ]
         }
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api") as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_api = MagicMock()
             mock_api.get_activity = AsyncMock(return_value=mock_api_response)
             mock_get_api.return_value = mock_api
@@ -166,8 +191,10 @@ class TestCmdActivity:
         # Given
         mock_api_response = {"items": []}
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api") as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_api = MagicMock()
             mock_api.get_activity = AsyncMock(return_value=mock_api_response)
             mock_get_api.return_value = mock_api
@@ -177,9 +204,7 @@ class TestCmdActivity:
             await cmd_activity(mock_telegram_update, mock_telegram_context)
 
         # Then
-        mock_telegram_update.message.reply_text.assert_called_once_with(
-            "No recent activity"
-        )
+        mock_telegram_update.message.reply_text.assert_called_once_with("No recent activity")
 
     @pytest.mark.asyncio
     async def test_activity_api_error(
@@ -191,8 +216,10 @@ class TestCmdActivity:
         # Given
         mock_api_response = {"error": "Timeout"}
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api") as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_api = MagicMock()
             mock_api.get_activity = AsyncMock(return_value=mock_api_response)
             mock_get_api.return_value = mock_api
@@ -202,9 +229,7 @@ class TestCmdActivity:
             await cmd_activity(mock_telegram_update, mock_telegram_context)
 
         # Then
-        mock_telegram_update.message.reply_text.assert_called_once_with(
-            "Error: Timeout"
-        )
+        mock_telegram_update.message.reply_text.assert_called_once_with("Error: Timeout")
 
     @pytest.mark.asyncio
     async def test_activity_unauthorized(
@@ -226,6 +251,7 @@ class TestCmdActivity:
 # =============================================================================
 # Tests for cmd_swaps
 # =============================================================================
+
 
 class TestCmdSwaps:
     """Tests for /swaps command."""
@@ -255,8 +281,10 @@ class TestCmdSwaps:
             ]
         }
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api") as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_api = MagicMock()
             mock_api.get_swaps = AsyncMock(return_value=mock_api_response)
             mock_get_api.return_value = mock_api
@@ -284,8 +312,10 @@ class TestCmdSwaps:
         # Given
         mock_api_response = {"items": []}
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api") as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_api = MagicMock()
             mock_api.get_swaps = AsyncMock(return_value=mock_api_response)
             mock_get_api.return_value = mock_api
@@ -295,9 +325,7 @@ class TestCmdSwaps:
             await cmd_swaps(mock_telegram_update, mock_telegram_context)
 
         # Then
-        mock_telegram_update.message.reply_text.assert_called_once_with(
-            "No swaps"
-        )
+        mock_telegram_update.message.reply_text.assert_called_once_with("No swaps")
 
     @pytest.mark.asyncio
     async def test_swaps_api_error(
@@ -309,8 +337,10 @@ class TestCmdSwaps:
         # Given
         mock_api_response = {"error": "Network error"}
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api") as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_api = MagicMock()
             mock_api.get_swaps = AsyncMock(return_value=mock_api_response)
             mock_get_api.return_value = mock_api
@@ -320,9 +350,7 @@ class TestCmdSwaps:
             await cmd_swaps(mock_telegram_update, mock_telegram_context)
 
         # Then
-        mock_telegram_update.message.reply_text.assert_called_once_with(
-            "Error: Network error"
-        )
+        mock_telegram_update.message.reply_text.assert_called_once_with("Error: Network error")
 
     @pytest.mark.asyncio
     async def test_swaps_unauthorized(
@@ -344,6 +372,7 @@ class TestCmdSwaps:
 # =============================================================================
 # Tests for cmd_strategies
 # =============================================================================
+
 
 class TestCmdStrategies:
     """Tests for /strategies command."""
@@ -369,8 +398,10 @@ class TestCmdStrategies:
             },
         ]
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api") as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_api = MagicMock()
             mock_api.get_strategies = AsyncMock(return_value=mock_api_response)
             mock_get_api.return_value = mock_api
@@ -397,8 +428,10 @@ class TestCmdStrategies:
         # Given
         mock_api_response = []
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api") as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_api = MagicMock()
             mock_api.get_strategies = AsyncMock(return_value=mock_api_response)
             mock_get_api.return_value = mock_api
@@ -408,9 +441,7 @@ class TestCmdStrategies:
             await cmd_strategies(mock_telegram_update, mock_telegram_context)
 
         # Then
-        mock_telegram_update.message.reply_text.assert_called_once_with(
-            "No active strategies"
-        )
+        mock_telegram_update.message.reply_text.assert_called_once_with("No active strategies")
 
     @pytest.mark.asyncio
     async def test_strategies_api_error(
@@ -422,8 +453,10 @@ class TestCmdStrategies:
         # Given
         mock_api_response = {"error": "Unauthorized access"}
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api") as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_api = MagicMock()
             mock_api.get_strategies = AsyncMock(return_value=mock_api_response)
             mock_get_api.return_value = mock_api
@@ -458,6 +491,7 @@ class TestCmdStrategies:
 # Tests for cmd_vault
 # =============================================================================
 
+
 class TestCmdVault:
     """Tests for /vault command."""
 
@@ -480,8 +514,10 @@ class TestCmdVault:
             "slippageBps": "50",  # 0.5%
         }
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api") as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_api = MagicMock()
             mock_api.get_vault = AsyncMock(return_value=mock_api_response)
             mock_get_api.return_value = mock_api
@@ -522,8 +558,10 @@ class TestCmdVault:
             "slippageBps": "100",
         }
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api") as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_api = MagicMock()
             mock_api.get_vault = AsyncMock(return_value=mock_api_response)
             mock_get_api.return_value = mock_api
@@ -547,8 +585,10 @@ class TestCmdVault:
         # Given
         mock_api_response = {"error": "Vault not found"}
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api") as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_api = MagicMock()
             mock_api.get_vault = AsyncMock(return_value=mock_api_response)
             mock_get_api.return_value = mock_api
@@ -558,9 +598,7 @@ class TestCmdVault:
             await cmd_vault(mock_telegram_update, mock_telegram_context)
 
         # Then
-        mock_telegram_update.message.reply_text.assert_called_once_with(
-            "Error: Vault not found"
-        )
+        mock_telegram_update.message.reply_text.assert_called_once_with("Error: Vault not found")
 
     @pytest.mark.asyncio
     async def test_vault_unauthorized(
@@ -585,6 +623,7 @@ class TestCmdVault:
 # Once cmd_disable_strategy is implemented, remove the @pytest.mark.skip decorators.
 # =============================================================================
 
+
 class TestCmdDisableStrategy:
     """Tests for /disable_strategy command (Story 1.1)."""
 
@@ -595,22 +634,22 @@ class TestCmdDisableStrategy:
         import sys
 
         # Set environment variables
-        os.environ['RPC_URL'] = 'https://eth-test.example.com'
-        os.environ['PRIVATE_KEY'] = '0x' + 'a' * 64
-        os.environ['CHAIN_ID'] = '1'
-        os.environ['VAULT_ADDRESS'] = '0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C'
+        os.environ["RPC_URL"] = "https://eth-test.example.com"
+        os.environ["PRIVATE_KEY"] = "0x" + "a" * 64
+        os.environ["CHAIN_ID"] = "1"
+        os.environ["VAULT_ADDRESS"] = "0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C"
 
         # Remove main and contract from cache if loaded
-        for mod in ['main', 'contract', 'config']:
+        for mod in ["main", "contract", "config"]:
             if mod in sys.modules:
                 del sys.modules[mod]
 
         yield
 
         # Clean up
-        for key in ['RPC_URL', 'PRIVATE_KEY', 'CHAIN_ID', 'VAULT_ADDRESS']:
+        for key in ["RPC_URL", "PRIVATE_KEY", "CHAIN_ID", "VAULT_ADDRESS"]:
             os.environ.pop(key, None)
-        for mod in ['main', 'contract', 'config']:
+        for mod in ["main", "contract", "config"]:
             if mod in sys.modules:
                 del sys.modules[mod]
 
@@ -618,10 +657,12 @@ class TestCmdDisableStrategy:
     def mock_contract_instance(self) -> MagicMock:
         """Create a mock contract instance."""
         contract_mock = MagicMock()
-        contract_mock.disable_strategy = AsyncMock(return_value={
-            'success': True,
-            'transactionHash': '0xabc123...',
-        })
+        contract_mock.disable_strategy = AsyncMock(
+            return_value={
+                "success": True,
+                "transactionHash": "0xabc123...",
+            }
+        )
         return contract_mock
 
     @pytest.mark.asyncio
@@ -636,8 +677,8 @@ class TestCmdDisableStrategy:
         strategy_id = 1
         mock_tx_hash = "0xabc123def456..."
         mock_contract_instance.disable_strategy.return_value = {
-            'success': True,
-            'transactionHash': mock_tx_hash,
+            "success": True,
+            "transactionHash": mock_tx_hash,
         }
 
         # Patch contract.VaultContract before importing commands.admin
@@ -720,10 +761,12 @@ class TestCmdDisableStrategy:
         # Given
         strategy_id = 999
         mock_contract = MagicMock()
-        mock_contract.disable_strategy = AsyncMock(return_value={
-            'success': False,
-            'error': "Strategy #999 doesn't exist or is not active",
-        })
+        mock_contract.disable_strategy = AsyncMock(
+            return_value={
+                "success": False,
+                "error": "Strategy #999 doesn't exist or is not active",
+            }
+        )
 
         with patch("contract.VaultContract", return_value=mock_contract):
             from commands.admin import cmd_disable_strategy
@@ -750,10 +793,12 @@ class TestCmdDisableStrategy:
         # Given
         strategy_id = 1
         mock_contract = MagicMock()
-        mock_contract.disable_strategy = AsyncMock(return_value={
-            'success': False,
-            'error': "Strategy is not active",
-        })
+        mock_contract.disable_strategy = AsyncMock(
+            return_value={
+                "success": False,
+                "error": "Strategy is not active",
+            }
+        )
 
         with patch("contract.VaultContract", return_value=mock_contract):
             from commands.admin import cmd_disable_strategy
@@ -781,10 +826,12 @@ class TestCmdDisableStrategy:
         strategy_id = 1
         error_msg = "Insufficient gas"
         mock_contract = MagicMock()
-        mock_contract.disable_strategy = AsyncMock(return_value={
-            'success': False,
-            'error': error_msg,
-        })
+        mock_contract.disable_strategy = AsyncMock(
+            return_value={
+                "success": False,
+                "error": error_msg,
+            }
+        )
 
         with patch("contract.VaultContract", return_value=mock_contract):
             from commands.admin import cmd_disable_strategy
@@ -838,10 +885,12 @@ class TestCmdDisableStrategy:
         strategy_id = 1
         mock_tx_hash = "0xdef456..."
         mock_contract = MagicMock()
-        mock_contract.disable_strategy = AsyncMock(return_value={
-            'success': True,
-            'transactionHash': mock_tx_hash,
-        })
+        mock_contract.disable_strategy = AsyncMock(
+            return_value={
+                "success": True,
+                "transactionHash": mock_tx_hash,
+            }
+        )
 
         with patch("contract.VaultContract", return_value=mock_contract):
             from commands.admin import cmd_disable_strategy
@@ -853,7 +902,7 @@ class TestCmdDisableStrategy:
                 # When
                 await cmd_disable_strategy(mock_telegram_update, mock_telegram_context)
 
-        # Then - contract was called (authorization passed)
+            # Then - contract was called (authorization passed)
             mock_contract.disable_strategy.assert_called_once_with(strategy_id)
             mock_telegram_update.message.reply_text.assert_called_once()
 
@@ -866,10 +915,12 @@ class TestCmdDisableStrategy:
         """Test disable strategy with negative ID (P1)."""
         # Given
         mock_contract = MagicMock()
-        mock_contract.disable_strategy = AsyncMock(return_value={
-            'success': True,
-            'transactionHash': "0x...",
-        })
+        mock_contract.disable_strategy = AsyncMock(
+            return_value={
+                "success": True,
+                "transactionHash": "0x...",
+            }
+        )
 
         with patch("contract.VaultContract", return_value=mock_contract):
             from commands.admin import cmd_disable_strategy
@@ -881,7 +932,7 @@ class TestCmdDisableStrategy:
                 # When
                 await cmd_disable_strategy(mock_telegram_update, mock_telegram_context)
 
-        # Then - should handle negative ID (either reject or pass through to contract)
+            # Then - should handle negative ID (either reject or pass through to contract)
             mock_telegram_update.message.reply_text.assert_called_once()
 
     @pytest.mark.asyncio
@@ -893,10 +944,12 @@ class TestCmdDisableStrategy:
         """Test disable strategy with zero ID (P1)."""
         # Given
         mock_contract = MagicMock()
-        mock_contract.disable_strategy = AsyncMock(return_value={
-            'success': True,
-            'transactionHash': "0x...",
-        })
+        mock_contract.disable_strategy = AsyncMock(
+            return_value={
+                "success": True,
+                "transactionHash": "0x...",
+            }
+        )
 
         with patch("contract.VaultContract", return_value=mock_contract):
             from commands.admin import cmd_disable_strategy
@@ -908,7 +961,7 @@ class TestCmdDisableStrategy:
                 # When
                 await cmd_disable_strategy(mock_telegram_update, mock_telegram_context)
 
-        # Then - should handle zero ID (either reject or pass through to contract)
+            # Then - should handle zero ID (either reject or pass through to contract)
             mock_telegram_update.message.reply_text.assert_called_once()
 
     @pytest.mark.asyncio
@@ -921,10 +974,12 @@ class TestCmdDisableStrategy:
         # Given
         strategy_id = 1
         mock_contract = MagicMock()
-        mock_contract.disable_strategy = AsyncMock(return_value={
-            'success': True,
-            'transactionHash': "0xtest...",
-        })
+        mock_contract.disable_strategy = AsyncMock(
+            return_value={
+                "success": True,
+                "transactionHash": "0xtest...",
+            }
+        )
 
         with patch("contract.VaultContract", return_value=mock_contract):
             from commands.admin import cmd_disable_strategy
@@ -937,7 +992,7 @@ class TestCmdDisableStrategy:
                 # When
                 await cmd_disable_strategy(mock_telegram_update, mock_telegram_context)
 
-        # Then - should use only first argument
+            # Then - should use only first argument
             mock_contract.disable_strategy.assert_called_once_with(strategy_id)
 
     @pytest.mark.asyncio
@@ -956,10 +1011,12 @@ class TestCmdDisableStrategy:
 
         # Create a mock instance with proper setup
         mock_vault = MagicMock(spec=VaultContract)
-        mock_vault._send_transaction = AsyncMock(return_value={
-            'success': True,
-            'transactionHash': '0xabc123...',
-        })
+        mock_vault._send_transaction = AsyncMock(
+            return_value={
+                "success": True,
+                "transactionHash": "0xabc123...",
+            }
+        )
         mock_vault.contract = MagicMock()
         mock_vault.contract.functions.disableStrategy.return_value = "mock_tx_func"
 
@@ -967,8 +1024,8 @@ class TestCmdDisableStrategy:
         result = await VaultContract.disable_strategy(mock_vault, strategy_id)
 
         # Then
-        assert result['success'] is True
-        assert 'transactionHash' in result
+        assert result["success"] is True
+        assert "transactionHash" in result
         mock_vault._send_transaction.assert_called_once()
 
 
@@ -976,6 +1033,7 @@ class TestCmdDisableStrategy:
 # Tests for cmd_disable_all (Story 1.2 - ATDD RED PHASE)
 # These tests are intentionally designed to FAIL until the feature is implemented.
 # =============================================================================
+
 
 class TestCmdDisableAll:
     """Tests for /disable_all command (Story 1.2)."""
@@ -987,22 +1045,22 @@ class TestCmdDisableAll:
         import sys
 
         # Set environment variables
-        os.environ['RPC_URL'] = 'https://eth-test.example.com'
-        os.environ['PRIVATE_KEY'] = '0x' + 'a' * 64
-        os.environ['CHAIN_ID'] = '1'
-        os.environ['VAULT_ADDRESS'] = '0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C'
+        os.environ["RPC_URL"] = "https://eth-test.example.com"
+        os.environ["PRIVATE_KEY"] = "0x" + "a" * 64
+        os.environ["CHAIN_ID"] = "1"
+        os.environ["VAULT_ADDRESS"] = "0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C"
 
         # Remove main and contract from cache if loaded
-        for mod in ['main', 'contract', 'config']:
+        for mod in ["main", "contract", "config"]:
             if mod in sys.modules:
                 del sys.modules[mod]
 
         yield
 
         # Clean up
-        for key in ['RPC_URL', 'PRIVATE_KEY', 'CHAIN_ID', 'VAULT_ADDRESS']:
+        for key in ["RPC_URL", "PRIVATE_KEY", "CHAIN_ID", "VAULT_ADDRESS"]:
             os.environ.pop(key, None)
-        for mod in ['main', 'contract', 'config']:
+        for mod in ["main", "contract", "config"]:
             if mod in sys.modules:
                 del sys.modules[mod]
 
@@ -1010,11 +1068,13 @@ class TestCmdDisableAll:
     def mock_contract_instance(self) -> MagicMock:
         """Create a mock contract instance."""
         contract_mock = MagicMock()
-        contract_mock.disable_all_strategies = AsyncMock(return_value={
-            'success': True,
-            'transactionHash': '0xabc123...',
-            'disabledCount': 3,
-        })
+        contract_mock.disable_all_strategies = AsyncMock(
+            return_value={
+                "success": True,
+                "transactionHash": "0xabc123...",
+                "disabledCount": 3,
+            }
+        )
         return contract_mock
 
     @pytest.mark.asyncio
@@ -1029,22 +1089,26 @@ class TestCmdDisableAll:
         mock_tx_hash = "0xdef456..."
         disabled_count = 3
         mock_contract_instance.disable_all_strategies.return_value = {
-            'success': True,
-            'transactionHash': mock_tx_hash,
-            'disabledCount': disabled_count,
+            "success": True,
+            "transactionHash": mock_tx_hash,
+            "disabledCount": disabled_count,
         }
 
         with patch("contract.VaultContract", return_value=mock_contract_instance):
             from commands.admin import cmd_disable_all
 
-            with patch("commands.admin.is_admin", return_value=True), \
-                 patch("commands.admin._get_api") as mock_get_api:
+            with (
+                patch("commands.admin.is_admin", return_value=True),
+                patch("commands.admin._get_api") as mock_get_api,
+            ):
                 mock_api = MagicMock()
-                mock_api.get_strategies = AsyncMock(return_value=[
-                    {"strategyId": 1},
-                    {"strategyId": 2},
-                    {"strategyId": 3},
-                ])
+                mock_api.get_strategies = AsyncMock(
+                    return_value=[
+                        {"strategyId": 1},
+                        {"strategyId": 2},
+                        {"strategyId": 3},
+                    ]
+                )
                 mock_get_api.return_value = mock_api
                 mock_telegram_update.message.reply_text = AsyncMock()
 
@@ -1068,16 +1132,18 @@ class TestCmdDisableAll:
         """Test disable all when no active strategies (P1)."""
         # Given - API returns empty strategies list
         mock_contract_instance.disable_all_strategies.return_value = {
-            'success': True,
-            'disabledCount': 0,
-            'message': 'no_active_strategies',
+            "success": True,
+            "disabledCount": 0,
+            "message": "no_active_strategies",
         }
 
         with patch("contract.VaultContract", return_value=mock_contract_instance):
             from commands.admin import cmd_disable_all
 
-            with patch("commands.admin.is_admin", return_value=True), \
-                 patch("commands.admin._get_api") as mock_get_api:
+            with (
+                patch("commands.admin.is_admin", return_value=True),
+                patch("commands.admin._get_api") as mock_get_api,
+            ):
                 mock_api = MagicMock()
                 mock_api.get_strategies = AsyncMock(return_value=[])
                 mock_get_api.return_value = mock_api
@@ -1125,18 +1191,21 @@ class TestCmdDisableAll:
         # Given
         error_msg = "Gas 估算失败，可能是合约条件不满足"
         mock_contract_instance.disable_all_strategies.return_value = {
-            'success': False,
-            'error': error_msg,
+            "success": False,
+            "error": error_msg,
         }
 
         with patch("contract.VaultContract", return_value=mock_contract_instance):
             from commands.admin import cmd_disable_all
 
-            with patch("commands.admin.is_admin", return_value=True), \
-                 patch("commands.admin._get_api") as mock_get_api:
+            with (
+                patch("commands.admin.is_admin", return_value=True),
+                patch("commands.admin._get_api") as mock_get_api,
+            ):
                 mock_api = MagicMock()
-                mock_api.get_strategies = AsyncMock(return_value=[
-                    {"strategyId": 1},{"strategyId": 1}])
+                mock_api.get_strategies = AsyncMock(
+                    return_value=[{"strategyId": 1}, {"strategyId": 1}]
+                )
                 mock_telegram_update.message.reply_text = AsyncMock()
 
                 # When
@@ -1158,12 +1227,14 @@ class TestCmdDisableAll:
 
         # Create a mock instance with proper setup
         mock_vault = MagicMock(spec=VaultContract)
-        mock_vault._send_transaction = AsyncMock(return_value={
-            'success': True,
-            'transactionHash': '0xabc123...',
-            'status': 1,
-            'blockNumber': 12345,
-        })
+        mock_vault._send_transaction = AsyncMock(
+            return_value={
+                "success": True,
+                "transactionHash": "0xabc123...",
+                "status": 1,
+                "blockNumber": 12345,
+            }
+        )
         mock_vault.contract = MagicMock()
         mock_vault.contract.functions.disableAllActiveStrategies.return_value = "mock_tx_func"
 
@@ -1175,9 +1246,9 @@ class TestCmdDisableAll:
         result = await VaultContract.disable_all_strategies(mock_vault, mock_get_count)
 
         # Then
-        assert result['success'] is True
-        assert result['disabledCount'] == 3
-        assert 'transactionHash' in result
+        assert result["success"] is True
+        assert result["disabledCount"] == 3
+        assert "transactionHash" in result
         mock_vault._send_transaction.assert_called_once()
 
     @pytest.mark.asyncio
@@ -1188,13 +1259,13 @@ class TestCmdDisableAll:
         import os
         import sys
 
-        os.environ['RPC_URL'] = 'https://eth-test.example.com'
-        os.environ['PRIVATE_KEY'] = '0x' + 'a' * 64
-        os.environ['CHAIN_ID'] = '1'
-        os.environ['VAULT_ADDRESS'] = '0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C'
-        os.environ['TELEGRAM_BOT_TOKEN'] = '123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11'
+        os.environ["RPC_URL"] = "https://eth-test.example.com"
+        os.environ["PRIVATE_KEY"] = "0x" + "a" * 64
+        os.environ["CHAIN_ID"] = "1"
+        os.environ["VAULT_ADDRESS"] = "0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C"
+        os.environ["TELEGRAM_BOT_TOKEN"] = "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
 
-        for mod in ['main', 'contract', 'config']:
+        for mod in ["main", "contract", "config"]:
             if mod in sys.modules:
                 del sys.modules[mod]
 
@@ -1211,13 +1282,12 @@ class TestCmdDisableAll:
 
             # CommandHandler uses 'commands' attribute (frozenset)
             has_disable_all = any(
-                hasattr(h, 'commands') and 'disable_all' in h.commands
-                for h in all_handlers
+                hasattr(h, "commands") and "disable_all" in h.commands for h in all_handlers
             )
 
             assert has_disable_all, "Command handler for 'disable_all' not registered"
         finally:
-            for key in ['RPC_URL', 'PRIVATE_KEY', 'CHAIN_ID', 'VAULT_ADDRESS']:
+            for key in ["RPC_URL", "PRIVATE_KEY", "CHAIN_ID", "VAULT_ADDRESS"]:
                 os.environ.pop(key, None)
 
     @pytest.mark.asyncio
@@ -1228,13 +1298,13 @@ class TestCmdDisableAll:
         import os
         import sys
 
-        os.environ['RPC_URL'] = 'https://eth-test.example.com'
-        os.environ['PRIVATE_KEY'] = '0x' + 'a' * 64
-        os.environ['CHAIN_ID'] = '1'
-        os.environ['VAULT_ADDRESS'] = '0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C'
-        os.environ['TELEGRAM_BOT_TOKEN'] = '123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11'
+        os.environ["RPC_URL"] = "https://eth-test.example.com"
+        os.environ["PRIVATE_KEY"] = "0x" + "a" * 64
+        os.environ["CHAIN_ID"] = "1"
+        os.environ["VAULT_ADDRESS"] = "0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C"
+        os.environ["TELEGRAM_BOT_TOKEN"] = "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
 
-        for mod in ['main', 'contract', 'config']:
+        for mod in ["main", "contract", "config"]:
             if mod in sys.modules:
                 del sys.modules[mod]
 
@@ -1256,10 +1326,12 @@ class TestCmdDisableAll:
             commands = mock_bot.set_my_commands.call_args[0][0]
 
             # Verify disable_all command is in the list
-            command_names = [cmd.command if hasattr(cmd, 'command') else str(cmd) for cmd in commands]
-            assert 'disable_all' in command_names, "'disable_all' not in bot commands"
+            command_names = [
+                cmd.command if hasattr(cmd, "command") else str(cmd) for cmd in commands
+            ]
+            assert "disable_all" in command_names, "'disable_all' not in bot commands"
         finally:
-            for key in ['RPC_URL', 'PRIVATE_KEY', 'CHAIN_ID', 'VAULT_ADDRESS']:
+            for key in ["RPC_URL", "PRIVATE_KEY", "CHAIN_ID", "VAULT_ADDRESS"]:
                 os.environ.pop(key, None)
 
     @pytest.mark.asyncio
@@ -1272,13 +1344,13 @@ class TestCmdDisableAll:
         import os
         import sys
 
-        os.environ['RPC_URL'] = 'https://eth-test.example.com'
-        os.environ['PRIVATE_KEY'] = '0x' + 'a' * 64
-        os.environ['CHAIN_ID'] = '1'
-        os.environ['VAULT_ADDRESS'] = '0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C'
-        os.environ['TELEGRAM_BOT_TOKEN'] = '123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11'
+        os.environ["RPC_URL"] = "https://eth-test.example.com"
+        os.environ["PRIVATE_KEY"] = "0x" + "a" * 64
+        os.environ["CHAIN_ID"] = "1"
+        os.environ["VAULT_ADDRESS"] = "0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C"
+        os.environ["TELEGRAM_BOT_TOKEN"] = "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
 
-        for mod in ['main', 'contract', 'config']:
+        for mod in ["main", "contract", "config"]:
             if mod in sys.modules:
                 del sys.modules[mod]
 
@@ -1295,7 +1367,7 @@ class TestCmdDisableAll:
                 call_args = mock_telegram_update.message.reply_text.call_args[0][0]
                 assert "disable_all" in call_args.lower() or "/disable_all" in call_args
         finally:
-            for key in ['RPC_URL', 'PRIVATE_KEY', 'CHAIN_ID', 'VAULT_ADDRESS']:
+            for key in ["RPC_URL", "PRIVATE_KEY", "CHAIN_ID", "VAULT_ADDRESS"]:
                 os.environ.pop(key, None)
 
     @pytest.mark.asyncio
@@ -1309,16 +1381,18 @@ class TestCmdDisableAll:
         # Given - API returns error, count unavailable
         mock_tx_hash = "0xdef456..."
         mock_contract_instance.disable_all_strategies.return_value = {
-            'success': True,
-            'transactionHash': mock_tx_hash,
-            'disabledCount': -1,  # -1 indicates count unavailable
+            "success": True,
+            "transactionHash": mock_tx_hash,
+            "disabledCount": -1,  # -1 indicates count unavailable
         }
 
         with patch("contract.VaultContract", return_value=mock_contract_instance):
             from commands.admin import cmd_disable_all
 
-            with patch("commands.admin.is_admin", return_value=True), \
-                 patch("commands.admin._get_api") as mock_get_api:
+            with (
+                patch("commands.admin.is_admin", return_value=True),
+                patch("commands.admin._get_api") as mock_get_api,
+            ):
                 mock_api = MagicMock()
                 mock_api.get_strategies = AsyncMock(return_value={"error": "API unavailable"})
                 mock_get_api.return_value = mock_api
@@ -1341,12 +1415,14 @@ class TestCmdDisableAll:
         from contract import VaultContract
 
         mock_vault = MagicMock(spec=VaultContract)
-        mock_vault._send_transaction = AsyncMock(return_value={
-            'success': True,
-            'transactionHash': '0xabc123...',
-            'status': 1,
-            'blockNumber': 12345,
-        })
+        mock_vault._send_transaction = AsyncMock(
+            return_value={
+                "success": True,
+                "transactionHash": "0xabc123...",
+                "status": 1,
+                "blockNumber": 12345,
+            }
+        )
         mock_vault.contract = MagicMock()
         mock_vault.contract.functions.disableAllActiveStrategies.return_value = "mock_tx_func"
 
@@ -1354,13 +1430,14 @@ class TestCmdDisableAll:
         result = await VaultContract.disable_all_strategies(mock_vault, None)
 
         # Then
-        assert result['success'] is True
-        assert result['disabledCount'] == -1  # -1 indicates count unavailable
+        assert result["success"] is True
+        assert result["disabledCount"] == -1  # -1 indicates count unavailable
 
 
 # =============================================================================
 # Tests for cmd_add_strategy (Story 2-1: ATDD RED Phase)
 # =============================================================================
+
 
 class TestCmdAddStrategy:
     """Tests for /add_strategy command - Story 2-1.
@@ -1397,8 +1474,10 @@ class TestCmdAddStrategy:
         mock_contract_instance = MagicMock()
         mock_contract_instance.add_strategy = AsyncMock(return_value=mock_contract_result)
 
-        with patch("commands.admin.is_admin", return_value=True), \
-             patch("commands.admin._get_contract") as mock_get_contract:
+        with (
+            patch("commands.admin.is_admin", return_value=True),
+            patch("commands.admin._get_contract") as mock_get_contract,
+        ):
             mock_get_contract.return_value = mock_contract_instance
             from commands.admin import cmd_add_strategy
 
@@ -1430,8 +1509,10 @@ class TestCmdAddStrategy:
         mock_contract_instance = MagicMock()
         mock_contract_instance.add_strategy = AsyncMock()
 
-        with patch("commands.admin.is_admin", return_value=False), \
-             patch("commands.admin._get_contract") as mock_get_contract:
+        with (
+            patch("commands.admin.is_admin", return_value=False),
+            patch("commands.admin._get_contract") as mock_get_contract,
+        ):
             mock_get_contract.return_value = mock_contract_instance
             from commands.admin import cmd_add_strategy
 
@@ -1521,8 +1602,10 @@ class TestCmdAddStrategy:
         mock_contract_instance = MagicMock()
         mock_contract_instance.add_strategy = AsyncMock(return_value=mock_contract_result)
 
-        with patch("commands.admin.is_admin", return_value=True), \
-             patch("commands.admin._get_contract") as mock_get_contract:
+        with (
+            patch("commands.admin.is_admin", return_value=True),
+            patch("commands.admin._get_contract") as mock_get_contract,
+        ):
             mock_get_contract.return_value = mock_contract_instance
             from commands.admin import cmd_add_strategy
 
@@ -1558,8 +1641,10 @@ class TestCmdAddStrategy:
         mock_contract_instance = MagicMock()
         mock_contract_instance.add_strategy = AsyncMock(return_value=mock_contract_result)
 
-        with patch("commands.admin.is_admin", return_value=True), \
-             patch("commands.admin._get_contract") as mock_get_contract:
+        with (
+            patch("commands.admin.is_admin", return_value=True),
+            patch("commands.admin._get_contract") as mock_get_contract,
+        ):
             mock_get_contract.return_value = mock_contract_instance
             from commands.admin import cmd_add_strategy
 
@@ -1581,13 +1666,13 @@ class TestCmdAddStrategy:
         import os
         import sys
 
-        os.environ['RPC_URL'] = 'https://eth-test.example.com'
-        os.environ['PRIVATE_KEY'] = '0x' + 'a' * 64
-        os.environ['CHAIN_ID'] = '1'
-        os.environ['VAULT_ADDRESS'] = '0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C'
-        os.environ['TELEGRAM_BOT_TOKEN'] = '123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11'
+        os.environ["RPC_URL"] = "https://eth-test.example.com"
+        os.environ["PRIVATE_KEY"] = "0x" + "a" * 64
+        os.environ["CHAIN_ID"] = "1"
+        os.environ["VAULT_ADDRESS"] = "0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C"
+        os.environ["TELEGRAM_BOT_TOKEN"] = "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
 
-        for mod in ['main', 'contract', 'config']:
+        for mod in ["main", "contract", "config"]:
             if mod in sys.modules:
                 del sys.modules[mod]
 
@@ -1603,13 +1688,12 @@ class TestCmdAddStrategy:
 
             # CommandHandler uses 'commands' attribute (frozenset)
             has_add_strategy = any(
-                hasattr(h, 'commands') and 'add_strategy' in h.commands
-                for h in all_handlers
+                hasattr(h, "commands") and "add_strategy" in h.commands for h in all_handlers
             )
 
             assert has_add_strategy, "Command handler for 'add_strategy' not registered"
         finally:
-            for key in ['RPC_URL', 'PRIVATE_KEY', 'CHAIN_ID', 'VAULT_ADDRESS']:
+            for key in ["RPC_URL", "PRIVATE_KEY", "CHAIN_ID", "VAULT_ADDRESS"]:
                 os.environ.pop(key, None)
 
     @pytest.mark.asyncio
@@ -1621,13 +1705,13 @@ class TestCmdAddStrategy:
         import os
         import sys
 
-        os.environ['RPC_URL'] = 'https://eth-test.example.com'
-        os.environ['PRIVATE_KEY'] = '0x' + 'a' * 64
-        os.environ['CHAIN_ID'] = '1'
-        os.environ['VAULT_ADDRESS'] = '0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C'
-        os.environ['TELEGRAM_BOT_TOKEN'] = '123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11'
+        os.environ["RPC_URL"] = "https://eth-test.example.com"
+        os.environ["PRIVATE_KEY"] = "0x" + "a" * 64
+        os.environ["CHAIN_ID"] = "1"
+        os.environ["VAULT_ADDRESS"] = "0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C"
+        os.environ["TELEGRAM_BOT_TOKEN"] = "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
 
-        for mod in ['main', 'contract', 'config']:
+        for mod in ["main", "contract", "config"]:
             if mod in sys.modules:
                 del sys.modules[mod]
 
@@ -1649,10 +1733,12 @@ class TestCmdAddStrategy:
             commands = mock_bot.set_my_commands.call_args[0][0]
 
             # Verify add_strategy command is in the list
-            command_names = [cmd.command if hasattr(cmd, 'command') else str(cmd) for cmd in commands]
-            assert 'add_strategy' in command_names, "'add_strategy' not in bot commands"
+            command_names = [
+                cmd.command if hasattr(cmd, "command") else str(cmd) for cmd in commands
+            ]
+            assert "add_strategy" in command_names, "'add_strategy' not in bot commands"
         finally:
-            for key in ['RPC_URL', 'PRIVATE_KEY', 'CHAIN_ID', 'VAULT_ADDRESS']:
+            for key in ["RPC_URL", "PRIVATE_KEY", "CHAIN_ID", "VAULT_ADDRESS"]:
                 os.environ.pop(key, None)
 
     @pytest.mark.asyncio
@@ -1668,13 +1754,13 @@ class TestCmdAddStrategy:
         import os
         import sys
 
-        os.environ['RPC_URL'] = 'https://eth-test.example.com'
-        os.environ['PRIVATE_KEY'] = '0x' + 'a' * 64
-        os.environ['CHAIN_ID'] = '1'
-        os.environ['VAULT_ADDRESS'] = '0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C'
-        os.environ['TELEGRAM_BOT_TOKEN'] = '123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11'
+        os.environ["RPC_URL"] = "https://eth-test.example.com"
+        os.environ["PRIVATE_KEY"] = "0x" + "a" * 64
+        os.environ["CHAIN_ID"] = "1"
+        os.environ["VAULT_ADDRESS"] = "0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C"
+        os.environ["TELEGRAM_BOT_TOKEN"] = "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
 
-        for mod in ['main', 'contract', 'config']:
+        for mod in ["main", "contract", "config"]:
             if mod in sys.modules:
                 del sys.modules[mod]
 
@@ -1691,7 +1777,7 @@ class TestCmdAddStrategy:
                 call_args = mock_telegram_update.message.reply_text.call_args[0][0]
                 assert "add_strategy" in call_args.lower() or "/add_strategy" in call_args
         finally:
-            for key in ['RPC_URL', 'PRIVATE_KEY', 'CHAIN_ID', 'VAULT_ADDRESS']:
+            for key in ["RPC_URL", "PRIVATE_KEY", "CHAIN_ID", "VAULT_ADDRESS"]:
                 os.environ.pop(key, None)
 
     @pytest.mark.asyncio
@@ -1711,8 +1797,10 @@ class TestCmdAddStrategy:
         mock_contract_instance = MagicMock()
         mock_contract_instance.add_strategy = AsyncMock()
 
-        with patch("commands.admin.is_admin", return_value=True), \
-             patch("commands.admin._get_contract") as mock_get_contract:
+        with (
+            patch("commands.admin.is_admin", return_value=True),
+            patch("commands.admin._get_contract") as mock_get_contract,
+        ):
             mock_get_contract.return_value = mock_contract_instance
             from commands.admin import cmd_add_strategy
 
@@ -1747,8 +1835,10 @@ class TestCmdAddStrategy:
         # Content longer than 1024 bytes (use multi-byte chars to test byte limit)
         long_content = "买" * 400  # Each Chinese char is ~3 bytes, total ~1200 bytes
 
-        with patch("commands.admin.is_admin", return_value=True), \
-             patch("commands.admin._get_contract") as mock_get_contract:
+        with (
+            patch("commands.admin.is_admin", return_value=True),
+            patch("commands.admin._get_contract") as mock_get_contract,
+        ):
             mock_get_contract.return_value = mock_contract_instance
             from commands.admin import cmd_add_strategy
 
@@ -1787,8 +1877,10 @@ class TestCmdAddStrategy:
         mock_contract_instance = MagicMock()
         mock_contract_instance.add_strategy = AsyncMock(return_value=mock_contract_result)
 
-        with patch("commands.admin.is_admin", return_value=True), \
-             patch("commands.admin._get_contract") as mock_get_contract:
+        with (
+            patch("commands.admin.is_admin", return_value=True),
+            patch("commands.admin._get_contract") as mock_get_contract,
+        ):
             mock_get_contract.return_value = mock_contract_instance
             from commands.admin import cmd_add_strategy
 
@@ -1808,6 +1900,7 @@ class TestCmdAddStrategy:
 # Tests for contract.add_strategy method (Story 2-1)
 # =============================================================================
 
+
 class TestContractAddStrategy:
     """Tests for VaultContract.add_strategy method - Story 2-1."""
 
@@ -1821,13 +1914,15 @@ class TestContractAddStrategy:
 
         # Create a mock instance
         mock_vault = MagicMock(spec=VaultContract)
-        mock_vault._send_transaction = AsyncMock(return_value={
-            'success': True,
-            'transactionHash': '0xabc123...',
-            'status': 1,
-            'blockNumber': 12345,
-            'receipt': {'logs': []},
-        })
+        mock_vault._send_transaction = AsyncMock(
+            return_value={
+                "success": True,
+                "transactionHash": "0xabc123...",
+                "status": 1,
+                "blockNumber": 12345,
+                "receipt": {"logs": []},
+            }
+        )
         mock_vault.contract = MagicMock()
         mock_vault.contract.functions.addStrategy.return_value = "mock_tx_func"
 
@@ -1835,8 +1930,8 @@ class TestContractAddStrategy:
         result = await VaultContract.add_strategy(mock_vault, "test strategy")
 
         # Then
-        assert result['success'] is True
-        assert 'transactionHash' in result
+        assert result["success"] is True
+        assert "transactionHash" in result
         mock_vault._send_transaction.assert_called_once()
 
     @pytest.mark.asyncio
@@ -1848,11 +1943,13 @@ class TestContractAddStrategy:
         from contract import VaultContract
 
         mock_vault = MagicMock(spec=VaultContract)
-        mock_vault._send_transaction = AsyncMock(return_value={
-            'success': True,
-            'transactionHash': '0xabc123...',
-            'receipt': {'logs': []},
-        })
+        mock_vault._send_transaction = AsyncMock(
+            return_value={
+                "success": True,
+                "transactionHash": "0xabc123...",
+                "receipt": {"logs": []},
+            }
+        )
         mock_vault.contract = MagicMock()
         mock_contract_func = MagicMock()
         mock_vault.contract.functions.addStrategy.return_value = mock_contract_func
@@ -1862,7 +1959,9 @@ class TestContractAddStrategy:
 
         # Then - verify default params were used
         mock_vault.contract.functions.addStrategy.assert_called_once_with(
-            "test strategy", 0, 1  # content, expiry=0, priority=1
+            "test strategy",
+            0,
+            1,  # content, expiry=0, priority=1
         )
 
     @pytest.mark.asyncio
@@ -1879,35 +1978,37 @@ class TestContractAddStrategy:
 
         # Mock event log parsing
         mock_receipt = {
-            'logs': [
+            "logs": [
                 {
-                    'topics': [
-                        MagicMock(hex=lambda: '0x' + 'a' * 64),  # event sig
-                        MagicMock(hex=lambda: '0x' + '0' * 62 + '04'),  # strategyId = 4
+                    "topics": [
+                        MagicMock(hex=lambda: "0x" + "a" * 64),  # event sig
+                        MagicMock(hex=lambda: "0x" + "0" * 62 + "04"),  # strategyId = 4
                     ]
                 }
             ]
         }
 
-        mock_vault._send_transaction = AsyncMock(return_value={
-            'success': True,
-            'transactionHash': '0xabc123...',
-            'status': 1,
-            'blockNumber': 12345,
-            'receipt': mock_receipt,
-        })
+        mock_vault._send_transaction = AsyncMock(
+            return_value={
+                "success": True,
+                "transactionHash": "0xabc123...",
+                "status": 1,
+                "blockNumber": 12345,
+                "receipt": mock_receipt,
+            }
+        )
         mock_vault.contract = MagicMock()
         mock_vault.contract.functions.addStrategy.return_value = "mock_tx_func"
 
         # Mock w3.keccak for event signature
         mock_vault.w3 = MagicMock()
-        mock_vault.w3.keccak = MagicMock(return_value=MagicMock(hex=lambda: '0x' + 'a' * 64))
+        mock_vault.w3.keccak = MagicMock(return_value=MagicMock(hex=lambda: "0x" + "a" * 64))
 
         # When
         result = await VaultContract.add_strategy(mock_vault, "test strategy")
 
         # Then
-        assert result['success'] is True
+        assert result["success"] is True
         # strategyId might be None if parsing fails, which is acceptable
         # The key is that the method handles the receipt properly
 
@@ -1920,10 +2021,12 @@ class TestContractAddStrategy:
         from contract import VaultContract
 
         mock_vault = MagicMock(spec=VaultContract)
-        mock_vault._send_transaction = AsyncMock(return_value={
-            'success': False,
-            'error': 'Gas estimation failed',
-        })
+        mock_vault._send_transaction = AsyncMock(
+            return_value={
+                "success": False,
+                "error": "Gas estimation failed",
+            }
+        )
         mock_vault.contract = MagicMock()
         mock_vault.contract.functions.addStrategy.return_value = "mock_tx_func"
 
@@ -1931,7 +2034,6 @@ class TestContractAddStrategy:
         result = await VaultContract.add_strategy(mock_vault, "test strategy")
 
         # Then
-        assert result['success'] is False
-        assert 'error' in result
-        assert 'Gas estimation failed' in result['error']
-
+        assert result["success"] is False
+        assert "error" in result
+        assert "Gas estimation failed" in result["error"]

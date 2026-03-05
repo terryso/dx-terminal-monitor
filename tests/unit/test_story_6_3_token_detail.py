@@ -154,9 +154,10 @@ class TestCmdToken:
         mock_api = AsyncMock()
         mock_api.get_token = AsyncMock(return_value=mock_token_response)
 
-        with patch("commands.query.authorized", return_value=True), patch(
-            "commands.query._get_api"
-        ) as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.query import cmd_token
 
@@ -182,9 +183,10 @@ class TestCmdToken:
         mock_api = AsyncMock()
         mock_api.get_token = AsyncMock(return_value=mock_token_response)
 
-        with patch("commands.query.authorized", return_value=True), patch(
-            "commands.query._get_api"
-        ) as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.query import cmd_token
 
@@ -237,9 +239,10 @@ class TestCmdToken:
         mock_api = AsyncMock()
         mock_api.get_token = AsyncMock(return_value={"error": "Token not found"})
 
-        with patch("commands.query.authorized", return_value=True), patch(
-            "commands.query._get_api"
-        ) as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.query import cmd_token
 

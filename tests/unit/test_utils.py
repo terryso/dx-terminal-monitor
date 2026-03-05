@@ -2,7 +2,6 @@
 Unit tests for utility functions in utils/formatters.py.
 """
 
-
 from utils.formatters import (
     format_eth,
     format_percent,

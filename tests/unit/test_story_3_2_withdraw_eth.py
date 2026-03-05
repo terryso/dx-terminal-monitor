@@ -15,6 +15,7 @@ from web3 import Web3
 # Test Fixtures
 # ============================================================================
 
+
 @pytest.fixture(autouse=True)
 def reset_env():
     """Auto-use fixture to ensure environment is reset after each test."""
@@ -28,8 +29,10 @@ def reset_env():
 
     # Reload modules to pick up original config
     import importlib
+
     try:
         import config
+
         importlib.reload(config)
     except Exception:
         pass
@@ -38,11 +41,11 @@ def reset_env():
 @pytest.fixture
 def web3_test_env():
     """Set up environment variables for Web3 testing."""
-    os.environ['RPC_URL'] = 'https://eth-test.example.com'
-    os.environ['PRIVATE_KEY'] = '0x' + 'a' * 64
-    os.environ['CHAIN_ID'] = '1'
-    os.environ['VAULT_ADDRESS'] = '0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C'
-    os.environ['ADMIN_USERS'] = '123456789'
+    os.environ["RPC_URL"] = "https://eth-test.example.com"
+    os.environ["PRIVATE_KEY"] = "0x" + "a" * 64
+    os.environ["CHAIN_ID"] = "1"
+    os.environ["VAULT_ADDRESS"] = "0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C"
+    os.environ["ADMIN_USERS"] = "123456789"
 
 
 @pytest.fixture
@@ -52,18 +55,16 @@ def mock_web3_components():
     mock_w3.eth = MagicMock()
     mock_w3.eth.gas_price = 1000000000  # 1 Gwei
     mock_w3.eth.get_transaction_count.return_value = 1
-    mock_w3.eth.send_raw_transaction.return_value = b'\x12\x34' * 16
+    mock_w3.eth.send_raw_transaction.return_value = b"\x12\x34" * 16
     mock_w3.eth.wait_for_transaction_receipt.return_value = {
-        'transactionHash': b'\x12\x34' * 16,
-        'status': 1,
-        'blockNumber': 12345678,
+        "transactionHash": b"\x12\x34" * 16,
+        "status": 1,
+        "blockNumber": 12345678,
     }
 
     mock_account = MagicMock()
-    mock_account.address = '0xTestSender0000000000000000000000000000'
-    mock_account.sign_transaction.return_value = MagicMock(
-        raw_transaction=b'signed_tx_data'
-    )
+    mock_account.address = "0xTestSender0000000000000000000000000000"
+    mock_account.sign_transaction.return_value = MagicMock(raw_transaction=b"signed_tx_data")
 
     mock_contract = MagicMock()
 
@@ -95,13 +96,13 @@ def mock_context():
 @pytest.fixture
 def mock_vault_with_balance():
     """Mock vault API with sufficient balance."""
-    return {'balance': '2.0'}
+    return {"balance": "2.0"}
 
 
 @pytest.fixture
 def mock_vault_low_balance():
     """Mock vault API with insufficient balance."""
-    return {'balance': '0.3'}
+    return {"balance": "0.3"}
 
 
 def create_mocked_vault_contract(mock_web3_components):
@@ -112,10 +113,10 @@ def create_mocked_vault_contract(mock_web3_components):
     import contract
 
     # Ensure environment is set up before reloading
-    os.environ['RPC_URL'] = 'https://eth-test.example.com'
-    os.environ['PRIVATE_KEY'] = '0x' + 'a' * 64
-    os.environ['CHAIN_ID'] = '1'
-    os.environ['VAULT_ADDRESS'] = '0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C'
+    os.environ["RPC_URL"] = "https://eth-test.example.com"
+    os.environ["PRIVATE_KEY"] = "0x" + "a" * 64
+    os.environ["CHAIN_ID"] = "1"
+    os.environ["VAULT_ADDRESS"] = "0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C"
 
     # Reload modules to pick up test environment
     importlib.reload(config)
@@ -123,11 +124,15 @@ def create_mocked_vault_contract(mock_web3_components):
 
     mock_w3, mock_account, mock_contract = mock_web3_components
 
-    with patch('contract.Web3') as mock_web3_class, \
-         patch('builtins.open', mock_open(read_data='[]')):
+    with (
+        patch("contract.Web3") as mock_web3_class,
+        patch("builtins.open", mock_open(read_data="[]")),
+    ):
         mock_web3_class.HTTPProvider.return_value = mock_w3
         mock_web3_class.return_value = mock_w3
-        mock_web3_class.to_checksum_address.return_value = '0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C'
+        mock_web3_class.to_checksum_address.return_value = (
+            "0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C"
+        )
 
         vault_contract = contract.VaultContract()
 
@@ -143,11 +148,19 @@ def create_mocked_vault_contract(mock_web3_components):
 # Test Class: TestCmdWithdraw (Command Handler Tests)
 # ============================================================================
 
+
 class TestCmdWithdraw:
     """Tests for cmd_withdraw command handler."""
 
     @pytest.mark.asyncio
-    async def test_withdraw_success_flow(self, mock_update, mock_context, web3_test_env, mock_web3_components, mock_vault_with_balance):
+    async def test_withdraw_success_flow(
+        self,
+        mock_update,
+        mock_context,
+        web3_test_env,
+        mock_web3_components,
+        mock_vault_with_balance,
+    ):
         """Test successful ETH withdrawal with confirmation."""
         # Given
         mock_update.effective_user.id = 123456789  # Admin user
@@ -162,9 +175,11 @@ class TestCmdWithdraw:
         mock_contract_instance.contract.functions.withdrawETH.return_value.build_transaction.return_value = {}
         mock_contract_instance.contract.functions.withdrawETH.return_value.estimate_gas.return_value = 100000
 
-        with patch("commands.withdraw.is_admin", return_value=True), \
-             patch("commands.withdraw._get_contract") as mock_get_contract, \
-             patch("commands.withdraw._get_api") as mock_get_api:
+        with (
+            patch("commands.withdraw.is_admin", return_value=True),
+            patch("commands.withdraw._get_contract") as mock_get_contract,
+            patch("commands.withdraw._get_api") as mock_get_api,
+        ):
             mock_get_contract.return_value = mock_contract_instance
             mock_get_api.return_value = mock_api
             from commands.withdraw import (
@@ -187,11 +202,13 @@ class TestCmdWithdraw:
 
         # Then
         mock_contract_instance.contract.functions.withdrawETH.assert_called_once_with(
-            int(Web3.to_wei(0.5, 'ether'))
+            int(Web3.to_wei(0.5, "ether"))
         )
 
     @pytest.mark.asyncio
-    async def test_withdraw_insufficient_balance(self, mock_update, mock_context, web3_test_env, mock_vault_low_balance):
+    async def test_withdraw_insufficient_balance(
+        self, mock_update, mock_context, web3_test_env, mock_vault_low_balance
+    ):
         """Test withdrawal with insufficient balance."""
         # Given
         mock_update.effective_user.id = 123456789
@@ -201,8 +218,10 @@ class TestCmdWithdraw:
         mock_api = AsyncMock()
         mock_api.get_vault.return_value = mock_vault_low_balance
 
-        with patch("commands.withdraw.is_admin", return_value=True), \
-             patch("commands.withdraw._get_api") as mock_get_api:
+        with (
+            patch("commands.withdraw.is_admin", return_value=True),
+            patch("commands.withdraw._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.withdraw import cmd_withdraw
 
@@ -233,7 +252,9 @@ class TestCmdWithdraw:
         assert "Unauthorized" in call_args
 
     @pytest.mark.asyncio
-    async def test_withdraw_cancel_confirmation(self, mock_update, mock_context, web3_test_env, mock_vault_with_balance):
+    async def test_withdraw_cancel_confirmation(
+        self, mock_update, mock_context, web3_test_env, mock_vault_with_balance
+    ):
         """Test cancelling withdrawal during confirmation."""
         # Given
         mock_update.effective_user.id = 123456789
@@ -242,8 +263,10 @@ class TestCmdWithdraw:
         mock_api = AsyncMock()
         mock_api.get_vault.return_value = mock_vault_with_balance
 
-        with patch("commands.withdraw.is_admin", return_value=True), \
-             patch("commands.withdraw._get_api") as mock_get_api:
+        with (
+            patch("commands.withdraw.is_admin", return_value=True),
+            patch("commands.withdraw._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.withdraw import (
                 _pending_withdrawals,
@@ -339,7 +362,9 @@ class TestCmdWithdraw:
         assert "precision" in call_args.lower() or "decimal" in call_args.lower()
 
     @pytest.mark.asyncio
-    async def test_withdraw_session_expired(self, mock_update, mock_context, web3_test_env, mock_vault_with_balance):
+    async def test_withdraw_session_expired(
+        self, mock_update, mock_context, web3_test_env, mock_vault_with_balance
+    ):
         """Test handling of expired withdrawal session."""
         # Given
         mock_update.effective_user.id = 123456789
@@ -348,8 +373,10 @@ class TestCmdWithdraw:
         mock_api = AsyncMock()
         mock_api.get_vault.return_value = mock_vault_with_balance
 
-        with patch("commands.withdraw.is_admin", return_value=True), \
-             patch("commands.withdraw._get_api") as mock_get_api:
+        with (
+            patch("commands.withdraw.is_admin", return_value=True),
+            patch("commands.withdraw._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.withdraw import (
                 _pending_withdrawals,
@@ -376,7 +403,14 @@ class TestCmdWithdraw:
         assert "expired" in call_args.lower() or "again" in call_args.lower()
 
     @pytest.mark.asyncio
-    async def test_withdraw_contract_failure(self, mock_update, mock_context, web3_test_env, mock_web3_components, mock_vault_with_balance):
+    async def test_withdraw_contract_failure(
+        self,
+        mock_update,
+        mock_context,
+        web3_test_env,
+        mock_web3_components,
+        mock_vault_with_balance,
+    ):
         """Test contract call failure handling."""
         # Given
         mock_update.effective_user.id = 123456789
@@ -388,11 +422,15 @@ class TestCmdWithdraw:
         # Mock contract to return failure
         mock_contract_instance = create_mocked_vault_contract(mock_web3_components)
         mock_contract_instance.contract.functions.withdrawETH.return_value.build_transaction.return_value = {}
-        mock_contract_instance.contract.functions.withdrawETH.return_value.estimate_gas.side_effect = Exception("Contract error")
+        mock_contract_instance.contract.functions.withdrawETH.return_value.estimate_gas.side_effect = Exception(
+            "Contract error"
+        )
 
-        with patch("commands.withdraw.is_admin", return_value=True), \
-             patch("commands.withdraw._get_contract") as mock_get_contract, \
-             patch("commands.withdraw._get_api") as mock_get_api:
+        with (
+            patch("commands.withdraw.is_admin", return_value=True),
+            patch("commands.withdraw._get_contract") as mock_get_contract,
+            patch("commands.withdraw._get_api") as mock_get_api,
+        ):
             mock_get_contract.return_value = mock_contract_instance
             mock_get_api.return_value = mock_api
             from commands.withdraw import (
@@ -421,6 +459,7 @@ class TestCmdWithdraw:
 # Test Class: TestContractWithdrawEth (Contract Method Tests)
 # ============================================================================
 
+
 class TestContractWithdrawEth:
     """Tests for VaultContract.withdraw_eth method."""
 
@@ -428,12 +467,14 @@ class TestContractWithdrawEth:
     async def test_withdraw_eth_valid_amount(self, web3_test_env, mock_web3_components):
         """Test successful ETH withdrawal."""
         # Given
-        amount_wei = int(Web3.to_wei(0.5, 'ether'))
+        amount_wei = int(Web3.to_wei(0.5, "ether"))
         vault_contract = create_mocked_vault_contract(mock_web3_components)
 
         # Mock successful transaction
         vault_contract.contract.functions.withdrawETH.return_value.build_transaction.return_value = {}
-        vault_contract.contract.functions.withdrawETH.return_value.estimate_gas.return_value = 100000
+        vault_contract.contract.functions.withdrawETH.return_value.estimate_gas.return_value = (
+            100000
+        )
 
         # When
         result = await vault_contract.withdraw_eth(amount_wei)
@@ -472,7 +513,7 @@ class TestContractWithdrawEth:
     async def test_withdraw_eth_contract_error(self, web3_test_env, mock_web3_components):
         """Test contract call failure handling."""
         # Given
-        amount_wei = int(Web3.to_wei(0.5, 'ether'))
+        amount_wei = int(Web3.to_wei(0.5, "ether"))
         vault_contract = create_mocked_vault_contract(mock_web3_components)
 
         # Mock contract error
@@ -489,6 +530,7 @@ class TestContractWithdrawEth:
 # ============================================================================
 # Test Class: TestCommandRegistration (Command Registration Tests)
 # ============================================================================
+
 
 class TestCommandRegistration:
     """Tests for withdraw command registration."""
@@ -520,6 +562,7 @@ class TestCommandRegistration:
         import inspect
 
         from main import create_app
+
         source = inspect.getsource(create_app)
 
         # Then - verify register_handlers is called
@@ -527,4 +570,5 @@ class TestCommandRegistration:
 
         # Verify withdraw handler exists in commands module
         from commands.withdraw import create_withdraw_handler
+
         assert create_withdraw_handler is not None

@@ -1,4 +1,5 @@
 """工具函数模块。"""
+
 from collections.abc import Callable
 from typing import Any
 
@@ -14,4 +15,4 @@ format_percent: Callable[[Any], str]
 format_time: Callable[[Any], str]
 authorized: Callable[[Update], bool]
 
-__all__ = ['format_eth', 'format_usd', 'format_percent', 'format_time', 'authorized']
+__all__ = ["format_eth", "format_usd", "format_percent", "format_time", "authorized"]

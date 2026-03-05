@@ -35,18 +35,21 @@ def mock_sync_to_surge():
 # AC1: Config Tests - Tests for config.py additions
 # =============================================================================
 
+
 class TestAdvisorHistoryConfig:
     """Tests for ADVISOR_HISTORY_* config values in config.py."""
 
     def test_advisor_history_enabled_config_exists(self):
         """ADVISOR_HISTORY_ENABLED should be defined in config.py."""
         from config import ADVISOR_HISTORY_ENABLED
+
         assert ADVISOR_HISTORY_ENABLED is not None
 
     @pytest.mark.skip(reason="Default value depends on .env, not testable in isolation")
     def test_advisor_history_enabled_default_is_false(self):
         """ADVISOR_HISTORY_ENABLED should default to False."""
         from config import ADVISOR_HISTORY_ENABLED
+
         assert ADVISOR_HISTORY_ENABLED is False
 
     def test_advisor_history_enabled_can_be_overridden_by_env(self, monkeypatch):
@@ -56,18 +59,22 @@ class TestAdvisorHistoryConfig:
         import importlib
 
         import config
+
         importlib.reload(config)
         from config import ADVISOR_HISTORY_ENABLED
+
         assert ADVISOR_HISTORY_ENABLED is True
 
     def test_advisor_history_max_config_exists(self):
         """ADVISOR_HISTORY_MAX should be defined in config.py."""
         from config import ADVISOR_HISTORY_MAX
+
         assert ADVISOR_HISTORY_MAX is not None
 
     def test_advisor_history_max_default_is_30(self):
         """ADVISOR_HISTORY_MAX should default to 30."""
         from config import ADVISOR_HISTORY_MAX
+
         assert ADVISOR_HISTORY_MAX == 30
 
     def test_advisor_history_max_can_be_overridden_by_env(self, monkeypatch):
@@ -76,18 +83,22 @@ class TestAdvisorHistoryConfig:
         import importlib
 
         import config
+
         importlib.reload(config)
         from config import ADVISOR_HISTORY_MAX
+
         assert ADVISOR_HISTORY_MAX == 50
 
     def test_advisor_surge_domain_config_exists(self):
         """ADVISOR_SURGE_DOMAIN should be defined in config.py."""
         from config import ADVISOR_SURGE_DOMAIN
+
         assert ADVISOR_SURGE_DOMAIN is not None
 
     def test_advisor_surge_domain_default_is_dx_advisor_surge_sh(self):
         """ADVISOR_SURGE_DOMAIN should default to dx-advisor.surge.sh."""
         from config import ADVISOR_SURGE_DOMAIN
+
         assert ADVISOR_SURGE_DOMAIN == "dx-advisor.surge.sh"
 
     def test_advisor_surge_domain_can_be_overridden_by_env(self, monkeypatch):
@@ -96,14 +107,17 @@ class TestAdvisorHistoryConfig:
         import importlib
 
         import config
+
         importlib.reload(config)
         from config import ADVISOR_SURGE_DOMAIN
+
         assert ADVISOR_SURGE_DOMAIN == "custom-domain.surge.sh"
 
 
 # =============================================================================
 # AC2: Analysis Data Storage Tests - Tests for advisor_history.py module
 # =============================================================================
+
 
 class TestAdvisorHistoryStorage:
     """Tests for advisor_history.py module functions."""
@@ -116,6 +130,7 @@ class TestAdvisorHistoryStorage:
             save_analysis,
             sync_to_surge,
         )
+
         assert callable(save_analysis)
         assert callable(load_history)
         assert callable(sync_to_surge)
@@ -132,7 +147,7 @@ class TestAdvisorHistoryStorage:
         record_id = save_analysis(
             request="Full system prompt\n\nUser data here",
             response='{"suggestions": [...]}',
-            suggestions=suggestions
+            suggestions=suggestions,
         )
 
         assert record_id is not None
@@ -207,6 +222,7 @@ class TestAdvisorHistoryStorage:
 # AC3: Static Web Page Tests
 # =============================================================================
 
+
 class TestAdvisorWebPage:
     """Tests for data/index.html static web page."""
 
@@ -248,6 +264,7 @@ class TestAdvisorWebPage:
 # AC4: Sync and Push Tests - Tests for sync_to_surge and web link
 # =============================================================================
 
+
 class TestSyncToSurge:
     """Tests for sync_to_surge function."""
 
@@ -280,7 +297,9 @@ class TestSyncToSurge:
         from advisor_history import sync_to_surge
 
         # Should not raise exception on timeout
-        with patch("subprocess.run", side_effect=subprocess.TimeoutExpired(cmd="surge", timeout=60)):
+        with patch(
+            "subprocess.run", side_effect=subprocess.TimeoutExpired(cmd="surge", timeout=60)
+        ):
             sync_to_surge()  # Should complete without error
 
 
@@ -322,18 +341,22 @@ class TestAdvisorMonitorIntegration:
 
         # Capture the message sent
         sent_messages = []
+
         async def mock_send(chat_id, text, **kwargs):
             sent_messages.append({"chat_id": chat_id, "text": text})
 
         mock_bot.send_message = mock_send
 
         import asyncio
-        asyncio.run(push_suggestions(
-            chat_id=123456,
-            suggestions=[{"action": "add", "content": "test", "reason": "test reason"}],
-            context={"balance": "1.0 ETH", "positions": 1, "strategies": 0, "pnl": "$100"},
-            bot=mock_bot
-        ))
+
+        asyncio.run(
+            push_suggestions(
+                chat_id=123456,
+                suggestions=[{"action": "add", "content": "test", "reason": "test reason"}],
+                context={"balance": "1.0 ETH", "positions": 1, "strategies": 0, "pnl": "$100"},
+                bot=mock_bot,
+            )
+        )
 
         assert len(sent_messages) == 1
         message_text = sent_messages[0]["text"]
@@ -350,18 +373,22 @@ class TestAdvisorMonitorIntegration:
         # Mock bot
         mock_bot = AsyncMock()
         sent_messages = []
+
         async def mock_send(chat_id, text, **kwargs):
             sent_messages.append({"text": text})
 
         mock_bot.send_message = mock_send
 
         import asyncio
-        asyncio.run(push_suggestions(
-            chat_id=123456,
-            suggestions=[{"action": "add", "content": "test", "reason": "test"}],
-            context={"balance": "1.0 ETH", "positions": 1, "strategies": 0, "pnl": "$100"},
-            bot=mock_bot
-        ))
+
+        asyncio.run(
+            push_suggestions(
+                chat_id=123456,
+                suggestions=[{"action": "add", "content": "test", "reason": "test"}],
+                context={"balance": "1.0 ETH", "positions": 1, "strategies": 0, "pnl": "$100"},
+                bot=mock_bot,
+            )
+        )
 
         message_text = sent_messages[0]["text"]
         assert "查看详细分析历史" not in message_text
@@ -390,12 +417,11 @@ class TestAdvisorAnalyzeIntegration:
 
         # Track save_analysis calls
         save_analysis_calls = []
+
         def mock_save_analysis(request, response, suggestions):
-            save_analysis_calls.append({
-                "request": request,
-                "response": response,
-                "suggestions": suggestions
-            })
+            save_analysis_calls.append(
+                {"request": request, "response": response, "suggestions": suggestions}
+            )
             return "abc12345"
 
         monkeypatch.setattr("advisor_history.save_analysis", mock_save_analysis)

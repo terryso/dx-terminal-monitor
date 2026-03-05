@@ -68,12 +68,12 @@ class TestActivityMonitorInit:
         mock_api = MagicMock()
         mock_callback = AsyncMock()
 
-        with patch.dict('os.environ', {}, clear=True):
+        with patch.dict("os.environ", {}, clear=True):
             monitor = ActivityMonitor(mock_api, mock_callback)
 
         assert monitor.poll_interval == 30
 
-    @patch.dict('os.environ', {'POLL_INTERVAL': '60'})
+    @patch.dict("os.environ", {"POLL_INTERVAL": "60"})
     def test_init_reads_poll_interval_from_env(self):
         """POLL_INTERVAL should be read from environment variable."""
         from monitor import ActivityMonitor
@@ -85,7 +85,7 @@ class TestActivityMonitorInit:
 
         assert monitor.poll_interval == 60
 
-    @patch.dict('os.environ', {'POLL_INTERVAL': '5'})
+    @patch.dict("os.environ", {"POLL_INTERVAL": "5"})
     def test_init_enforces_minimum_10_seconds(self):
         """Poll interval should have minimum of 10 seconds."""
         from monitor import ActivityMonitor
@@ -110,15 +110,15 @@ class TestFilterNew:
         monitor = ActivityMonitor(mock_api, mock_callback)
 
         activities = [
-            {'id': '0xnew1', 'type': 'swap'},
-            {'id': '0xnew2', 'type': 'deposit'},
+            {"id": "0xnew1", "type": "swap"},
+            {"id": "0xnew2", "type": "deposit"},
         ]
 
         result = monitor._filter_new(activities)
 
         assert len(result) == 2
-        assert result[0]['id'] == '0xnew1'
-        assert result[1]['id'] == '0xnew2'
+        assert result[0]["id"] == "0xnew1"
+        assert result[1]["id"] == "0xnew2"
 
     def test_filter_new_excludes_seen_activities(self):
         """Should exclude activities already in seen_ids."""
@@ -127,17 +127,17 @@ class TestFilterNew:
         mock_api = MagicMock()
         mock_callback = AsyncMock()
         monitor = ActivityMonitor(mock_api, mock_callback)
-        monitor.seen_ids.add('0xseen1')
+        monitor.seen_ids.add("0xseen1")
 
         activities = [
-            {'id': '0xseen1', 'type': 'swap'},
-            {'id': '0xnew1', 'type': 'deposit'},
+            {"id": "0xseen1", "type": "swap"},
+            {"id": "0xnew1", "type": "deposit"},
         ]
 
         result = monitor._filter_new(activities)
 
         assert len(result) == 1
-        assert result[0]['id'] == '0xnew1'
+        assert result[0]["id"] == "0xnew1"
 
     def test_filter_new_adds_ids_to_seen_set(self):
         """Should add new activity IDs to seen_ids."""
@@ -148,14 +148,14 @@ class TestFilterNew:
         monitor = ActivityMonitor(mock_api, mock_callback)
 
         activities = [
-            {'id': '0xnew1', 'type': 'swap'},
-            {'id': '0xnew2', 'type': 'deposit'},
+            {"id": "0xnew1", "type": "swap"},
+            {"id": "0xnew2", "type": "deposit"},
         ]
 
         monitor._filter_new(activities)
 
-        assert '0xnew1' in monitor.seen_ids
-        assert '0xnew2' in monitor.seen_ids
+        assert "0xnew1" in monitor.seen_ids
+        assert "0xnew2" in monitor.seen_ids
 
     def test_filter_new_handles_missing_id(self):
         """Should handle activities without id field."""
@@ -166,14 +166,14 @@ class TestFilterNew:
         monitor = ActivityMonitor(mock_api, mock_callback)
 
         activities = [
-            {'type': 'swap'},  # No ID
-            {'id': '0xvalid', 'type': 'deposit'},
+            {"type": "swap"},  # No ID
+            {"id": "0xvalid", "type": "deposit"},
         ]
 
         result = monitor._filter_new(activities)
 
         assert len(result) == 1
-        assert result[0]['id'] == '0xvalid'
+        assert result[0]["id"] == "0xvalid"
 
     def test_filter_new_empty_list_returns_empty(self):
         """Should return empty list for empty input."""
@@ -194,12 +194,12 @@ class TestFilterNew:
         mock_api = MagicMock()
         mock_callback = AsyncMock()
         monitor = ActivityMonitor(mock_api, mock_callback)
-        monitor.seen_ids.add('0xa')
-        monitor.seen_ids.add('0xb')
+        monitor.seen_ids.add("0xa")
+        monitor.seen_ids.add("0xb")
 
         activities = [
-            {'id': '0xa', 'type': 'swap'},
-            {'id': '0xb', 'type': 'deposit'},
+            {"id": "0xa", "type": "swap"},
+            {"id": "0xb", "type": "deposit"},
         ]
 
         result = monitor._filter_new(activities)
@@ -216,7 +216,7 @@ class TestMonitorStart:
         from monitor import ActivityMonitor
 
         mock_api = MagicMock()
-        mock_api.get_activity = AsyncMock(return_value={'activities': []})
+        mock_api.get_activity = AsyncMock(return_value={"activities": []})
         mock_callback = AsyncMock()
 
         monitor = ActivityMonitor(mock_api, mock_callback)
@@ -240,7 +240,7 @@ class TestMonitorStart:
         from monitor import ActivityMonitor
 
         mock_api = MagicMock()
-        mock_api.get_activity = AsyncMock(return_value={'activities': []})
+        mock_api.get_activity = AsyncMock(return_value={"activities": []})
         mock_callback = AsyncMock()
 
         monitor = ActivityMonitor(mock_api, mock_callback)
@@ -264,9 +264,9 @@ class TestMonitorStart:
         from monitor import ActivityMonitor
 
         mock_api = MagicMock()
-        mock_api.get_activity = AsyncMock(return_value={
-            'activities': [{'id': '0xtest', 'type': 'swap'}]
-        })
+        mock_api.get_activity = AsyncMock(
+            return_value={"activities": [{"id": "0xtest", "type": "swap"}]}
+        )
         mock_callback = AsyncMock()
 
         monitor = ActivityMonitor(mock_api, mock_callback)
@@ -275,7 +275,7 @@ class TestMonitorStart:
         task = asyncio.create_task(monitor.start())
         await asyncio.sleep(0.2)
 
-        assert '0xtest' in monitor.seen_ids
+        assert "0xtest" in monitor.seen_ids
 
         monitor.stop()
         task.cancel()
@@ -291,10 +291,12 @@ class TestMonitorStart:
 
         mock_api = MagicMock()
         # First call is preload (returns empty), subsequent calls return new activity
-        mock_api.get_activity = AsyncMock(side_effect=[
-            {'items': []},  # Preload - no existing activities
-            {'items': [{'id': '0xnew', 'type': 'swap'}]}  # First poll - new activity
-        ])
+        mock_api.get_activity = AsyncMock(
+            side_effect=[
+                {"items": []},  # Preload - no existing activities
+                {"items": [{"id": "0xnew", "type": "swap"}]},  # First poll - new activity
+            ]
+        )
         mock_callback = AsyncMock()
 
         monitor = ActivityMonitor(mock_api, mock_callback)
@@ -318,13 +320,13 @@ class TestMonitorStart:
         from monitor import ActivityMonitor
 
         mock_api = MagicMock()
-        mock_api.get_activity = AsyncMock(return_value={
-            'activities': [{'id': '0xseen', 'type': 'swap'}]
-        })
+        mock_api.get_activity = AsyncMock(
+            return_value={"activities": [{"id": "0xseen", "type": "swap"}]}
+        )
         mock_callback = AsyncMock()
 
         monitor = ActivityMonitor(mock_api, mock_callback)
-        monitor.seen_ids.add('0xseen')
+        monitor.seen_ids.add("0xseen")
         monitor.poll_interval = 0.1
 
         task = asyncio.create_task(monitor.start())
@@ -345,7 +347,7 @@ class TestMonitorStart:
         from monitor import ActivityMonitor
 
         mock_api = MagicMock()
-        mock_api.get_activity = AsyncMock(return_value={'error': 'API failed'})
+        mock_api.get_activity = AsyncMock(return_value={"error": "API failed"})
         mock_callback = AsyncMock()
 
         monitor = ActivityMonitor(mock_api, mock_callback)
@@ -370,10 +372,10 @@ class TestMonitorStart:
         from monitor import ActivityMonitor
 
         mock_api = MagicMock()
-        mock_api.get_activity = AsyncMock(return_value={
-            'activities': [{'id': '0xtest', 'type': 'swap'}]
-        })
-        mock_callback = AsyncMock(side_effect=Exception('Callback failed'))
+        mock_api.get_activity = AsyncMock(
+            return_value={"activities": [{"id": "0xtest", "type": "swap"}]}
+        )
+        mock_callback = AsyncMock(side_effect=Exception("Callback failed"))
 
         monitor = ActivityMonitor(mock_api, mock_callback)
         monitor.poll_interval = 0.1
@@ -415,7 +417,7 @@ class TestMonitorStop:
         from monitor import ActivityMonitor
 
         mock_api = MagicMock()
-        mock_api.get_activity = AsyncMock(return_value={'activities': []})
+        mock_api.get_activity = AsyncMock(return_value={"activities": []})
         mock_callback = AsyncMock()
 
         monitor = ActivityMonitor(mock_api, mock_callback)
@@ -443,7 +445,7 @@ class TestStartBackground:
         from monitor import ActivityMonitor
 
         mock_api = MagicMock()
-        mock_api.get_activity = AsyncMock(return_value={'activities': []})
+        mock_api.get_activity = AsyncMock(return_value={"activities": []})
         mock_callback = AsyncMock()
 
         monitor = ActivityMonitor(mock_api, mock_callback)
@@ -465,7 +467,7 @@ class TestStartBackground:
         from monitor import ActivityMonitor
 
         mock_api = MagicMock()
-        mock_api.get_activity = AsyncMock(return_value={'activities': []})
+        mock_api.get_activity = AsyncMock(return_value={"activities": []})
         mock_callback = AsyncMock()
 
         monitor = ActivityMonitor(mock_api, mock_callback)
@@ -481,7 +483,7 @@ class TestStartBackground:
 class TestEnvironmentConfiguration:
     """Tests for environment variable configuration."""
 
-    @patch.dict('os.environ', {'POLL_INTERVAL': '120'})
+    @patch.dict("os.environ", {"POLL_INTERVAL": "120"})
     def test_reads_poll_interval_from_env(self):
         """Should read POLL_INTERVAL from environment."""
         from monitor import ActivityMonitor
@@ -493,7 +495,7 @@ class TestEnvironmentConfiguration:
 
         assert monitor.poll_interval == 120
 
-    @patch.dict('os.environ', {'POLL_INTERVAL': '0'})
+    @patch.dict("os.environ", {"POLL_INTERVAL": "0"})
     def test_minimum_poll_interval_10(self):
         """Should enforce minimum poll interval of 10 seconds."""
         from monitor import ActivityMonitor
@@ -505,7 +507,7 @@ class TestEnvironmentConfiguration:
 
         assert monitor.poll_interval == 10
 
-    @patch.dict('os.environ', {'POLL_INTERVAL': 'invalid'})
+    @patch.dict("os.environ", {"POLL_INTERVAL": "invalid"})
     def test_handles_invalid_poll_interval(self):
         """Should handle invalid POLL_INTERVAL gracefully."""
         from monitor import ActivityMonitor
@@ -531,7 +533,7 @@ class TestErrorHandling:
         from monitor import ActivityMonitor
 
         mock_api = MagicMock()
-        mock_api.get_activity = AsyncMock(side_effect=Exception('Network error'))
+        mock_api.get_activity = AsyncMock(side_effect=Exception("Network error"))
         mock_callback = AsyncMock()
 
         monitor = ActivityMonitor(mock_api, mock_callback)
@@ -556,10 +558,10 @@ class TestErrorHandling:
         from monitor import ActivityMonitor
 
         mock_api = MagicMock()
-        mock_api.get_activity = AsyncMock(return_value={
-            'activities': [{'id': '0xtest', 'type': 'swap'}]
-        })
-        mock_callback = AsyncMock(side_effect=RuntimeError('Callback error'))
+        mock_api.get_activity = AsyncMock(
+            return_value={"activities": [{"id": "0xtest", "type": "swap"}]}
+        )
+        mock_callback = AsyncMock(side_effect=RuntimeError("Callback error"))
 
         monitor = ActivityMonitor(mock_api, mock_callback)
         monitor.poll_interval = 0.1

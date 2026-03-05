@@ -1,4 +1,5 @@
 """权限检查工具函数模块。"""
+
 from telegram import Update
 
 from config import ALLOWED_USERS

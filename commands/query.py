@@ -1,9 +1,11 @@
 """Query commands module - read-only data query commands."""
+
 from datetime import UTC, datetime
 
 from telegram import Update
 from telegram.ext import ContextTypes
 
+from utils.error_handler import safe_command
 from utils.formatters import (
     format_eth,
     format_large_number,
@@ -17,9 +19,11 @@ from utils.permissions import authorized
 def _get_api():
     """Lazy import api to avoid circular imports."""
     from main import api
+
     return api
 
 
+@safe_command
 async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Show help information."""
     if not authorized(update):
@@ -66,6 +70,7 @@ Commands:
     await update.message.reply_text(help_text)
 
 
+@safe_command
 async def cmd_balance(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Query balance."""
     if not authorized(update):
@@ -89,6 +94,7 @@ Total PnL: {pnl} ({pct})
     await update.message.reply_text(msg)
 
 
+@safe_command
 async def cmd_positions(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Query positions."""
     if not authorized(update):
@@ -113,6 +119,7 @@ async def cmd_positions(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("\n".join(lines))
 
 
+@safe_command
 async def cmd_pnl(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Query PnL."""
     if not authorized(update):
@@ -139,6 +146,7 @@ async def cmd_pnl(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("\n".join(lines))
 
 
+@safe_command
 async def cmd_activity(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Query recent activity."""
     if not authorized(update):
@@ -175,6 +183,7 @@ async def cmd_activity(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("\n".join(lines))
 
 
+@safe_command
 async def cmd_swaps(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Query recent swaps."""
     if not authorized(update):
@@ -201,6 +210,7 @@ async def cmd_swaps(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("\n".join(lines))
 
 
+@safe_command
 async def cmd_strategies(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Query active strategies."""
     if not authorized(update):
@@ -223,6 +233,7 @@ async def cmd_strategies(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("\n".join(lines))
 
 
+@safe_command
 async def cmd_vault(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Query Vault info."""
     if not authorized(update):
@@ -234,28 +245,28 @@ async def cmd_vault(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         return
 
     # Trading settings
-    max_trade = int(data.get('maxTradeAmount', 0))
-    slippage = int(data.get('slippageBps', 0))
+    max_trade = int(data.get("maxTradeAmount", 0))
+    slippage = int(data.get("slippageBps", 0))
 
     # Behavior preferences (raw values)
-    trading_activity = data.get('tradingActivity', '?')
-    risk_pref = data.get('assetRiskPreference', '?')
-    trade_size = data.get('tradeSize', '?')
-    holding_style = data.get('holdingStyle', '?')
-    diversification = data.get('diversification', '?')
+    trading_activity = data.get("tradingActivity", "?")
+    risk_pref = data.get("assetRiskPreference", "?")
+    trade_size = data.get("tradeSize", "?")
+    holding_style = data.get("holdingStyle", "?")
+    diversification = data.get("diversification", "?")
 
     msg = f"""
 Vault Info
 
-Address: {data.get('vaultAddress', '?')}
-NFT: #{data.get('nftId', '?')} {data.get('nftName', '')}
-Owner: {data.get('ownerAddress', '?')}
-State: {data.get('state', '?')}
-Paused: {data.get('paused', False)}
+Address: {data.get("vaultAddress", "?")}
+NFT: #{data.get("nftId", "?")} {data.get("nftName", "")}
+Owner: {data.get("ownerAddress", "?")}
+State: {data.get("state", "?")}
+Paused: {data.get("paused", False)}
 
 Trading Settings:
-  Max Trade: {max_trade} BPS ({max_trade/100:.1f}%)
-  Slippage: {slippage} BPS ({slippage/100:.1f}%)
+  Max Trade: {max_trade} BPS ({max_trade / 100:.1f}%)
+  Slippage: {slippage} BPS ({slippage / 100:.1f}%)
 
 Behavior Preferences:
   Trading Activity: {trading_activity}
@@ -267,6 +278,7 @@ Behavior Preferences:
     await update.message.reply_text(msg)
 
 
+@safe_command
 async def cmd_deposits(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Query deposits/withdrawals history."""
     if not authorized(update):
@@ -316,6 +328,7 @@ async def cmd_deposits(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("\n".join(lines))
 
 
+@safe_command
 async def cmd_pnl_history(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Query PnL trend history grouped by day."""
     if not authorized(update):
@@ -398,6 +411,7 @@ async def cmd_pnl_history(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("\n".join(lines))
 
 
+@safe_command
 async def cmd_price(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Query ETH price."""
     if not authorized(update):
@@ -418,6 +432,7 @@ Current: {price}
     await update.message.reply_text(msg)
 
 
+@safe_command
 async def cmd_tokens(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Query tradeable tokens list."""
     if not authorized(update):
@@ -466,6 +481,7 @@ async def cmd_tokens(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("\n".join(lines))
 
 
+@safe_command
 async def cmd_token(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Query token details."""
     if not authorized(update):
@@ -510,6 +526,7 @@ Total Supply: {total_supply}
     await update.message.reply_text(msg)
 
 
+@safe_command
 async def cmd_launches(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Query upcoming token launch schedule."""
     if not authorized(update):
@@ -543,6 +560,7 @@ async def cmd_launches(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("\n".join(lines))
 
 
+@safe_command
 async def cmd_leaderboard(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Query vault leaderboard."""
     if not authorized(update):
@@ -583,6 +601,7 @@ async def cmd_leaderboard(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("\n".join(lines))
 
 
+@safe_command
 async def cmd_tweets(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Query token-related tweets."""
     if not authorized(update):
@@ -642,6 +661,7 @@ def _get_reporter():
     return get_reporter()
 
 
+@safe_command
 async def cmd_report_on(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Enable daily report."""
     if not authorized(update):
@@ -658,6 +678,7 @@ async def cmd_report_on(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Daily report enabled. Use /report_off to disable.")
 
 
+@safe_command
 async def cmd_report_off(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Disable daily report."""
     if not authorized(update):
@@ -674,6 +695,7 @@ async def cmd_report_off(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Daily report disabled. Use /report_on to enable.")
 
 
+@safe_command
 async def cmd_report_time(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """View or set daily report time (input is local time)."""
     if not authorized(update):
@@ -702,7 +724,7 @@ async def cmd_report_time(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     # Parse local time and convert to UTC for storage
     try:
         time_str = ctx.args[0]
-        parts = time_str.split(':')
+        parts = time_str.split(":")
         if len(parts) != 2:
             raise ValueError("Invalid format")
         local_hour = int(parts[0])
@@ -722,9 +744,12 @@ async def cmd_report_time(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             f"UTC: {utc_hour:02d}:{utc_minute:02d}"
         )
     except (ValueError, IndexError):
-        await update.message.reply_text("Invalid time format. Usage: /report_time HH:MM (e.g., 09:00)")
+        await update.message.reply_text(
+            "Invalid time format. Usage: /report_time HH:MM (e.g., 09:00)"
+        )
 
 
+@safe_command
 async def cmd_report_status(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Show current report settings."""
     if not authorized(update):
@@ -758,6 +783,7 @@ def _get_alerter():
     return get_alerter()
 
 
+@safe_command
 async def cmd_alert_pnl(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Set PnL alert threshold."""
     if not authorized(update):
@@ -771,8 +797,7 @@ async def cmd_alert_pnl(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     if not ctx.args:
         # Show current threshold
         await update.message.reply_text(
-            f"Current PnL alert threshold: {alerter.pnl_threshold}%\n"
-            f"Usage: /alert_pnl <percent>"
+            f"Current PnL alert threshold: {alerter.pnl_threshold}%\nUsage: /alert_pnl <percent>"
         )
         return
 
@@ -787,6 +812,7 @@ async def cmd_alert_pnl(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Invalid value. Usage: /alert_pnl <percent> (1-100)")
 
 
+@safe_command
 async def cmd_alert_position(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Set position alert threshold."""
     if not authorized(update):
@@ -816,6 +842,7 @@ async def cmd_alert_position(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Invalid value. Usage: /alert_position <percent> (1-100)")
 
 
+@safe_command
 async def cmd_alert_status(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Show current alert settings."""
     if not authorized(update):

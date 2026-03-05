@@ -12,6 +12,7 @@ import pytest
 # Tests for cmd_balance (AC 3, AC 8)
 # =============================================================================
 
+
 class TestCmdBalanceRefactored:
     """Tests for /balance command after refactoring."""
 
@@ -35,9 +36,10 @@ class TestCmdBalanceRefactored:
         mock_api = MagicMock()
         mock_api.get_positions = AsyncMock(return_value=mock_api_response)
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api", return_value=mock_api):
-
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api", return_value=mock_api),
+        ):
             # When
             await cmd_balance(mock_telegram_update, mock_telegram_context)
 
@@ -62,16 +64,15 @@ class TestCmdBalanceRefactored:
         mock_api = MagicMock()
         mock_api.get_positions = AsyncMock(return_value=mock_api_response)
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api", return_value=mock_api):
-
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api", return_value=mock_api),
+        ):
             # When
             await cmd_balance(mock_telegram_update, mock_telegram_context)
 
         # Then
-        mock_telegram_update.message.reply_text.assert_called_once_with(
-            "Error: Connection timeout"
-        )
+        mock_telegram_update.message.reply_text.assert_called_once_with("Error: Connection timeout")
 
     @pytest.mark.integration
     @pytest.mark.asyncio
@@ -96,6 +97,7 @@ class TestCmdBalanceRefactored:
 # =============================================================================
 # Tests for cmd_positions (AC 3)
 # =============================================================================
+
 
 class TestCmdPositionsRefactored:
     """Tests for /positions command after refactoring."""
@@ -124,9 +126,10 @@ class TestCmdPositionsRefactored:
         mock_api = MagicMock()
         mock_api.get_positions = AsyncMock(return_value=mock_api_response)
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api", return_value=mock_api):
-
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api", return_value=mock_api),
+        ):
             # When
             await cmd_positions(mock_telegram_update, mock_telegram_context)
 
@@ -139,6 +142,7 @@ class TestCmdPositionsRefactored:
 # =============================================================================
 # Tests for cmd_pnl (AC 3)
 # =============================================================================
+
 
 class TestCmdPnlRefactored:
     """Tests for /pnl command after refactoring."""
@@ -162,9 +166,10 @@ class TestCmdPnlRefactored:
         mock_api = MagicMock()
         mock_api.get_positions = AsyncMock(return_value=mock_api_response)
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api", return_value=mock_api):
-
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api", return_value=mock_api),
+        ):
             # When
             await cmd_pnl(mock_telegram_update, mock_telegram_context)
 
@@ -177,6 +182,7 @@ class TestCmdPnlRefactored:
 # =============================================================================
 # Tests for cmd_activity (AC 3)
 # =============================================================================
+
 
 class TestCmdActivityRefactored:
     """Tests for /activity command after refactoring."""
@@ -204,9 +210,10 @@ class TestCmdActivityRefactored:
         mock_api = MagicMock()
         mock_api.get_activity = AsyncMock(return_value=mock_api_response)
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api", return_value=mock_api):
-
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api", return_value=mock_api),
+        ):
             # When
             await cmd_activity(mock_telegram_update, mock_telegram_context)
 
@@ -217,6 +224,7 @@ class TestCmdActivityRefactored:
 # =============================================================================
 # Tests for cmd_swaps (AC 3)
 # =============================================================================
+
 
 class TestCmdSwapsRefactored:
     """Tests for /swaps command after refactoring."""
@@ -248,9 +256,10 @@ class TestCmdSwapsRefactored:
         mock_api = MagicMock()
         mock_api.get_swaps = AsyncMock(return_value=mock_api_response)
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api", return_value=mock_api):
-
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api", return_value=mock_api),
+        ):
             # When
             await cmd_swaps(mock_telegram_update, mock_telegram_context)
 
@@ -261,6 +270,7 @@ class TestCmdSwapsRefactored:
 # =============================================================================
 # Tests for cmd_strategies (AC 3)
 # =============================================================================
+
 
 class TestCmdStrategiesRefactored:
     """Tests for /strategies command after refactoring."""
@@ -282,9 +292,10 @@ class TestCmdStrategiesRefactored:
         mock_api = MagicMock()
         mock_api.get_strategies = AsyncMock(return_value=mock_api_response)
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api", return_value=mock_api):
-
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api", return_value=mock_api),
+        ):
             # When
             await cmd_strategies(mock_telegram_update, mock_telegram_context)
 
@@ -295,6 +306,7 @@ class TestCmdStrategiesRefactored:
 # =============================================================================
 # Tests for cmd_vault (AC 3)
 # =============================================================================
+
 
 class TestCmdVaultRefactored:
     """Tests for /vault command after refactoring."""
@@ -317,9 +329,10 @@ class TestCmdVaultRefactored:
         mock_api = MagicMock()
         mock_api.get_vault = AsyncMock(return_value=mock_api_response)
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api", return_value=mock_api):
-
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api", return_value=mock_api),
+        ):
             # When
             await cmd_vault(mock_telegram_update, mock_telegram_context)
 

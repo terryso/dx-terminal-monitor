@@ -102,20 +102,18 @@ def sync_to_surge():
             if token:
                 cmd.extend(["--token", token])
 
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=60
-            )
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
 
             if result.returncode == 0:
                 logger.info(f"Synced to surge.sh: https://{ADVISOR_SURGE_DOMAIN}")
                 return  # Success
             else:
-                logger.warning(f"Surge sync failed (attempt {attempt + 1}/{max_retries}): {result.stderr}")
+                logger.warning(
+                    f"Surge sync failed (attempt {attempt + 1}/{max_retries}): {result.stderr}"
+                )
                 if attempt < max_retries - 1:
                     import time
+
                     time.sleep(retry_delay)
 
         except FileNotFoundError:
@@ -125,6 +123,7 @@ def sync_to_surge():
             logger.warning(f"Surge sync timeout (attempt {attempt + 1}/{max_retries})")
             if attempt < max_retries - 1:
                 import time
+
                 time.sleep(retry_delay)
         except Exception as e:
             logger.error(f"Surge sync error: {e}")

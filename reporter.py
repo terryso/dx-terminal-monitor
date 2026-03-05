@@ -39,7 +39,7 @@ class DailyReporter:
         self.report_time = self._parse_report_time()
         self.running = False
         self._task: asyncio.Task | None = None
-        self.enabled = os.getenv('REPORT_ENABLED', 'true').lower() == 'true'
+        self.enabled = os.getenv("REPORT_ENABLED", "true").lower() == "true"
 
     def _parse_report_time(self) -> tuple[int, int]:
         """Parse REPORT_TIME env variable (HH:MM format).
@@ -47,9 +47,9 @@ class DailyReporter:
         Returns:
             Tuple of (hour, minute)
         """
-        time_str = os.getenv('REPORT_TIME', '08:00')
+        time_str = os.getenv("REPORT_TIME", "08:00")
         try:
-            parts = time_str.split(':')
+            parts = time_str.split(":")
             if len(parts) != 2:
                 raise ValueError("Invalid format")
             hour, minute = int(parts[0]), int(parts[1])
@@ -68,10 +68,7 @@ class DailyReporter:
         """
         now = datetime.now(UTC)
         target = now.replace(
-            hour=self.report_time[0],
-            minute=self.report_time[1],
-            second=0,
-            microsecond=0
+            hour=self.report_time[0], minute=self.report_time[1], second=0, microsecond=0
         )
         if target <= now:
             target += timedelta(days=1)
@@ -90,16 +87,16 @@ class DailyReporter:
         if isinstance(positions, dict) and "error" in positions:
             logger.warning(f"Failed to get positions: {positions.get('error')}")
         else:
-            data['positions'] = positions
+            data["positions"] = positions
 
         # Get strategies
         strategies = await self.api.get_strategies()
         if isinstance(strategies, dict) and "error" in strategies:
             logger.warning(f"Failed to get strategies: {strategies.get('error')}")
         elif isinstance(strategies, list):
-            data['strategies'] = strategies
+            data["strategies"] = strategies
         else:
-            data['strategies'] = strategies
+            data["strategies"] = strategies
 
         return data
 
@@ -112,40 +109,40 @@ class DailyReporter:
         Returns:
             Formatted report string
         """
-        today = datetime.now().strftime('%Y-%m-%d')  # Local time
+        today = datetime.now().strftime("%Y-%m-%d")  # Local time
         lines = [f"Daily Report - {today}\n"]
 
         # Balance section (from positions data)
-        positions_data = data.get('positions', {})
-        eth_balance = positions_data.get('ethBalance', '0')
-        usd_value = positions_data.get('overallValueUsd', '0')
+        positions_data = data.get("positions", {})
+        eth_balance = positions_data.get("ethBalance", "0")
+        usd_value = positions_data.get("overallValueUsd", "0")
         lines.append(f"Available: {format_eth(eth_balance)} ETH")
         lines.append(f"Total Value: {format_usd(usd_value)}")
 
         # PnL section (from positions data)
-        pnl_usd = positions_data.get('overallPnlUsd', '0')
-        pnl_pct = positions_data.get('overallPnlPercent', '0')
+        pnl_usd = positions_data.get("overallPnlUsd", "0")
+        pnl_pct = positions_data.get("overallPnlPercent", "0")
         try:
             pnl_num = float(pnl_usd)
-            sign = '+' if pnl_num >= 0 else ''
+            sign = "+" if pnl_num >= 0 else ""
         except (ValueError, TypeError):
-            sign = ''
+            sign = ""
         lines.append(f"24h PnL: {sign}{format_usd(pnl_usd)} ({sign}{pnl_pct}%)")
 
         # Positions section
-        pos_items = positions_data.get('positions', [])
+        pos_items = positions_data.get("positions", [])
         lines.append(f"Positions: {len(pos_items)}")
 
         # Strategies section
-        strategies = data.get('strategies', [])
+        strategies = data.get("strategies", [])
         if isinstance(strategies, dict):
-            strat_items = strategies.get('strategies', strategies.get('items', []))
+            strat_items = strategies.get("strategies", strategies.get("items", []))
         else:
             strat_items = strategies
-        active_count = sum(1 for s in strat_items if s.get('active', True))
+        active_count = sum(1 for s in strat_items if s.get("active", True))
         lines.append(f"Active Strategies: {active_count}")
 
-        return '\n'.join(lines)
+        return "\n".join(lines)
 
     async def _send_daily_report(self):
         """Gather data and send report to all notify users."""
@@ -174,12 +171,14 @@ class DailyReporter:
             return
 
         self.running = True
-        logger.info(f"Daily reporter started (scheduled for {self.report_time[0]:02d}:{self.report_time[1]:02d} UTC)")
+        logger.info(
+            f"Daily reporter started (scheduled for {self.report_time[0]:02d}:{self.report_time[1]:02d} UTC)"
+        )
 
         while self.running:
             # Calculate time until next run
             wait_seconds = self._calculate_next_run()
-            logger.info(f"Next daily report in {wait_seconds/3600:.1f} hours")
+            logger.info(f"Next daily report in {wait_seconds / 3600:.1f} hours")
 
             # Wait until scheduled time
             await asyncio.sleep(wait_seconds)

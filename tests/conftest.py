@@ -21,6 +21,7 @@ load_dotenv(".env.test", override=True)
 # Event Loop Configuration
 # ============================================================================
 
+
 @pytest.fixture(scope="session")
 def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
     """Create an event loop for the test session."""
@@ -33,13 +34,15 @@ def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
 # Configuration Fixtures
 # ============================================================================
 
+
 @pytest.fixture
 def test_config() -> dict:
     """Provide test configuration values."""
     return {
         "telegram_token": os.getenv("TELEGRAM_BOT_TOKEN", "test_token"),
-        "allowed_users": [int(x) for x in os.getenv("ALLOWED_USERS", "").split(",")
-                         if x.strip().isdigit()],
+        "allowed_users": [
+            int(x) for x in os.getenv("ALLOWED_USERS", "").split(",") if x.strip().isdigit()
+        ],
         "vault_address": os.getenv("VAULT_ADDRESS", "0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C"),
         "api_base_url": os.getenv("API_BASE_URL", "https://api.terminal.markets/api/v1"),
         "test_user_id": int(os.getenv("TEST_USER_ID", "123456789")),
@@ -49,6 +52,7 @@ def test_config() -> dict:
 # ============================================================================
 # Mock Fixtures
 # ============================================================================
+
 
 @pytest.fixture
 def mock_telegram_update() -> MagicMock:
@@ -133,6 +137,7 @@ def mock_api_response_vault() -> dict:
 # API Mock Patches
 # ============================================================================
 
+
 @pytest.fixture
 async def mock_terminal_api(mock_api_response_positions: dict) -> AsyncGenerator[AsyncMock, None]:
     """Mock TerminalAPI for unit tests."""
@@ -148,6 +153,7 @@ async def mock_terminal_api(mock_api_response_positions: dict) -> AsyncGenerator
 # ============================================================================
 # Test Data Factories
 # ============================================================================
+
 
 class PositionFactory:
     """Factory for creating test position data."""

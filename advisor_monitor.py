@@ -55,38 +55,41 @@ def format_suggestions_message(suggestions: list[Suggestion] | list[dict], conte
 
     for i, s in enumerate(suggestions, 1):
         # Handle both dict and Suggestion object
-        action = s.action if hasattr(s, 'action') else s.get('action', 'add')
-        content = s.content if hasattr(s, 'content') else s.get('content')
-        priority = s.priority if hasattr(s, 'priority') else s.get('priority', 1)
-        expiry_hours = s.expiry_hours if hasattr(s, 'expiry_hours') else s.get('expiry_hours', 0)
-        reason = s.reason if hasattr(s, 'reason') else s.get('reason', '')
-        strategy_id = s.strategy_id if hasattr(s, 'strategy_id') else s.get('strategy_id')
+        action = s.action if hasattr(s, "action") else s.get("action", "add")
+        content = s.content if hasattr(s, "content") else s.get("content")
+        priority = s.priority if hasattr(s, "priority") else s.get("priority", 1)
+        expiry_hours = s.expiry_hours if hasattr(s, "expiry_hours") else s.get("expiry_hours", 0)
+        reason = s.reason if hasattr(s, "reason") else s.get("reason", "")
+        strategy_id = s.strategy_id if hasattr(s, "strategy_id") else s.get("strategy_id")
 
         if action == "add":
             icon = "[ADD]"
             validity = f"{expiry_hours}h" if expiry_hours else "Permanent"
-            lines.extend([
-                "",
-                f"<b>[{i}] {icon} STRATEGY</b>",
-                f'  Prompt: "{content}"',
-                f"  Priority: {priority_labels.get(priority, 'MEDIUM')}",
-                f"  Validity: {validity}",
-                f"  Reason: {reason}",
-            ])
+            lines.extend(
+                [
+                    "",
+                    f"<b>[{i}] {icon} STRATEGY</b>",
+                    f'  Prompt: "{content}"',
+                    f"  Priority: {priority_labels.get(priority, 'MEDIUM')}",
+                    f"  Validity: {validity}",
+                    f"  Reason: {reason}",
+                ]
+            )
         else:
             icon = "[DISABLE]"
-            lines.extend([
-                "",
-                f"<b>[{i}] {icon} STRATEGY #{strategy_id}</b>",
-                f"  Reason: {reason}",
-            ])
+            lines.extend(
+                [
+                    "",
+                    f"<b>[{i}] {icon} STRATEGY #{strategy_id}</b>",
+                    f"  Reason: {reason}",
+                ]
+            )
 
     return "\n".join(lines)
 
 
 def build_suggestion_keyboard(
-    suggestions: list[Suggestion] | list[dict],
-    request_id: str
+    suggestions: list[Suggestion] | list[dict], request_id: str
 ) -> InlineKeyboardMarkup:
     """Build inline keyboard for suggestion actions.
 
@@ -103,19 +106,18 @@ def build_suggestion_keyboard(
     row = []
     for i, s in enumerate(suggestions, 1):
         # Handle both dict and Suggestion object
-        action = s.action if hasattr(s, 'action') else s.get('action', 'add')
+        action = s.action if hasattr(s, "action") else s.get("action", "add")
         icon = "+" if action == "add" else "-"
-        row.append(InlineKeyboardButton(
-            f"{icon} [{i}]",
-            callback_data=f"adv:{request_id}:{i}"
-        ))
+        row.append(InlineKeyboardButton(f"{icon} [{i}]", callback_data=f"adv:{request_id}:{i}"))
     buttons.append(row)
 
     # Row 2: Execute All and Ignore
-    buttons.append([
-        InlineKeyboardButton("Execute All", callback_data=f"adv:{request_id}:all"),
-        InlineKeyboardButton("Ignore", callback_data=f"adv:{request_id}:ignore"),
-    ])
+    buttons.append(
+        [
+            InlineKeyboardButton("Execute All", callback_data=f"adv:{request_id}:all"),
+            InlineKeyboardButton("Ignore", callback_data=f"adv:{request_id}:ignore"),
+        ]
+    )
 
     return InlineKeyboardMarkup(buttons)
 
@@ -139,7 +141,7 @@ async def push_suggestions(
     suggestions: list[Suggestion] | list[dict],
     context: dict,
     bot: Bot,
-    record_id: str | None = None
+    record_id: str | None = None,
 ) -> str:
     """Push suggestions to user with interactive buttons.
 
@@ -178,7 +180,7 @@ async def push_suggestions(
         text=message,
         reply_markup=keyboard,
         parse_mode="HTML",
-        disable_web_page_preview=True
+        disable_web_page_preview=True,
     )
 
     logger.info(f"Pushed {len(suggestions)} suggestions (request_id={request_id})")
@@ -208,7 +210,7 @@ class AdvisorMonitor:
         callback: Callable,
         admin_chat_id: int,
         bot: Bot,
-        interval_hours: int = 2
+        interval_hours: int = 2,
     ):
         self.advisor = advisor
         self.api = api
@@ -243,7 +245,7 @@ class AdvisorMonitor:
                         suggestions,
                         context,
                         self.bot,
-                        record_id=self.advisor.last_record_id
+                        record_id=self.advisor.last_record_id,
                     )
                 else:
                     logger.info("No actionable suggestions from AI analysis")
@@ -266,15 +268,15 @@ class AdvisorMonitor:
             # Check for valid positions response (not error dict)
             if positions and not (isinstance(positions, dict) and "error" in positions):
                 # Use format_eth to convert Wei to ETH
-                raw_balance = positions.get('ethBalance', 0)
+                raw_balance = positions.get("ethBalance", 0)
                 formatted = format_eth(str(raw_balance))
                 balance = f"{formatted} ETH"
                 logger.info("Balance: %s -> %s ETH", raw_balance, formatted)
                 # Use format_usd for PnL
-                raw_pnl = positions.get('overallPnlUsd', 0)
+                raw_pnl = positions.get("overallPnlUsd", 0)
                 pnl = format_usd(raw_pnl)
                 # Get positions list
-                token_count = len(positions.get('positions', []))
+                token_count = len(positions.get("positions", []))
             else:
                 logger.warning("Positions API returned error or empty: %s", positions)
 
@@ -288,8 +290,10 @@ class AdvisorMonitor:
             if strategies and not (isinstance(strategies, dict) and "error" in strategies):
                 # Count active, non-expired strategies
                 active_strategies = [
-                    s for s in strategies
-                    if s.get('active', True) and (s.get('expiry', 0) == 0 or s.get('expiry', 0) > current_time)
+                    s
+                    for s in strategies
+                    if s.get("active", True)
+                    and (s.get("expiry", 0) == 0 or s.get("expiry", 0) > current_time)
                 ]
                 strategy_count = len(active_strategies)
         except Exception as e:
@@ -333,11 +337,27 @@ async def execute_suggestion(suggestion: Suggestion | dict) -> str:
         contract = get_contract()
 
         # Handle both dict and Suggestion object
-        action = suggestion.action if hasattr(suggestion, 'action') else suggestion.get('action', 'add')
-        content = suggestion.content if hasattr(suggestion, 'content') else suggestion.get('content')
-        priority = suggestion.priority if hasattr(suggestion, 'priority') else suggestion.get('priority', 1)
-        expiry_hours = suggestion.expiry_hours if hasattr(suggestion, 'expiry_hours') else suggestion.get('expiry_hours', 0)
-        strategy_id = suggestion.strategy_id if hasattr(suggestion, 'strategy_id') else suggestion.get('strategy_id')
+        action = (
+            suggestion.action if hasattr(suggestion, "action") else suggestion.get("action", "add")
+        )
+        content = (
+            suggestion.content if hasattr(suggestion, "content") else suggestion.get("content")
+        )
+        priority = (
+            suggestion.priority
+            if hasattr(suggestion, "priority")
+            else suggestion.get("priority", 1)
+        )
+        expiry_hours = (
+            suggestion.expiry_hours
+            if hasattr(suggestion, "expiry_hours")
+            else suggestion.get("expiry_hours", 0)
+        )
+        strategy_id = (
+            suggestion.strategy_id
+            if hasattr(suggestion, "strategy_id")
+            else suggestion.get("strategy_id")
+        )
 
         if action == "add":
             # Convert expiry_hours to timestamp
@@ -346,11 +366,7 @@ async def execute_suggestion(suggestion: Suggestion | dict) -> str:
             else:
                 expiry = 0
 
-            result = await contract.add_strategy(
-                content=content,
-                expiry=expiry,
-                priority=priority
-            )
+            result = await contract.add_strategy(content=content, expiry=expiry, priority=priority)
 
             if result.get("success"):
                 tx_hash = result.get("transactionHash", "")
@@ -426,10 +442,7 @@ async def handle_advisor_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE
     # Handle ignore
     if choice == "ignore":
         del pending_requests[request_id]
-        await query.edit_message_text(
-            query.message.text + "\n\n<i>Ignored</i>",
-            parse_mode="HTML"
-        )
+        await query.edit_message_text(query.message.text + "\n\n<i>Ignored</i>", parse_mode="HTML")
         return
 
     # Mark as executed to prevent duplicates
@@ -445,7 +458,7 @@ async def handle_advisor_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE
         del pending_requests[request_id]
         await query.edit_message_text(
             query.message.text + "\n\n<b>Executed All:</b>\n" + "\n".join(results),
-            parse_mode="HTML"
+            parse_mode="HTML",
         )
         return
 
@@ -461,8 +474,7 @@ async def handle_advisor_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE
 
         del pending_requests[request_id]
         await query.edit_message_text(
-            query.message.text + f"\n\n<b>Executed [{choice}]:</b> {result}",
-            parse_mode="HTML"
+            query.message.text + f"\n\n<b>Executed [{choice}]:</b> {result}", parse_mode="HTML"
         )
 
     except ValueError:

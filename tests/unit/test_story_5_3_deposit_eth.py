@@ -70,9 +70,7 @@ def mock_web3_components():
 
     mock_account = MagicMock()
     mock_account.address = "0xTestSender0000000000000000000000000000000"
-    mock_account.sign_transaction.return_value = MagicMock(
-        raw_transaction=b"signed_tx_data"
-    )
+    mock_account.sign_transaction.return_value = MagicMock(raw_transaction=b"signed_tx_data")
 
     mock_contract = MagicMock()
 
@@ -120,8 +118,9 @@ def create_mocked_vault_contract(mock_web3_components):
 
     mock_w3, mock_account, mock_contract = mock_web3_components
 
-    with patch("contract.Web3") as mock_web3_class, patch(
-        "builtins.open", mock_open(read_data="[]")
+    with (
+        patch("contract.Web3") as mock_web3_class,
+        patch("builtins.open", mock_open(read_data="[]")),
     ):
         mock_web3_class.HTTPProvider.return_value = mock_w3
         mock_web3_class.return_value = mock_w3
@@ -155,12 +154,8 @@ class TestContractDepositEth:
         vault_contract = create_mocked_vault_contract(mock_web3_components)
 
         # Mock successful transaction
-        vault_contract.contract.functions.depositETH.return_value.build_transaction.return_value = (
-            {}
-        )
-        vault_contract.contract.functions.depositETH.return_value.estimate_gas.return_value = (
-            100000
-        )
+        vault_contract.contract.functions.depositETH.return_value.build_transaction.return_value = {}
+        vault_contract.contract.functions.depositETH.return_value.estimate_gas.return_value = 100000
 
         # When
         result = await vault_contract.deposit_eth(amount_wei)
@@ -184,9 +179,7 @@ class TestContractDepositEth:
         assert "greater than 0" in result["error"].lower()
 
     @pytest.mark.asyncio
-    async def test_deposit_eth_negative_amount(
-        self, web3_test_env, mock_web3_components
-    ):
+    async def test_deposit_eth_negative_amount(self, web3_test_env, mock_web3_components):
         """Test negative amount is rejected."""
         # Given
         vault_contract = create_mocked_vault_contract(mock_web3_components)
@@ -199,18 +192,14 @@ class TestContractDepositEth:
         assert "greater than 0" in result["error"].lower()
 
     @pytest.mark.asyncio
-    async def test_deposit_eth_contract_error(
-        self, web3_test_env, mock_web3_components
-    ):
+    async def test_deposit_eth_contract_error(self, web3_test_env, mock_web3_components):
         """Test contract call failure handling."""
         # Given
         amount_wei = int(Web3.to_wei(0.5, "ether"))
         vault_contract = create_mocked_vault_contract(mock_web3_components)
 
         # Mock contract error
-        vault_contract.contract.functions.depositETH.side_effect = Exception(
-            "Contract error"
-        )
+        vault_contract.contract.functions.depositETH.side_effect = Exception("Contract error")
 
         # When
         result = await vault_contract.deposit_eth(amount_wei)
@@ -220,9 +209,7 @@ class TestContractDepositEth:
         assert "error" in result
 
     @pytest.mark.asyncio
-    async def test_deposit_eth_with_value_in_transaction(
-        self, web3_test_env, mock_web3_components
-    ):
+    async def test_deposit_eth_with_value_in_transaction(self, web3_test_env, mock_web3_components):
         """Test that deposit_eth passes value to _send_transaction for payable function."""
         # Given
         amount_wei = int(Web3.to_wei(1.0, "ether"))
@@ -285,16 +272,13 @@ class TestCmdDeposit:
 
         # Mock contract to return success
         mock_contract_instance = create_mocked_vault_contract(mock_web3_components)
-        mock_contract_instance.contract.functions.depositETH.return_value.build_transaction.return_value = (
-            {}
-        )
-        mock_contract_instance.contract.functions.depositETH.return_value.estimate_gas.return_value = (
-            100000
-        )
+        mock_contract_instance.contract.functions.depositETH.return_value.build_transaction.return_value = {}
+        mock_contract_instance.contract.functions.depositETH.return_value.estimate_gas.return_value = 100000
 
-        with patch("commands.admin.is_admin", return_value=True), patch(
-            "commands.admin._get_contract"
-        ) as mock_get_contract:
+        with (
+            patch("commands.admin.is_admin", return_value=True),
+            patch("commands.admin._get_contract") as mock_get_contract,
+        ):
             mock_get_contract.return_value = mock_contract_instance
             from commands.admin import cmd_deposit
 
@@ -359,9 +343,7 @@ class TestCmdDeposit:
         assert "Invalid" in call_args or "invalid" in call_args.lower() or "Error" in call_args
 
     @pytest.mark.asyncio
-    async def test_cmd_deposit_negative_amount(
-        self, mock_update, mock_context, web3_test_env
-    ):
+    async def test_cmd_deposit_negative_amount(self, mock_update, mock_context, web3_test_env):
         """Test negative amount is rejected."""
         # Given
         mock_update.effective_user.id = 123456789
@@ -427,9 +409,10 @@ class TestCmdDeposit:
             return_value={"success": False, "error": "Contract error"}
         )
 
-        with patch("commands.admin.is_admin", return_value=True), patch(
-            "commands.admin._get_contract"
-        ) as mock_get_contract:
+        with (
+            patch("commands.admin.is_admin", return_value=True),
+            patch("commands.admin._get_contract") as mock_get_contract,
+        ):
             mock_get_contract.return_value = mock_contract_instance
             from commands.admin import cmd_deposit
 

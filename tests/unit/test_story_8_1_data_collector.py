@@ -7,6 +7,7 @@ Run: pytest tests/unit/test_story_8_1_data_collector.py -v
 Generated: 2026-03-03
 Story: 8-1-data-collector
 """
+
 from dataclasses import dataclass, field
 from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -23,10 +24,7 @@ class StrategyDataFactory:
 
     @staticmethod
     def create_position_data(
-        eth_balance: float = 10.5,
-        total_pnl_usd: float = 1234.56,
-        tokens: list = None,
-        **overrides
+        eth_balance: float = 10.5, total_pnl_usd: float = 1234.56, tokens: list = None, **overrides
     ) -> dict:
         """Create mock position data."""
         default_tokens = [
@@ -56,7 +54,7 @@ class StrategyDataFactory:
         content: str = "Hold PEPE until 2x",
         priority: int = 1,
         expiry: int = 0,  # 0 = never expires (active)
-        **overrides
+        **overrides,
     ) -> dict:
         """Create mock strategy data."""
         return {
@@ -68,11 +66,7 @@ class StrategyDataFactory:
         }
 
     @staticmethod
-    def create_vault_data(
-        paused: bool = False,
-        total_value: float = 50000.0,
-        **overrides
-    ) -> dict:
+    def create_vault_data(paused: bool = False, total_value: float = 50000.0, **overrides) -> dict:
         """Create mock vault status data."""
         return {
             "paused": paused,
@@ -81,11 +75,7 @@ class StrategyDataFactory:
         }
 
     @staticmethod
-    def create_eth_price_data(
-        price: float = 2500.0,
-        change_24h: float = 5.2,
-        **overrides
-    ) -> dict:
+    def create_eth_price_data(price: float = 2500.0, change_24h: float = 5.2, **overrides) -> dict:
         """Create mock ETH price data."""
         return {
             "price": price,
@@ -98,12 +88,14 @@ class StrategyDataFactory:
         """Create mock token list."""
         tokens = []
         for i in range(count):
-            tokens.append({
-                "symbol": f"TOKEN{i}",
-                "tokenAddress": f"0x{i:040x}",
-                "price": 0.001 * (i + 1),
-                "volume24h": 100000 * (i + 1),
-            })
+            tokens.append(
+                {
+                    "symbol": f"TOKEN{i}",
+                    "tokenAddress": f"0x{i:040x}",
+                    "price": 0.001 * (i + 1),
+                    "volume24h": 100000 * (i + 1),
+                }
+            )
         return tokens
 
     @staticmethod
@@ -119,14 +111,16 @@ class StrategyDataFactory:
             high_price = close_price * 1.02
             low_price = open_price * 0.98
 
-            candles.append({
-                "open": open_price,
-                "high": high_price,
-                "low": low_price,
-                "close": close_price,
-                "volume": 1000000 * (i + 1),
-                "timestamp": base_time + i * 3600,
-            })
+            candles.append(
+                {
+                    "open": open_price,
+                    "high": high_price,
+                    "low": low_price,
+                    "close": close_price,
+                    "volume": 1000000 * (i + 1),
+                    "timestamp": base_time + i * 3600,
+                }
+            )
 
         return candles
 
@@ -323,9 +317,7 @@ class TestAPICandles:
         expected_candles = data_factory.create_candle_data(24)
         with patch.object(api, "_get", return_value=expected_candles):
             result = await api.get_candles(
-                token_address="0x6982508145454Ce325dDbE47a25d4ec3d2311933",
-                timeframe="1h",
-                limit=24
+                token_address="0x6982508145454Ce325dDbE47a25d4ec3d2311933", timeframe="1h", limit=24
             )
 
         assert isinstance(result, list)
@@ -343,9 +335,7 @@ class TestAPICandles:
             mock_get.return_value = data_factory.create_candle_data(24)
 
             await api.get_candles(
-                token_address="0x6982508145454Ce325dDbE47a25d4ec3d2311933",
-                timeframe="4h",
-                limit=24
+                token_address="0x6982508145454Ce325dDbE47a25d4ec3d2311933", timeframe="4h", limit=24
             )
 
             # Verify _get was called with correct endpoint and params
@@ -377,8 +367,7 @@ class TestFormatForLLM:
         from advisor import CollectedData
 
         data = CollectedData(
-            positions=data_factory.create_position_data(),
-            collected_at=datetime.now().isoformat()
+            positions=data_factory.create_position_data(), collected_at=datetime.now().isoformat()
         )
 
         # WHEN: Calling format_for_llm()
@@ -400,13 +389,10 @@ class TestFormatForLLM:
             tokens=[
                 {"symbol": "PEPE", "balance": "1000000", "pnlUsd": 500.0},
                 {"symbol": "SHIB", "balance": "500000", "pnlUsd": 300.0},
-            ]
+            ],
         )
 
-        data = CollectedData(
-            positions=positions,
-            collected_at=datetime.now().isoformat()
-        )
+        data = CollectedData(positions=positions, collected_at=datetime.now().isoformat())
 
         # WHEN: Calling format_for_llm()
         result = collector.format_for_llm(data)
@@ -427,16 +413,17 @@ class TestFormatForLLM:
             data_factory.create_strategy_data(id=2, content="Take profit at 50%", priority=2),
         ]
 
-        data = CollectedData(
-            strategies=strategies,
-            collected_at=datetime.now().isoformat()
-        )
+        data = CollectedData(strategies=strategies, collected_at=datetime.now().isoformat())
 
         # WHEN: Calling format_for_llm()
         result = collector.format_for_llm(data)
 
         # THEN: Should include strategy information
-        assert "## Active Strategies" in result or "# Active Strategies" in result or "## Strategies" in result
+        assert (
+            "## Active Strategies" in result
+            or "# Active Strategies" in result
+            or "## Strategies" in result
+        )
         assert "Hold PEPE" in result  # Strategy content
         assert "#1" in result or "ID: 1" in result or "1:" in result  # Strategy ID
 
@@ -494,7 +481,7 @@ class TestErrorHandling:
 
         data = CollectedData(
             positions=data_factory.create_position_data(),
-            errors=["positions: API Error", "candles: Timeout"]
+            errors=["positions: API Error", "candles: Timeout"],
         )
 
         # WHEN: Calling format_for_llm()
@@ -604,10 +591,7 @@ class TestTimestamp:
         from advisor import CollectedData
 
         timestamp = "2026-03-03T10:30:00"
-        data = CollectedData(
-            positions=data_factory.create_position_data(),
-            collected_at=timestamp
-        )
+        data = CollectedData(positions=data_factory.create_position_data(), collected_at=timestamp)
 
         # WHEN: Calling format_for_llm()
         result = collector.format_for_llm(data)

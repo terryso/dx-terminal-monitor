@@ -61,10 +61,7 @@ class TerminalAPI:
 
         for attempt in range(HTTP_MAX_RETRIES):
             try:
-                async with aiohttp.ClientSession(
-                    trust_env=True,
-                    timeout=HTTP_TIMEOUT
-                ) as session:
+                async with aiohttp.ClientSession(trust_env=True, timeout=HTTP_TIMEOUT) as session:
                     async with session.get(url, params=params) as resp:
                         if resp.status == 200:
                             return await resp.json()
@@ -74,7 +71,10 @@ class TerminalAPI:
                 last_error = e
                 logger.warning(
                     "HTTP request failed (attempt %d/%d): %s - %s",
-                    attempt + 1, HTTP_MAX_RETRIES, endpoint, e
+                    attempt + 1,
+                    HTTP_MAX_RETRIES,
+                    endpoint,
+                    e,
                 )
                 if attempt < HTTP_MAX_RETRIES - 1:
                     await asyncio.sleep(HTTP_RETRY_DELAY * (attempt + 1))
@@ -83,7 +83,9 @@ class TerminalAPI:
                 last_error = "Request timeout"
                 logger.warning(
                     "HTTP request timeout (attempt %d/%d): %s",
-                    attempt + 1, HTTP_MAX_RETRIES, endpoint
+                    attempt + 1,
+                    HTTP_MAX_RETRIES,
+                    endpoint,
                 )
                 if attempt < HTTP_MAX_RETRIES - 1:
                     await asyncio.sleep(HTTP_RETRY_DELAY * (attempt + 1))
@@ -105,10 +107,7 @@ class TerminalAPI:
 
     async def get_activity(self, limit: int = 10) -> dict:
         """获取最近活动"""
-        return await self._get(
-            f"/activity/{self.vault}",
-            {"limit": limit, "order": "desc"}
-        )
+        return await self._get(f"/activity/{self.vault}", {"limit": limit, "order": "desc"})
 
     async def get_strategies(self) -> list:
         """获取活跃策略"""
@@ -117,15 +116,13 @@ class TerminalAPI:
     async def get_swaps(self, limit: int = 10) -> dict:
         """获取交易记录"""
         return await self._get(
-            "/swaps",
-            {"vaultAddress": self.vault, "limit": limit, "order": "desc"}
+            "/swaps", {"vaultAddress": self.vault, "limit": limit, "order": "desc"}
         )
 
     async def get_deposits_withdrawals(self, limit: int = 10) -> dict:
         """获取存取款记录"""
         return await self._get(
-            f"/deposits-withdrawals/{self.vault}",
-            {"limit": limit, "order": "desc"}
+            f"/deposits-withdrawals/{self.vault}", {"limit": limit, "order": "desc"}
         )
 
     async def get_eth_price(self) -> dict:
@@ -174,12 +171,7 @@ class TerminalAPI:
         """Get token-related tweets."""
         return await self._get(f"/tweets/{symbol}", {"limit": limit, "order": "desc"})
 
-    async def get_candles(
-        self,
-        token_address: str,
-        timeframe: str = "4h",
-        limit: int = 24
-    ) -> list:
+    async def get_candles(self, token_address: str, timeframe: str = "4h", limit: int = 24) -> list:
         """Get candlestick data for a token.
 
         Args:
@@ -191,8 +183,6 @@ class TerminalAPI:
             List of candle objects with OHLCV data
         """
         now = int(time.time())
-        return await self._get(f"/candles/{token_address}", {
-            "timeframe": timeframe,
-            "to": now,
-            "countback": limit
-        })
+        return await self._get(
+            f"/candles/{token_address}", {"timeframe": timeframe, "to": now, "countback": limit}
+        )

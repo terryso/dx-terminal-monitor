@@ -17,7 +17,6 @@ from notifier import TelegramNotifier, format_usd
 logger = logging.getLogger(__name__)
 
 
-
 class ThresholdAlerter:
     """Monitors PnL and position changes and sends alerts when thresholds exceeded.
 
@@ -40,7 +39,7 @@ class ThresholdAlerter:
         self.check_interval = self._get_check_interval()
         self.running = False
         self._task: asyncio.Task | None = None
-        self.enabled = os.getenv('ALERT_ENABLED', 'true').lower() == 'true'
+        self.enabled = os.getenv("ALERT_ENABLED", "true").lower() == "true"
 
         # Previous values for comparison
         self._previous_pnl_usd: float | None = None
@@ -52,28 +51,28 @@ class ThresholdAlerter:
     def _get_pnl_cooldown_minutes(self) -> int:
         """Get PnL alert cooldown from env (default 0 = disabled)."""
         try:
-            return max(int(os.getenv('PNL_ALERT_COOLDOWN_MINUTES', '0')), 0)
+            return max(int(os.getenv("PNL_ALERT_COOLDOWN_MINUTES", "0")), 0)
         except ValueError:
             return 0
 
     def _get_pnl_threshold(self) -> float:
         """Get PnL alert threshold from env (default 10%)."""
         try:
-            return float(os.getenv('PNL_ALERT_THRESHOLD', '10'))
+            return float(os.getenv("PNL_ALERT_THRESHOLD", "10"))
         except ValueError:
             return 10.0
 
     def _get_position_threshold(self) -> float:
         """Get position alert threshold from env (default 15%)."""
         try:
-            return float(os.getenv('POSITION_ALERT_THRESHOLD', '15'))
+            return float(os.getenv("POSITION_ALERT_THRESHOLD", "15"))
         except ValueError:
             return 15.0
 
     def _get_check_interval(self) -> int:
         """Get check interval from env (default 5 minutes)."""
         try:
-            return max(int(os.getenv('ALERT_CHECK_INTERVAL', '300')), 30)
+            return max(int(os.getenv("ALERT_CHECK_INTERVAL", "300")), 30)
         except ValueError:
             return 300
 
@@ -88,7 +87,7 @@ class ThresholdAlerter:
         if not isinstance(positions, dict) or "error" in positions:
             return None
 
-        pnl_usd_str = positions.get('overallPnlUsd', '0')
+        pnl_usd_str = positions.get("overallPnlUsd", "0")
         try:
             current_pnl = float(pnl_usd_str)
         except (ValueError, TypeError):
@@ -106,10 +105,10 @@ class ThresholdAlerter:
 
             if pct_change >= self.pnl_threshold:
                 return {
-                    'previous_pnl': self._previous_pnl_usd,
-                    'current_pnl': current_pnl,
-                    'change': change,
-                    'pct_change': pct_change
+                    "previous_pnl": self._previous_pnl_usd,
+                    "current_pnl": current_pnl,
+                    "change": change,
+                    "pct_change": pct_change,
                 }
 
         # Always update previous value to prevent repeated alerts
@@ -133,7 +132,7 @@ class ThresholdAlerter:
             # Return empty alerts but preserve previous state on API error
             return [], self._previous_positions.copy()
 
-        pos_items = positions.get('positions', [])
+        pos_items = positions.get("positions", [])
         if not isinstance(pos_items, list):
             logger.warning("Unexpected positions format in API response")
             return [], self._previous_positions.copy()
@@ -142,9 +141,9 @@ class ThresholdAlerter:
         current_positions = {}
 
         for pos in pos_items:
-            symbol = pos.get('symbol', pos.get('tokenSymbol', 'Unknown'))
+            symbol = pos.get("symbol", pos.get("tokenSymbol", "Unknown"))
             try:
-                value = float(pos.get('valueUsd', pos.get('value', '0')))
+                value = float(pos.get("valueUsd", pos.get("value", "0")))
             except (ValueError, TypeError):
                 continue
 
@@ -155,12 +154,14 @@ class ThresholdAlerter:
                 if prev_value > 0:
                     change_pct = abs((value - prev_value) / prev_value) * 100
                     if change_pct >= self.position_threshold:
-                        alerts.append({
-                            'symbol': symbol,
-                            'previous_value': prev_value,
-                            'current_value': value,
-                            'change_pct': change_pct
-                        })
+                        alerts.append(
+                            {
+                                "symbol": symbol,
+                                "previous_value": prev_value,
+                                "current_value": value,
+                                "change_pct": change_pct,
+                            }
+                        )
 
         return alerts, current_positions
 
@@ -170,31 +171,31 @@ class ThresholdAlerter:
 
     def _format_pnl_alert(self, data: dict[str, Any]) -> str:
         """Format PnL alert message."""
-        now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
-        change = data['change']
-        sign = '+' if change >= 0 else ''
+        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+        change = data["change"]
+        sign = "+" if change >= 0 else ""
 
         return f"""PnL Alert - {now}
 
 24h PnL change exceeded threshold ({self.pnl_threshold}%)
 
-Current PnL: {sign}{format_usd(str(data['current_pnl']))}
-Change: {sign}{format_usd(str(change))} ({sign}{data['pct_change']:.1f}%)
+Current PnL: {sign}{format_usd(str(data["current_pnl"]))}
+Change: {sign}{format_usd(str(change))} ({sign}{data["pct_change"]:.1f}%)
 """
 
     def _format_position_alert(self, data: dict[str, Any]) -> str:
         """Format position alert message."""
-        now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M')
-        change = data['current_value'] - data['previous_value']
-        sign = '+' if change >= 0 else ''
+        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+        change = data["current_value"] - data["previous_value"]
+        sign = "+" if change >= 0 else ""
 
         return f"""Position Alert - {now}
 
-{data['symbol']} position change exceeded threshold ({self.position_threshold}%)
+{data["symbol"]} position change exceeded threshold ({self.position_threshold}%)
 
-Previous: {format_usd(str(data['previous_value']))}
-Current: {format_usd(str(data['current_value']))}
-Change: {sign}{format_usd(str(abs(change)))} ({sign}{data['change_pct']:.1f}%)
+Previous: {format_usd(str(data["previous_value"]))}
+Current: {format_usd(str(data["current_value"]))}
+Change: {sign}{format_usd(str(abs(change)))} ({sign}{data["change_pct"]:.1f}%)
 """
 
     async def _send_alerts(self):
@@ -207,7 +208,9 @@ Change: {sign}{format_usd(str(abs(change)))} ({sign}{data['change_pct']:.1f}%)
                 time_since_alert = datetime.datetime.now(datetime_utc) - self._last_pnl_alert_time
                 cooldown_delta = time_since_alert.total_seconds()
                 if cooldown_delta < self._pnl_cooldown_minutes * 60:
-                    logger.debug(f"PnL alert skipped due to cooldown ({cooldown_delta:.0f}s < {self._pnl_cooldown_minutes * 60}s)")
+                    logger.debug(
+                        f"PnL alert skipped due to cooldown ({cooldown_delta:.0f}s < {self._pnl_cooldown_minutes * 60}s)"
+                    )
                     return
 
                 # Not in cooldown, proceed with alert
@@ -222,7 +225,7 @@ Change: {sign}{format_usd(str(abs(change)))} ({sign}{data['change_pct']:.1f}%)
                     logger.error(f"Failed to send PnL alert: {e}")
             # Only update state if at least one send succeeded
             if send_success:
-                self._confirm_pnl_state(pnl_alert['current_pnl'])
+                self._confirm_pnl_state(pnl_alert["current_pnl"])
 
         # Check position thresholds
         position_alerts, current_positions = await self._check_position_threshold()
@@ -244,7 +247,9 @@ Change: {sign}{format_usd(str(abs(change)))} ({sign}{data['change_pct']:.1f}%)
             return
 
         self.running = True
-        logger.info(f"Threshold alerter started (PnL: {self.pnl_threshold}%, Position: {self.position_threshold}%)")
+        logger.info(
+            f"Threshold alerter started (PnL: {self.pnl_threshold}%, Position: {self.position_threshold}%)"
+        )
 
         while self.running:
             try:

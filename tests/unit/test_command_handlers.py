@@ -12,6 +12,7 @@ import pytest
 # Tests for cmd_balance
 # =============================================================================
 
+
 class TestCmdBalance:
     """Tests for /balance command."""
 
@@ -30,8 +31,10 @@ class TestCmdBalance:
             "overallPnlPercent": "4.5",
         }
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api") as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_api = MagicMock()
             mock_api.get_positions = AsyncMock(return_value=mock_api_response)
             mock_get_api.return_value = mock_api
@@ -63,8 +66,10 @@ class TestCmdBalance:
             "overallPnlPercent": "-5.0",
         }
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api") as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_api = MagicMock()
             mock_api.get_positions = AsyncMock(return_value=mock_api_response)
             mock_get_api.return_value = mock_api
@@ -88,8 +93,10 @@ class TestCmdBalance:
         # Given
         mock_api_response = {"error": "Connection timeout"}
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api") as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_api = MagicMock()
             mock_api.get_positions = AsyncMock(return_value=mock_api_response)
             mock_get_api.return_value = mock_api
@@ -99,9 +106,7 @@ class TestCmdBalance:
             await cmd_balance(mock_telegram_update, mock_telegram_context)
 
         # Then
-        mock_telegram_update.message.reply_text.assert_called_once_with(
-            "Error: Connection timeout"
-        )
+        mock_telegram_update.message.reply_text.assert_called_once_with("Error: Connection timeout")
 
     @pytest.mark.asyncio
     async def test_balance_unauthorized(
@@ -134,8 +139,10 @@ class TestCmdBalance:
             "overallPnlPercent": "0",
         }
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api") as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_api = MagicMock()
             mock_api.get_positions = AsyncMock(return_value=mock_api_response)
             mock_get_api.return_value = mock_api
@@ -153,6 +160,7 @@ class TestCmdBalance:
 # =============================================================================
 # Tests for cmd_positions
 # =============================================================================
+
 
 class TestCmdPositions:
     """Tests for /positions command."""
@@ -182,8 +190,10 @@ class TestCmdPositions:
             ]
         }
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api") as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_api = MagicMock()
             mock_api.get_positions = AsyncMock(return_value=mock_api_response)
             mock_get_api.return_value = mock_api
@@ -209,8 +219,10 @@ class TestCmdPositions:
         # Given
         mock_api_response = {"positions": []}
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api") as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_api = MagicMock()
             mock_api.get_positions = AsyncMock(return_value=mock_api_response)
             mock_get_api.return_value = mock_api
@@ -220,9 +232,7 @@ class TestCmdPositions:
             await cmd_positions(mock_telegram_update, mock_telegram_context)
 
         # Then
-        mock_telegram_update.message.reply_text.assert_called_once_with(
-            "No positions"
-        )
+        mock_telegram_update.message.reply_text.assert_called_once_with("No positions")
 
     @pytest.mark.asyncio
     async def test_positions_api_error(
@@ -234,8 +244,10 @@ class TestCmdPositions:
         # Given
         mock_api_response = {"error": "Rate limit exceeded"}
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api") as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_api = MagicMock()
             mock_api.get_positions = AsyncMock(return_value=mock_api_response)
             mock_get_api.return_value = mock_api
@@ -277,8 +289,10 @@ class TestCmdPositions:
         position = position_factory.create(token_symbol="WBTC")
         mock_api_response = {"positions": [position]}
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api") as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_api = MagicMock()
             mock_api.get_positions = AsyncMock(return_value=mock_api_response)
             mock_get_api.return_value = mock_api
@@ -296,6 +310,7 @@ class TestCmdPositions:
 # =============================================================================
 # Tests for cmd_pnl
 # =============================================================================
+
 
 class TestCmdPnl:
     """Tests for /pnl command."""
@@ -330,8 +345,10 @@ class TestCmdPnl:
             ],
         }
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api") as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_api = MagicMock()
             mock_api.get_positions = AsyncMock(return_value=mock_api_response)
             mock_get_api.return_value = mock_api
@@ -373,8 +390,10 @@ class TestCmdPnl:
             ],
         }
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api") as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_api = MagicMock()
             mock_api.get_positions = AsyncMock(return_value=mock_api_response)
             mock_get_api.return_value = mock_api
@@ -398,8 +417,10 @@ class TestCmdPnl:
         # Given
         mock_api_response = {"error": "Service unavailable"}
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api") as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_api = MagicMock()
             mock_api.get_positions = AsyncMock(return_value=mock_api_response)
             mock_get_api.return_value = mock_api
@@ -444,8 +465,10 @@ class TestCmdPnl:
             "positions": [],
         }
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("commands.query._get_api") as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_api = MagicMock()
             mock_api.get_positions = AsyncMock(return_value=mock_api_response)
             mock_get_api.return_value = mock_api

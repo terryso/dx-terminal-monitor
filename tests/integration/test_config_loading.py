@@ -5,8 +5,6 @@ These tests verify the integration between components.
 """
 
 
-
-
 class TestConfigDefaults:
     """Tests for default configuration values in config.py."""
 

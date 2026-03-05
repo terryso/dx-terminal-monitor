@@ -15,6 +15,7 @@ import pytest
 # Tests for post_init - Story 1-3 AC #2
 # =============================================================================
 
+
 class TestPostInitStory13:
     """Tests for post_init function - Story 1-3 updates."""
 
@@ -37,9 +38,13 @@ class TestPostInitStory13:
         assert "disable_strategy" in command_names, "disable_strategy command should be registered"
 
         # Also verify the command description
-        disable_strategy_cmd = next((cmd for cmd in call_args if cmd.command == "disable_strategy"), None)
+        disable_strategy_cmd = next(
+            (cmd for cmd in call_args if cmd.command == "disable_strategy"), None
+        )
         assert disable_strategy_cmd is not None, "disable_strategy command should exist"
-        assert disable_strategy_cmd.description == "Disable strategy", "Command description should match"
+        assert disable_strategy_cmd.description == "Disable strategy", (
+            "Command description should match"
+        )
 
     @pytest.mark.asyncio
     async def test_post_init_registers_disable_all_command(self) -> None:
@@ -62,7 +67,9 @@ class TestPostInitStory13:
         # Also verify the command description
         disable_all_cmd = next((cmd for cmd in call_args if cmd.command == "disable_all"), None)
         assert disable_all_cmd is not None, "disable_all command should exist"
-        assert disable_all_cmd.description == "Disable all strategies", "Command description should match"
+        assert disable_all_cmd.description == "Disable all strategies", (
+            "Command description should match"
+        )
 
     @pytest.mark.asyncio
     async def test_post_init_registers_all_expected_commands(self) -> None:
@@ -91,39 +98,41 @@ class TestPostInitStory13:
             "swaps",
             "strategies",
             "vault",
-            "price",             # Story 6-1
-            "tokens",            # Story 6-2
-            "token",             # Story 6-3
-            "launches",          # Story 6-4
-            "leaderboard",       # Story 6-5
-            "tweets",            # Story 6-6
-            "deposits",          # Story 5-1
-            "pnl_history",       # Story 5-2
-            "deposit",           # Story 5-3
-            "add_strategy",      # Story 2-1
+            "price",  # Story 6-1
+            "tokens",  # Story 6-2
+            "token",  # Story 6-3
+            "launches",  # Story 6-4
+            "leaderboard",  # Story 6-5
+            "tweets",  # Story 6-6
+            "deposits",  # Story 5-1
+            "pnl_history",  # Story 5-2
+            "deposit",  # Story 5-3
+            "add_strategy",  # Story 2-1
             "disable_strategy",  # Story 1-3
-            "disable_all",       # Story 1-3
-            "pause",             # Story 2-2
-            "resume",            # Story 2-2
-            "update_settings",   # Story 3-1
-            "withdraw",          # Story 3-2
-            "monitor_status",    # Story 4-1
-            "monitor_start",     # Story 4-1
-            "monitor_stop",      # Story 4-1
-            "report_on",         # Story 7-1
-            "report_off",        # Story 7-1
-            "report_time",       # Story 7-1
-            "report_status",     # Story 7-1
-            "alert_pnl",         # Story 7-2
-            "alert_position",    # Story 7-2
-            "alert_status",      # Story 7-2
-            "advisor_on",        # Story 8-3
-            "advisor_off",       # Story 8-3
-            "advisor_status",    # Story 8-3
-            "advisor_analyze",   # Story 8-5
+            "disable_all",  # Story 1-3
+            "pause",  # Story 2-2
+            "resume",  # Story 2-2
+            "update_settings",  # Story 3-1
+            "withdraw",  # Story 3-2
+            "monitor_status",  # Story 4-1
+            "monitor_start",  # Story 4-1
+            "monitor_stop",  # Story 4-1
+            "report_on",  # Story 7-1
+            "report_off",  # Story 7-1
+            "report_time",  # Story 7-1
+            "report_status",  # Story 7-1
+            "alert_pnl",  # Story 7-2
+            "alert_position",  # Story 7-2
+            "alert_status",  # Story 7-2
+            "advisor_on",  # Story 8-3
+            "advisor_off",  # Story 8-3
+            "advisor_status",  # Story 8-3
+            "advisor_analyze",  # Story 8-5
         ]
 
-        assert len(command_names) == len(expected_commands), f"Expected {len(expected_commands)} commands, got {len(command_names)}"
+        assert len(command_names) == len(expected_commands), (
+            f"Expected {len(expected_commands)} commands, got {len(command_names)}"
+        )
         for expected in expected_commands:
             assert expected in command_names, f"Command '{expected}' should be registered"
 
@@ -131,6 +140,7 @@ class TestPostInitStory13:
 # =============================================================================
 # Tests for cmd_start help text - Story 1-3 AC #1
 # =============================================================================
+
 
 class TestCmdStartStory13:
     """Tests for cmd_start function - Story 1-3 updates."""
@@ -154,7 +164,9 @@ class TestCmdStartStory13:
             # Then
             mock_update.message.reply_text.assert_called_once()
             help_text = mock_update.message.reply_text.call_args[0][0]
-            assert "/disable_strategy" in help_text, "Help text should include /disable_strategy command"
+            assert "/disable_strategy" in help_text, (
+                "Help text should include /disable_strategy command"
+            )
             assert "<id>" in help_text, "Help text should show parameter placeholder"
 
     @pytest.mark.asyncio
@@ -216,6 +228,7 @@ class TestCmdStartStory13:
 # Tests for create_app handler registration - Story 1-3 additional verification
 # =============================================================================
 
+
 class TestCreateAppStory13:
     """Tests for create_app function - Story 1-3 handler registration."""
 
@@ -224,12 +237,12 @@ class TestCreateAppStory13:
         handler_commands = []
         for handler in handlers:
             # CommandHandler has 'commands' attribute
-            if hasattr(handler, 'commands'):
+            if hasattr(handler, "commands"):
                 handler_commands.extend(handler.commands)
             # ConversationHandler has 'entry_points' with CommandHandlers inside
-            elif hasattr(handler, 'entry_points'):
+            elif hasattr(handler, "entry_points"):
                 for entry_point in handler.entry_points:
-                    if hasattr(entry_point, 'commands'):
+                    if hasattr(entry_point, "commands"):
                         handler_commands.extend(entry_point.commands)
         return handler_commands
 
@@ -247,7 +260,9 @@ class TestCreateAppStory13:
             handlers = app.handlers[0]  # CommandHandler group
             handler_commands = self._extract_handler_commands(handlers)
 
-            assert "disable_strategy" in handler_commands, "disable_strategy handler should be registered"
+            assert "disable_strategy" in handler_commands, (
+                "disable_strategy handler should be registered"
+            )
 
     @pytest.mark.asyncio
     async def test_create_app_registers_disable_all_handler(self) -> None:
@@ -291,7 +306,7 @@ class TestCreateAppStory13:
                 "strategies",
                 "vault",
                 "disable_strategy",  # NEW - Story 1-3
-                "disable_all",       # NEW - Story 1-3
+                "disable_all",  # NEW - Story 1-3
             ]
 
             for expected in expected_handlers:

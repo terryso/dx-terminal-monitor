@@ -45,13 +45,12 @@ class TestCmdPrice:
         """Test normal query - cmd_price returns formatted ETH price."""
         # Given
         mock_api = AsyncMock()
-        mock_api.get_eth_price = AsyncMock(return_value={
-            "priceUsd": "3000.00"
-        })
+        mock_api.get_eth_price = AsyncMock(return_value={"priceUsd": "3000.00"})
 
-        with patch("commands.query.authorized", return_value=True), patch(
-            "commands.query._get_api"
-        ) as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.query import cmd_price
 
@@ -86,9 +85,10 @@ class TestCmdPrice:
         mock_api = AsyncMock()
         mock_api.get_eth_price = AsyncMock(return_value={"error": "API unavailable"})
 
-        with patch("commands.query.authorized", return_value=True), patch(
-            "commands.query._get_api"
-        ) as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.query import cmd_price
 
@@ -104,13 +104,12 @@ class TestCmdPrice:
         """Test low price value formatting."""
         # Given
         mock_api = AsyncMock()
-        mock_api.get_eth_price = AsyncMock(return_value={
-            "priceUsd": "2800.00"
-        })
+        mock_api.get_eth_price = AsyncMock(return_value={"priceUsd": "2800.00"})
 
-        with patch("commands.query.authorized", return_value=True), patch(
-            "commands.query._get_api"
-        ) as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.query import cmd_price
 

@@ -21,12 +21,12 @@ logger = logging.getLogger(__name__)
 
 # User-friendly error messages
 ERROR_MESSAGES = {
-    'abi_not_found': "合约配置文件缺失，请联系管理员",
-    'abi_invalid': "合约配置文件格式错误，请联系管理员",
-    'gas_estimation_failed': "Gas 估算失败，可能是合约条件不满足",
-    'contract_reverted': "合约执行失败，请检查策略状态",
-    'network_error': "网络连接失败，请稍后重试",
-    'unknown': "未知错误，请稍后重试",
+    "abi_not_found": "合约配置文件缺失，请联系管理员",
+    "abi_invalid": "合约配置文件格式错误，请联系管理员",
+    "gas_estimation_failed": "Gas 估算失败，可能是合约条件不满足",
+    "contract_reverted": "合约执行失败，请检查策略状态",
+    "network_error": "网络连接失败，请稍后重试",
+    "unknown": "未知错误，请稍后重试",
 }
 
 
@@ -73,19 +73,16 @@ class VaultContract:
 
         if not abi_path.exists():
             logger.error(f"ABI file not found: {abi_path}")
-            raise RuntimeError(ERROR_MESSAGES['abi_not_found'])
+            raise RuntimeError(ERROR_MESSAGES["abi_not_found"])
 
         try:
             with open(abi_path) as f:
                 abi = json.load(f)
         except json.JSONDecodeError as e:
             logger.error(f"Invalid ABI JSON: {e}")
-            raise RuntimeError(ERROR_MESSAGES['abi_invalid'])
+            raise RuntimeError(ERROR_MESSAGES["abi_invalid"])
 
-        return self.w3.eth.contract(
-            address=self.address,
-            abi=abi
-        )
+        return self.w3.eth.contract(address=self.address, abi=abi)
 
     async def _send_transaction(self, tx_func: Callable, value: int = 0) -> dict[str, Any]:
         """
@@ -112,26 +109,30 @@ class VaultContract:
         try:
             # Estimate gas
             try:
-                gas_estimate = tx_func.estimate_gas({
-                    'from': self.account.address,
-                    'value': value,
-                })
+                gas_estimate = tx_func.estimate_gas(
+                    {
+                        "from": self.account.address,
+                        "value": value,
+                    }
+                )
             except ContractLogicError as e:
                 logger.error(f"Contract logic error during gas estimation: {e}")
                 return {
-                    'success': False,
-                    'error': ERROR_MESSAGES['gas_estimation_failed'],
+                    "success": False,
+                    "error": ERROR_MESSAGES["gas_estimation_failed"],
                 }
 
             # Build transaction
-            tx = tx_func.build_transaction({
-                'from': self.account.address,
-                'nonce': self.w3.eth.get_transaction_count(self.account.address),
-                'gas': int(gas_estimate * 1.2),  # Add 20% buffer
-                'gasPrice': self.w3.eth.gas_price,
-                'chainId': CHAIN_ID,
-                'value': value,
-            })
+            tx = tx_func.build_transaction(
+                {
+                    "from": self.account.address,
+                    "nonce": self.w3.eth.get_transaction_count(self.account.address),
+                    "gas": int(gas_estimate * 1.2),  # Add 20% buffer
+                    "gasPrice": self.w3.eth.gas_price,
+                    "chainId": CHAIN_ID,
+                    "value": value,
+                }
+            )
 
             # Sign transaction
             signed_tx = self.account.sign_transaction(tx)
@@ -143,32 +144,32 @@ class VaultContract:
             receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
 
             # Check status
-            if receipt['status'] == 0:
+            if receipt["status"] == 0:
                 logger.error("Transaction execution failed (status: 0)")
                 return {
-                    'success': False,
-                    'error': ERROR_MESSAGES['contract_reverted'],
+                    "success": False,
+                    "error": ERROR_MESSAGES["contract_reverted"],
                 }
 
             return {
-                'success': True,
-                'transactionHash': tx_hash.hex(),
-                'status': receipt['status'],
-                'blockNumber': receipt['blockNumber'],
-                'receipt': dict(receipt),
+                "success": True,
+                "transactionHash": tx_hash.hex(),
+                "status": receipt["status"],
+                "blockNumber": receipt["blockNumber"],
+                "receipt": dict(receipt),
             }
 
         except ConnectionError as e:
             logger.error(f"Network connection error: {e}")
             return {
-                'success': False,
-                'error': ERROR_MESSAGES['network_error'],
+                "success": False,
+                "error": ERROR_MESSAGES["network_error"],
             }
         except Exception as e:
             logger.error(f"Transaction failed: {e}")
             return {
-                'success': False,
-                'error': f"{ERROR_MESSAGES['unknown']} ({str(e)})",
+                "success": False,
+                "error": f"{ERROR_MESSAGES['unknown']} ({str(e)})",
             }
 
     async def disable_strategy(self, strategy_id: int) -> dict[str, Any]:
@@ -198,11 +199,13 @@ class VaultContract:
         except Exception as e:
             logger.error(f"Failed to disable strategy #{strategy_id}: {e}")
             return {
-                'success': False,
-                'error': str(e),
+                "success": False,
+                "error": str(e),
             }
 
-    async def disable_all_strategies(self, get_active_count: Callable[[], int] | None = None) -> dict[str, Any]:
+    async def disable_all_strategies(
+        self, get_active_count: Callable[[], int] | None = None
+    ) -> dict[str, Any]:
         """
         Disable all active strategies.
 
@@ -238,9 +241,9 @@ class VaultContract:
             # Pre-validation: check if there are strategies to disable
             if disabled_count == 0:
                 return {
-                    'success': True,
-                    'disabledCount': 0,
-                    'message': 'no_active_strategies',
+                    "success": True,
+                    "disabledCount": 0,
+                    "message": "no_active_strategies",
                 }
 
             # Get contract function
@@ -257,15 +260,12 @@ class VaultContract:
         except Exception as e:
             logger.error(f"Failed to disable all strategies: {e}")
             return {
-                'success': False,
-                'error': str(e),
+                "success": False,
+                "error": str(e),
             }
 
     async def add_strategy(
-        self,
-        content: str,
-        expiry: int = 0,
-        priority: int = 1
+        self, content: str, expiry: int = 0, priority: int = 1
     ) -> dict[str, Any]:
         """
         Add a new trading strategy.
@@ -288,12 +288,16 @@ class VaultContract:
         if not content or not content.strip():
             return {"success": False, "error": "Strategy content cannot be empty"}
 
-        content_bytes = content.encode('utf-8')
+        content_bytes = content.encode("utf-8")
         if len(content_bytes) > 1024:
-            return {"success": False, "error": f"Strategy too long (max 1024 bytes, got {len(content_bytes)})"}
+            return {
+                "success": False,
+                "error": f"Strategy too long (max 1024 bytes, got {len(content_bytes)})",
+            }
 
         # Validate expiry (must be 0 or future timestamp)
         import time
+
         if expiry < 0:
             return {"success": False, "error": "Expiry must be non-negative"}
         if expiry > 0 and expiry <= int(time.time()):
@@ -309,9 +313,7 @@ class VaultContract:
 
             # If successful, try to parse strategyId from logs
             if result.get("success"):
-                result["strategyId"] = self._parse_strategy_id_from_logs(
-                    result.get("receipt", {})
-                )
+                result["strategyId"] = self._parse_strategy_id_from_logs(result.get("receipt", {}))
 
             return result
         except Exception as e:
@@ -374,7 +376,7 @@ class VaultContract:
         asset_risk_preference: int = None,
         trade_size: int = None,
         holding_style: int = None,
-        diversification: int = None
+        diversification: int = None,
     ) -> dict[str, Any]:
         """
         Update vault trading settings and behavior preferences.
@@ -400,28 +402,25 @@ class VaultContract:
             # Validate trading settings
             if max_trade_bps is not None and not (500 <= max_trade_bps <= 10000):
                 return {
-                    'success': False,
-                    'error': 'max_trade must be between 500-10000 BPS (5%-100%)'
+                    "success": False,
+                    "error": "max_trade must be between 500-10000 BPS (5%-100%)",
                 }
             if slippage_bps is not None and not (10 <= slippage_bps <= 5000):
                 return {
-                    'success': False,
-                    'error': 'slippage must be between 10-5000 BPS (0.1%-50%)'
+                    "success": False,
+                    "error": "slippage must be between 10-5000 BPS (0.1%-50%)",
                 }
 
             # Validate behavior preferences (1-5)
             for name, value in [
-                ('trading_activity', trading_activity),
-                ('asset_risk_preference', asset_risk_preference),
-                ('trade_size', trade_size),
-                ('holding_style', holding_style),
-                ('diversification', diversification)
+                ("trading_activity", trading_activity),
+                ("asset_risk_preference", asset_risk_preference),
+                ("trade_size", trade_size),
+                ("holding_style", holding_style),
+                ("diversification", diversification),
             ]:
                 if value is not None and not (1 <= value <= 5):
-                    return {
-                        'success': False,
-                        'error': f'{name} must be between 1-5'
-                    }
+                    return {"success": False, "error": f"{name} must be between 1-5"}
 
             # Build settings tuple (use 0 as placeholder for unchanged values)
             # Contract expects: (maxTradeAmount, slippageBps, tradingActivity, assetRiskPreference, tradeSize, holdingStyle, diversification)
@@ -432,7 +431,7 @@ class VaultContract:
                 asset_risk_preference if asset_risk_preference is not None else 0,
                 trade_size if trade_size is not None else 0,
                 holding_style if holding_style is not None else 0,
-                diversification if diversification is not None else 0
+                diversification if diversification is not None else 0,
             )
 
             tx_func = self.contract.functions.updateSettings(settings)
@@ -460,10 +459,7 @@ class VaultContract:
         try:
             # Validate amount
             if amount_wei <= 0:
-                return {
-                    'success': False,
-                    'error': 'Withdrawal amount must be greater than 0'
-                }
+                return {"success": False, "error": "Withdrawal amount must be greater than 0"}
 
             tx_func = self.contract.functions.withdrawETH(amount_wei)
             return await self._send_transaction(tx_func)
@@ -490,10 +486,7 @@ class VaultContract:
         try:
             # Validate amount
             if amount_wei <= 0:
-                return {
-                    'success': False,
-                    'error': 'Deposit amount must be greater than 0'
-                }
+                return {"success": False, "error": "Deposit amount must be greater than 0"}
 
             # Get contract function (payable)
             tx_func = self.contract.functions.depositETH()

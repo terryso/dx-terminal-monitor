@@ -13,12 +13,14 @@ from telegram.error import NetworkError, TelegramError, TimedOut
 # Tests for format function error branches
 # =============================================================================
 
+
 class TestFormatEthEdgeCases:
     """Tests for format_eth error handling."""
 
     def test_format_eth_float_input(self) -> None:
         """Test format_eth with float input."""
         from utils.formatters import format_eth
+
         # Float should work (converted to float again)
         result = format_eth(1000000000000000000.0)
         assert "1.000000" == result
@@ -26,6 +28,7 @@ class TestFormatEthEdgeCases:
     def test_format_eth_negative_value(self) -> None:
         """Test format_eth with negative value."""
         from utils.formatters import format_eth
+
         result = format_eth("-1000000000000000000")
         assert result == "-1.000000"
 
@@ -36,12 +39,14 @@ class TestFormatUsdEdgeCases:
     def test_format_usd_float_input(self) -> None:
         """Test format_usd with float input."""
         from utils.formatters import format_usd
+
         result = format_usd(1234.5678)
         assert result == "$1234.57"
 
     def test_format_usd_very_large_value(self) -> None:
         """Test format_usd with very large value."""
         from utils.formatters import format_usd
+
         result = format_usd("9999999999.99")
         assert result == "$9999999999.99"
 
@@ -52,18 +57,21 @@ class TestFormatPercentEdgeCases:
     def test_format_percent_float_input(self) -> None:
         """Test format_percent with float input."""
         from utils.formatters import format_percent
+
         result = format_percent(15.5)
         assert result == "+15.50%"
 
     def test_format_percent_zero_boundary(self) -> None:
         """Test format_percent at zero boundary."""
         from utils.formatters import format_percent
+
         result = format_percent("0.0")
         assert result == "0.00%"
 
     def test_format_percent_very_small_positive(self) -> None:
         """Test format_percent with very small positive value."""
         from utils.formatters import format_percent
+
         result = format_percent("0.001")
         assert result == "+0.00%"
 
@@ -71,6 +79,7 @@ class TestFormatPercentEdgeCases:
 # =============================================================================
 # Tests for post_init
 # =============================================================================
+
 
 class TestPostInit:
     """Tests for post_init function."""
@@ -108,14 +117,15 @@ class TestPostInit:
 # Tests for main function retry logic
 # =============================================================================
 
+
 class TestMainFunction:
     """Tests for main() function and retry logic."""
 
     def test_main_exits_without_token(self) -> None:
         """Test main exits when TELEGRAM_BOT_TOKEN not set."""
-        with patch("main.TELEGRAM_BOT_TOKEN", None), \
-             patch("builtins.print") as mock_print:
+        with patch("main.TELEGRAM_BOT_TOKEN", None), patch("builtins.print") as mock_print:
             from main import main
+
             main()
 
             mock_print.assert_called_with("Error: TELEGRAM_BOT_TOKEN not set")
@@ -124,13 +134,18 @@ class TestMainFunction:
         """Test main retries on NetworkError."""
         mock_app = MagicMock()
         # Simulate 10 failures then KeyboardInterrupt to exit the infinite loop
-        mock_app.run_polling.side_effect = [NetworkError("Connection failed")] * 10 + [KeyboardInterrupt()]
+        mock_app.run_polling.side_effect = [NetworkError("Connection failed")] * 10 + [
+            KeyboardInterrupt()
+        ]
 
-        with patch("main.TELEGRAM_BOT_TOKEN", "test_token"), \
-             patch("main.create_app", return_value=mock_app), \
-             patch("main.time.sleep"), \
-             patch("main.logger"):
+        with (
+            patch("main.TELEGRAM_BOT_TOKEN", "test_token"),
+            patch("main.create_app", return_value=mock_app),
+            patch("main.time.sleep"),
+            patch("main.logger"),
+        ):
             from main import main
+
             main()
 
         # Should have attempted run_polling 11 times (10 failures + 1 KeyboardInterrupt)
@@ -142,11 +157,14 @@ class TestMainFunction:
         # Simulate 10 failures then KeyboardInterrupt to exit the infinite loop
         mock_app.run_polling.side_effect = [TimedOut("Timeout")] * 10 + [KeyboardInterrupt()]
 
-        with patch("main.TELEGRAM_BOT_TOKEN", "test_token"), \
-             patch("main.create_app", return_value=mock_app), \
-             patch("main.time.sleep"), \
-             patch("main.logger"):
+        with (
+            patch("main.TELEGRAM_BOT_TOKEN", "test_token"),
+            patch("main.create_app", return_value=mock_app),
+            patch("main.time.sleep"),
+            patch("main.logger"),
+        ):
             from main import main
+
             main()
 
         assert mock_app.run_polling.call_count == 11
@@ -155,13 +173,18 @@ class TestMainFunction:
         """Test main retries on generic TelegramError."""
         mock_app = MagicMock()
         # Simulate 10 failures then KeyboardInterrupt to exit the infinite loop
-        mock_app.run_polling.side_effect = [TelegramError("Generic error")] * 10 + [KeyboardInterrupt()]
+        mock_app.run_polling.side_effect = [TelegramError("Generic error")] * 10 + [
+            KeyboardInterrupt()
+        ]
 
-        with patch("main.TELEGRAM_BOT_TOKEN", "test_token"), \
-             patch("main.create_app", return_value=mock_app), \
-             patch("main.time.sleep"), \
-             patch("main.logger"):
+        with (
+            patch("main.TELEGRAM_BOT_TOKEN", "test_token"),
+            patch("main.create_app", return_value=mock_app),
+            patch("main.time.sleep"),
+            patch("main.logger"),
+        ):
             from main import main
+
             main()
 
         assert mock_app.run_polling.call_count == 11
@@ -170,13 +193,18 @@ class TestMainFunction:
         """Test main retries on unexpected exceptions."""
         mock_app = MagicMock()
         # Simulate 10 failures then KeyboardInterrupt to exit the infinite loop
-        mock_app.run_polling.side_effect = [RuntimeError("Unexpected!")] * 10 + [KeyboardInterrupt()]
+        mock_app.run_polling.side_effect = [RuntimeError("Unexpected!")] * 10 + [
+            KeyboardInterrupt()
+        ]
 
-        with patch("main.TELEGRAM_BOT_TOKEN", "test_token"), \
-             patch("main.create_app", return_value=mock_app), \
-             patch("main.time.sleep"), \
-             patch("main.logger"):
+        with (
+            patch("main.TELEGRAM_BOT_TOKEN", "test_token"),
+            patch("main.create_app", return_value=mock_app),
+            patch("main.time.sleep"),
+            patch("main.logger"),
+        ):
             from main import main
+
             main()
 
         assert mock_app.run_polling.call_count == 11
@@ -186,10 +214,13 @@ class TestMainFunction:
         mock_app = MagicMock()
         mock_app.run_polling.side_effect = KeyboardInterrupt()
 
-        with patch("main.TELEGRAM_BOT_TOKEN", "test_token"), \
-             patch("main.create_app", return_value=mock_app), \
-             patch("main.logger"):
+        with (
+            patch("main.TELEGRAM_BOT_TOKEN", "test_token"),
+            patch("main.create_app", return_value=mock_app),
+            patch("main.logger"),
+        ):
             from main import main
+
             main()  # Should exit without error
 
         # Should only have attempted once

@@ -14,9 +14,9 @@ import pytest
 # Tests for circular import detection
 # =============================================================================
 
+
 class TestImportCycles:
     """Tests for circular import detection."""
-
 
     @pytest.mark.unit
     def test_import_main_no_error(self) -> None:
@@ -40,12 +40,12 @@ class TestImportCycles:
         # When/Then - Should not raise ImportError
         try:
             import main
+
             assert True
         except ImportError as e:
             if "circular" in str(e).lower() or "cannot import" in str(e).lower():
                 pytest.fail(f"Circular import detected: {e}")
             raise
-
 
     @pytest.mark.unit
     def test_import_commands_query_no_error(self) -> None:
@@ -59,12 +59,12 @@ class TestImportCycles:
         # When/Then - Should not raise ImportError
         try:
             from commands import query
+
             assert True
         except ImportError as e:
             if "circular" in str(e).lower() or "cannot import" in str(e).lower():
                 pytest.fail(f"Circular import detected: {e}")
             raise
-
 
     @pytest.mark.unit
     def test_import_commands_admin_no_error(self) -> None:
@@ -78,12 +78,12 @@ class TestImportCycles:
         # When/Then - Should not raise ImportError
         try:
             from commands import admin
+
             assert True
         except ImportError as e:
             if "circular" in str(e).lower() or "cannot import" in str(e).lower():
                 pytest.fail(f"Circular import detected: {e}")
             raise
-
 
     @pytest.mark.unit
     def test_import_commands_monitor_no_error(self) -> None:
@@ -97,12 +97,12 @@ class TestImportCycles:
         # When/Then - Should not raise ImportError
         try:
             from commands import monitor
+
             assert True
         except ImportError as e:
             if "circular" in str(e).lower() or "cannot import" in str(e).lower():
                 pytest.fail(f"Circular import detected: {e}")
             raise
-
 
     @pytest.mark.unit
     def test_import_commands_withdraw_no_error(self) -> None:
@@ -116,12 +116,12 @@ class TestImportCycles:
         # When/Then - Should not raise ImportError
         try:
             from commands import withdraw
+
             assert True
         except ImportError as e:
             if "circular" in str(e).lower() or "cannot import" in str(e).lower():
                 pytest.fail(f"Circular import detected: {e}")
             raise
-
 
     @pytest.mark.unit
     def test_import_utils_no_error(self) -> None:
@@ -135,12 +135,12 @@ class TestImportCycles:
         # When/Then - Should not raise ImportError
         try:
             import utils
+
             assert True
         except ImportError as e:
             if "circular" in str(e).lower() or "cannot import" in str(e).lower():
                 pytest.fail(f"Circular import detected: {e}")
             raise
-
 
     @pytest.mark.unit
     def test_register_handlers_available(self) -> None:
@@ -156,7 +156,6 @@ class TestImportCycles:
 
         # Then
         assert callable(register_handlers)
-
 
     @pytest.mark.unit
     def test_set_monitor_instance_available(self) -> None:

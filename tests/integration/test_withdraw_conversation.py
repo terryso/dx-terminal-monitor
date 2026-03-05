@@ -12,6 +12,7 @@ import pytest
 # Tests for cmd_withdraw (AC 6)
 # =============================================================================
 
+
 class TestCmdWithdrawRefactored:
     """Tests for /withdraw command after refactoring."""
 
@@ -29,13 +30,16 @@ class TestCmdWithdrawRefactored:
         _pending_withdrawals.clear()
         mock_telegram_context.args = ["1.5"]
         mock_api = MagicMock()
-        mock_api.get_positions = AsyncMock(return_value={
-            "ethBalance": "5000000000000000000"  # 5 ETH
-        })
+        mock_api.get_positions = AsyncMock(
+            return_value={
+                "ethBalance": "5000000000000000000"  # 5 ETH
+            }
+        )
 
-        with patch("commands.withdraw.is_admin", return_value=True), \
-             patch("commands.withdraw._get_api", return_value=mock_api):
-
+        with (
+            patch("commands.withdraw.is_admin", return_value=True),
+            patch("commands.withdraw._get_api", return_value=mock_api),
+        ):
             # When
             result = await cmd_withdraw(mock_telegram_update, mock_telegram_context)
 
@@ -92,6 +96,7 @@ class TestCmdWithdrawRefactored:
 # Tests for handle_withdraw_confirm (AC 6)
 # =============================================================================
 
+
 class TestHandleWithdrawConfirmRefactored:
     """Tests for withdraw confirmation handler after refactoring."""
 
@@ -113,11 +118,14 @@ class TestHandleWithdrawConfirmRefactored:
         _pending_withdrawals[user_id] = "1.5"  # Stores just the amount string
 
         mock_contract = MagicMock()
-        mock_contract.withdraw_eth = AsyncMock(return_value={"success": True, "transactionHash": "0xtxhash"})
+        mock_contract.withdraw_eth = AsyncMock(
+            return_value={"success": True, "transactionHash": "0xtxhash"}
+        )
 
-        with patch("commands.withdraw.is_admin", return_value=True), \
-             patch("commands.withdraw._get_contract", return_value=mock_contract):
-
+        with (
+            patch("commands.withdraw.is_admin", return_value=True),
+            patch("commands.withdraw._get_contract", return_value=mock_contract),
+        ):
             # When
             result = await handle_withdraw_confirm(mock_telegram_update, mock_telegram_context)
 
@@ -156,6 +164,7 @@ class TestHandleWithdrawConfirmRefactored:
 # Tests for handle_withdraw_cancel (AC 6)
 # =============================================================================
 
+
 class TestHandleWithdrawCancelRefactored:
     """Tests for withdraw cancel handler after refactoring."""
 
@@ -187,6 +196,7 @@ class TestHandleWithdrawCancelRefactored:
 # =============================================================================
 # Tests for create_withdraw_handler (AC 6)
 # =============================================================================
+
 
 class TestCreateWithdrawHandlerRefactored:
     """Tests for create_withdraw_handler factory function."""

@@ -53,7 +53,7 @@ def format_usd(value: str | float) -> str:
             return "$0.00"
         elif num < 0.01:
             # Use scientific notation for very small values
-            return f"${num:.6f}".rstrip('0').rstrip('.')
+            return f"${num:.6f}".rstrip("0").rstrip(".")
         else:
             return f"${num:,.2f}"
     except (ValueError, TypeError):
@@ -73,7 +73,7 @@ def format_token_amount(amount: str, decimals: int = 18) -> str:
     try:
         num = float(amount)
         # If already a small number or contains decimal point, assume it's already formatted
-        if '.' in str(amount) or num < 1e15:
+        if "." in str(amount) or num < 1e15:
             # Already formatted, just apply K/M suffix if needed
             if num >= 1_000_000:
                 return f"{num / 1_000_000:.2f}M"
@@ -82,12 +82,12 @@ def format_token_amount(amount: str, decimals: int = 18) -> str:
             elif num >= 1:
                 return f"{num:.2f}"
             elif num > 0:
-                return f"{num:.6f}".rstrip('0').rstrip('.')
+                return f"{num:.6f}".rstrip("0").rstrip(".")
             else:
                 return "0"
         else:
             # Wei-like format, need to divide by decimals
-            num = num / (10 ** decimals)
+            num = num / (10**decimals)
             if num >= 1_000_000:
                 return f"{num / 1_000_000:.2f}M"
             elif num >= 1_000:
@@ -95,7 +95,7 @@ def format_token_amount(amount: str, decimals: int = 18) -> str:
             elif num >= 1:
                 return f"{num:.2f}"
             elif num > 0:
-                return f"{num:.6f}".rstrip('0').rstrip('.')
+                return f"{num:.6f}".rstrip("0").rstrip(".")
             else:
                 return "0"
     except (ValueError, TypeError):
@@ -115,10 +115,10 @@ def format_timestamp(ts: str | int) -> str:
         # Handle Unix timestamp (integer or numeric string)
         if isinstance(ts, int) or (isinstance(ts, str) and ts.isdigit()):
             dt = datetime.fromtimestamp(int(ts))  # Local time
-            return dt.strftime('%Y-%m-%d %H:%M:%S')
+            return dt.strftime("%Y-%m-%d %H:%M:%S")
         # Handle ISO format string
-        dt = datetime.fromisoformat(ts.replace('Z', '+00:00'))
-        return dt.strftime('%Y-%m-%d %H:%M:%S')
+        dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+        return dt.strftime("%Y-%m-%d %H:%M:%S")
     except Exception:
         return str(ts)
 
@@ -147,9 +147,9 @@ def format_activity_message(activity: dict[str, Any]) -> str:
     Returns:
         Formatted Telegram message string
     """
-    activity_type = activity.get('type', 'unknown')
-    timestamp = format_timestamp(activity.get('timestamp', ''))
-    activity_id = activity.get('id', '')
+    activity_type = activity.get("type", "unknown")
+    timestamp = format_timestamp(activity.get("timestamp", ""))
+    activity_id = activity.get("id", "")
 
     lines = [
         "🔔 Agent Activity Notification\n",
@@ -157,30 +157,29 @@ def format_activity_message(activity: dict[str, Any]) -> str:
         f"Time: {timestamp}",
     ]
 
-    if activity_type == 'swap':
-        swap = activity.get('swap', {})
-        side = swap.get('side', '?').upper()
-        token = swap.get('tokenSymbol', '?')
-        eth_amt = format_eth(swap.get('ethAmount', '0'))
+    if activity_type == "swap":
+        swap = activity.get("swap", {})
+        side = swap.get("side", "?").upper()
+        token = swap.get("tokenSymbol", "?")
+        eth_amt = format_eth(swap.get("ethAmount", "0"))
 
         # Try multiple price fields: effectivePriceUsd, priceUsd, avgPriceUsd
         price_val = (
-            swap.get('effectivePriceUsd') or
-            swap.get('priceUsd') or
-            swap.get('avgPriceUsd') or
-            '0'
+            swap.get("effectivePriceUsd") or swap.get("priceUsd") or swap.get("avgPriceUsd") or "0"
         )
         price = format_usd(price_val)
 
         # Try to get token quantity if available
-        token_qty_raw = swap.get('tokenAmount') or swap.get('quantity')
+        token_qty_raw = swap.get("tokenAmount") or swap.get("quantity")
         token_qty = format_token_amount(token_qty_raw) if token_qty_raw else None
 
-        lines.extend([
-            f"Side: {side}",
-            f"Token: {token}",
-            f"ETH Amount: {eth_amt} ETH",
-        ])
+        lines.extend(
+            [
+                f"Side: {side}",
+                f"Token: {token}",
+                f"ETH Amount: {eth_amt} ETH",
+            ]
+        )
 
         # Add token quantity if available
         if token_qty:
@@ -188,25 +187,25 @@ def format_activity_message(activity: dict[str, Any]) -> str:
 
         lines.append(f"Price: {price}")
 
-    elif activity_type == 'deposit':
-        deposit = activity.get('deposit', {})
-        amt = format_eth(deposit.get('amountWei', '0'))
+    elif activity_type == "deposit":
+        deposit = activity.get("deposit", {})
+        amt = format_eth(deposit.get("amountWei", "0"))
         lines.append(f"Amount: {amt} ETH")
 
-    elif activity_type == 'withdrawal':
-        withdrawal = activity.get('withdrawal', {})
-        amt = format_eth(withdrawal.get('amountWei', '0'))
+    elif activity_type == "withdrawal":
+        withdrawal = activity.get("withdrawal", {})
+        amt = format_eth(withdrawal.get("amountWei", "0"))
         lines.append(f"Amount: {amt} ETH")
 
-    elif activity_type == 'vault_summary':
-        vault_summary = activity.get('vaultSummary', {})
+    elif activity_type == "vault_summary":
+        vault_summary = activity.get("vaultSummary", {})
         if vault_summary:
             # Summary text
-            summary_text = vault_summary.get('summary', '')
+            summary_text = vault_summary.get("summary", "")
             if summary_text:
                 # Truncate long summaries
                 if len(summary_text) > 300:
-                    summary_text = summary_text[:300] + '...'
+                    summary_text = summary_text[:300] + "..."
                 lines.append(f"Summary:\n{summary_text}")
             else:
                 lines.append("No summary available")
@@ -217,7 +216,7 @@ def format_activity_message(activity: dict[str, Any]) -> str:
     if activity_id:
         lines.append(f"View: {get_tx_url(activity_id)}")
 
-    return '\n'.join(lines)
+    return "\n".join(lines)
 
 
 class TelegramNotifier:
@@ -242,7 +241,9 @@ class TelegramNotifier:
 
         # If no users specified, use config (priority: NOTIFY_USERS > ADMIN_USERS > ALLOWED_USERS)
         if not self.notify_users:
-            self.notify_users = NOTIFY_USERS if NOTIFY_USERS else (ADMIN_USERS if ADMIN_USERS else ALLOWED_USERS)
+            self.notify_users = (
+                NOTIFY_USERS if NOTIFY_USERS else (ADMIN_USERS if ADMIN_USERS else ALLOWED_USERS)
+            )
 
         logger.info(f"TelegramNotifier initialized for users: {self.notify_users}")
 
@@ -263,6 +264,8 @@ class TelegramNotifier:
         for user_id in self.notify_users:
             try:
                 await self.bot.send_message(chat_id=user_id, text=message)
-                logger.info(f"Notification sent to user {user_id} for activity {activity.get('id')}")
+                logger.info(
+                    f"Notification sent to user {user_id} for activity {activity.get('id')}"
+                )
             except Exception as e:
                 logger.error(f"Failed to send notification to user {user_id}: {e}")

@@ -12,6 +12,7 @@ import pytest
 # Tests for cmd_pause (AC 4, AC 9)
 # =============================================================================
 
+
 class TestCmdPauseRefactored:
     """Tests for /pause command after refactoring."""
 
@@ -54,10 +55,11 @@ class TestCmdPauseRefactored:
         mock_contract = MagicMock()
         mock_contract.pause_vault = AsyncMock(return_value=mock_pause_response)
 
-        with patch("commands.admin.is_admin", return_value=True), \
-             patch("commands.admin._get_api", return_value=mock_api), \
-             patch("commands.admin._get_contract", return_value=mock_contract):
-
+        with (
+            patch("commands.admin.is_admin", return_value=True),
+            patch("commands.admin._get_api", return_value=mock_api),
+            patch("commands.admin._get_contract", return_value=mock_contract),
+        ):
             # When
             await cmd_pause(mock_telegram_update, mock_telegram_context)
 
@@ -85,10 +87,11 @@ class TestCmdPauseRefactored:
         mock_contract = MagicMock()
         mock_contract.pause_vault = AsyncMock(return_value=mock_pause_response)
 
-        with patch("commands.admin.is_admin", return_value=True), \
-             patch("commands.admin._get_api", return_value=mock_api), \
-             patch("commands.admin._get_contract", return_value=mock_contract):
-
+        with (
+            patch("commands.admin.is_admin", return_value=True),
+            patch("commands.admin._get_api", return_value=mock_api),
+            patch("commands.admin._get_contract", return_value=mock_contract),
+        ):
             # When
             await cmd_pause(mock_telegram_update, mock_telegram_context)
 
@@ -140,10 +143,11 @@ class TestCmdResumeRefactored:
         mock_contract = MagicMock()
         mock_contract.pause_vault = AsyncMock(return_value=mock_resume_response)
 
-        with patch("commands.admin.is_admin", return_value=True), \
-             patch("commands.admin._get_api", return_value=mock_api), \
-             patch("commands.admin._get_contract", return_value=mock_contract):
-
+        with (
+            patch("commands.admin.is_admin", return_value=True),
+            patch("commands.admin._get_api", return_value=mock_api),
+            patch("commands.admin._get_contract", return_value=mock_contract),
+        ):
             # When
             await cmd_resume(mock_telegram_update, mock_telegram_context)
 
@@ -269,10 +273,11 @@ class TestCmdUpdateSettingsRefactored:
         mock_contract = MagicMock()
         mock_contract.update_settings = AsyncMock(return_value=mock_update_response)
 
-        with patch("commands.admin.is_admin", return_value=True), \
-             patch("commands.admin._get_api", return_value=mock_api), \
-             patch("commands.admin._get_contract", return_value=mock_contract):
-
+        with (
+            patch("commands.admin.is_admin", return_value=True),
+            patch("commands.admin._get_api", return_value=mock_api),
+            patch("commands.admin._get_contract", return_value=mock_contract),
+        ):
             mock_telegram_context.args = ["max_trade=2000"]
             # When
             await cmd_update_settings(mock_telegram_update, mock_telegram_context)

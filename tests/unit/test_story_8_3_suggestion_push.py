@@ -7,6 +7,7 @@ Run: pytest tests/unit/test_story_8_3_suggestion_push.py -v
 Generated: 2026-03-04
 Story: 8-3-suggestion-push
 """
+
 import uuid
 from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -27,7 +28,7 @@ class SuggestionPushFactory:
         priority: int = 2,
         expiry_hours: int = 24,
         reason: str = "BTC breaking key resistance may trigger market correction",
-        **overrides
+        **overrides,
     ) -> dict:
         """Create mock add strategy suggestion."""
         return {
@@ -43,7 +44,7 @@ class SuggestionPushFactory:
     def create_suggestion_disable(
         strategy_id: int = 3,
         reason: str = "Strategy condition has become invalid due to market changes",
-        **overrides
+        **overrides,
     ) -> dict:
         """Create mock disable strategy suggestion."""
         return {
@@ -59,7 +60,7 @@ class SuggestionPushFactory:
         positions: int = 3,
         strategies: int = 2,
         pnl: str = "+$120.50 (+2.1%)",
-        **overrides
+        **overrides,
     ) -> dict:
         """Create mock context for message formatting."""
         return {
@@ -123,15 +124,12 @@ def mock_api():
 def mock_contract():
     """Create mock contract instance."""
     contract = AsyncMock()
-    contract.add_strategy = AsyncMock(return_value={
-        "success": True,
-        "transactionHash": "0xabc123def456",
-        "strategyId": 1
-    })
-    contract.disable_strategy = AsyncMock(return_value={
-        "success": True,
-        "transactionHash": "0xdef456abc123"
-    })
+    contract.add_strategy = AsyncMock(
+        return_value={"success": True, "transactionHash": "0xabc123def456", "strategyId": 1}
+    )
+    contract.disable_strategy = AsyncMock(
+        return_value={"success": True, "transactionHash": "0xdef456abc123"}
+    )
     return contract
 
 
@@ -245,12 +243,14 @@ class TestFormatSuggestionsMessage:
         """Message should format add suggestion with icon, content, priority, validity, reason."""
         from advisor_monitor import format_suggestions_message
 
-        suggestions = [push_factory.create_suggestion_add(
-            content="When BTC breaks 70000, sell 50% of ETH position",
-            priority=2,
-            expiry_hours=24,
-            reason="BTC breaking key resistance may trigger market correction",
-        )]
+        suggestions = [
+            push_factory.create_suggestion_add(
+                content="When BTC breaks 70000, sell 50% of ETH position",
+                priority=2,
+                expiry_hours=24,
+                reason="BTC breaking key resistance may trigger market correction",
+            )
+        ]
         context = push_factory.create_context()
 
         result = format_suggestions_message(suggestions, context)
@@ -266,10 +266,12 @@ class TestFormatSuggestionsMessage:
         """Message should format disable suggestion with icon and reason."""
         from advisor_monitor import format_suggestions_message
 
-        suggestions = [push_factory.create_suggestion_disable(
-            strategy_id=3,
-            reason="Strategy condition has become invalid",
-        )]
+        suggestions = [
+            push_factory.create_suggestion_disable(
+                strategy_id=3,
+                reason="Strategy condition has become invalid",
+            )
+        ]
         context = push_factory.create_context()
 
         result = format_suggestions_message(suggestions, context)
@@ -404,8 +406,7 @@ class TestBuildSuggestionKeyboard:
 
         # At least one button should have callback_data starting with "adv:"
         callback_data_found = any(
-            btn.callback_data.startswith(f"adv:{request_id}:")
-            for btn in all_buttons
+            btn.callback_data.startswith(f"adv:{request_id}:") for btn in all_buttons
         )
         assert callback_data_found
 
@@ -474,7 +475,9 @@ class TestAdvisorMonitorClass:
         advisor = StrategyAdvisor(mock_llm, mock_api)
         callback = AsyncMock()
 
-        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock())
+        monitor = AdvisorMonitor(
+            advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock()
+        )
         assert monitor.advisor is advisor
         assert monitor.api is mock_api
 
@@ -486,7 +489,9 @@ class TestAdvisorMonitorClass:
         advisor = StrategyAdvisor(mock_llm, mock_api)
         callback = AsyncMock()
 
-        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock())
+        monitor = AdvisorMonitor(
+            advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock()
+        )
         assert monitor.callback is callback
 
     def test_advisor_monitor_accepts_admin_chat_id(self, mock_llm, mock_api):
@@ -497,7 +502,9 @@ class TestAdvisorMonitorClass:
         advisor = StrategyAdvisor(mock_llm, mock_api)
         callback = AsyncMock()
 
-        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock())
+        monitor = AdvisorMonitor(
+            advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock()
+        )
         assert monitor.admin_chat_id == 123456789
 
     def test_advisor_monitor_has_interval_hours_config(self, mock_llm, mock_api):
@@ -509,10 +516,7 @@ class TestAdvisorMonitorClass:
         callback = AsyncMock()
 
         monitor = AdvisorMonitor(
-            advisor, mock_api, callback,
-            admin_chat_id=123456789,
-            bot=MagicMock(),
-            interval_hours=4
+            advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock(), interval_hours=4
         )
         assert monitor.interval_seconds == 4 * 3600
 
@@ -524,7 +528,9 @@ class TestAdvisorMonitorClass:
         advisor = StrategyAdvisor(mock_llm, mock_api)
         callback = AsyncMock()
 
-        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock())
+        monitor = AdvisorMonitor(
+            advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock()
+        )
         assert monitor.interval_seconds == 2 * 3600
 
     def test_advisor_monitor_has_start_method(self, mock_llm, mock_api):
@@ -535,7 +541,9 @@ class TestAdvisorMonitorClass:
         advisor = StrategyAdvisor(mock_llm, mock_api)
         callback = AsyncMock()
 
-        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock())
+        monitor = AdvisorMonitor(
+            advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock()
+        )
         assert hasattr(monitor, "start")
         assert callable(monitor.start)
 
@@ -547,7 +555,9 @@ class TestAdvisorMonitorClass:
         advisor = StrategyAdvisor(mock_llm, mock_api)
         callback = AsyncMock()
 
-        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock())
+        monitor = AdvisorMonitor(
+            advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock()
+        )
         assert hasattr(monitor, "stop")
         assert callable(monitor.stop)
 
@@ -559,7 +569,9 @@ class TestAdvisorMonitorClass:
         advisor = StrategyAdvisor(mock_llm, mock_api)
         callback = AsyncMock()
 
-        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock())
+        monitor = AdvisorMonitor(
+            advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock()
+        )
         assert hasattr(monitor, "start_background")
         assert callable(monitor.start_background)
 
@@ -571,7 +583,9 @@ class TestAdvisorMonitorClass:
         advisor = StrategyAdvisor(mock_llm, mock_api)
         callback = AsyncMock()
 
-        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock())
+        monitor = AdvisorMonitor(
+            advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock()
+        )
         assert hasattr(monitor, "running")
         assert monitor.running is False
 
@@ -583,7 +597,9 @@ class TestAdvisorMonitorClass:
         advisor = StrategyAdvisor(mock_llm, mock_api)
         callback = AsyncMock()
 
-        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock())
+        monitor = AdvisorMonitor(
+            advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock()
+        )
         assert hasattr(monitor, "last_analysis")
 
 
@@ -601,7 +617,9 @@ class TestAdvisorMonitorAsync:
         advisor = StrategyAdvisor(mock_llm, mock_api)
         callback = AsyncMock()
 
-        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock())
+        monitor = AdvisorMonitor(
+            advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock()
+        )
         assert inspect.iscoroutinefunction(monitor.start)
 
     @pytest.mark.asyncio
@@ -615,7 +633,9 @@ class TestAdvisorMonitorAsync:
         advisor = StrategyAdvisor(mock_llm, mock_api)
         callback = AsyncMock()
 
-        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock())
+        monitor = AdvisorMonitor(
+            advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock()
+        )
 
         task = await monitor.start_background()
         assert isinstance(task, asyncio.Task)
@@ -633,7 +653,9 @@ class TestAdvisorMonitorAsync:
         advisor = StrategyAdvisor(mock_llm, mock_api)
         callback = AsyncMock()
 
-        monitor = AdvisorMonitor(advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock())
+        monitor = AdvisorMonitor(
+            advisor, mock_api, callback, admin_chat_id=123456789, bot=MagicMock()
+        )
         monitor.running = True
 
         monitor.stop()
@@ -1220,6 +1242,7 @@ class TestControlCommands:
         """cmd_advisor_on() should start the advisor monitor."""
         import os
         import sys
+
         # Add project root to path if needed
         if os.getcwd() not in sys.path:
             sys.path.insert(0, os.getcwd())
@@ -1243,6 +1266,7 @@ class TestControlCommands:
         """cmd_advisor_off() should stop the advisor monitor."""
         import os
         import sys
+
         # Add project root to path if needed
         if os.getcwd() not in sys.path:
             sys.path.insert(0, os.getcwd())
@@ -1447,11 +1471,12 @@ class TestIntegration:
 
         # Create monitor with short interval
         monitor = AdvisorMonitor(
-            advisor, mock_api,
+            advisor,
+            mock_api,
             callback=push_suggestions,
             admin_chat_id=123456789,
             bot=mock_bot,
-            interval_hours=0.001  # Very short for testing
+            interval_hours=0.001,  # Very short for testing
         )
 
         # Verify monitor is set up correctly

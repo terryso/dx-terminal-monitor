@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class LLMConfig:
     """Configuration for LLM client."""
+
     api_key: str
     base_url: str
     model: str
@@ -49,15 +50,15 @@ class LLMClient:
 
     def _load_from_env(self) -> LLMConfig:
         """Load configuration from environment variables."""
-        api_key = os.getenv('LLM_API_KEY', '')
+        api_key = os.getenv("LLM_API_KEY", "")
         if not api_key:
             logger.warning("LLM_API_KEY not configured - LLM features will be disabled")
 
         return LLMConfig(
             api_key=api_key,
-            base_url=os.getenv('LLM_BASE_URL', 'https://open.bigmodel.cn/api/paas/v4'),
-            model=os.getenv('LLM_MODEL', 'glm-4'),
-            timeout=int(os.getenv('LLM_TIMEOUT', '60'))
+            base_url=os.getenv("LLM_BASE_URL", "https://open.bigmodel.cn/api/paas/v4"),
+            model=os.getenv("LLM_MODEL", "glm-4"),
+            timeout=int(os.getenv("LLM_TIMEOUT", "60")),
         )
 
     async def _get_session(self) -> aiohttp.ClientSession:
@@ -94,15 +95,15 @@ class LLMClient:
 
         headers = {
             "Authorization": f"Bearer {self.config.api_key}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }
 
         payload = {
             "model": self.config.model,
             "messages": [
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_message}
-            ]
+                {"role": "user", "content": user_message},
+            ],
         }
 
         try:

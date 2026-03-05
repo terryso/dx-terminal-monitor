@@ -14,6 +14,7 @@ import pytest
 # Test Fixtures
 # ============================================================================
 
+
 @pytest.fixture(autouse=True)
 def reset_env():
     """Auto-use fixture to ensure environment is reset after each test."""
@@ -27,8 +28,10 @@ def reset_env():
 
     # Reload modules to pick up original config
     import importlib
+
     try:
         import config
+
         importlib.reload(config)
     except Exception:
         pass
@@ -37,11 +40,11 @@ def reset_env():
 @pytest.fixture
 def web3_test_env():
     """Set up environment variables for Web3 testing."""
-    os.environ['RPC_URL'] = 'https://eth-test.example.com'
-    os.environ['PRIVATE_KEY'] = '0x' + 'a' * 64
-    os.environ['CHAIN_ID'] = '1'
-    os.environ['VAULT_ADDRESS'] = '0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C'
-    os.environ['ADMIN_USERS'] = ''
+    os.environ["RPC_URL"] = "https://eth-test.example.com"
+    os.environ["PRIVATE_KEY"] = "0x" + "a" * 64
+    os.environ["CHAIN_ID"] = "1"
+    os.environ["VAULT_ADDRESS"] = "0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C"
+    os.environ["ADMIN_USERS"] = ""
 
 
 @pytest.fixture
@@ -51,18 +54,16 @@ def mock_web3_components():
     mock_w3.eth = MagicMock()
     mock_w3.eth.gas_price = 1000000000  # 1 Gwei
     mock_w3.eth.get_transaction_count.return_value = 1
-    mock_w3.eth.send_raw_transaction.return_value = b'\x12\x34' * 16
+    mock_w3.eth.send_raw_transaction.return_value = b"\x12\x34" * 16
     mock_w3.eth.wait_for_transaction_receipt.return_value = {
-        'transactionHash': b'\x12\x34' * 16,
-        'status': 1,
-        'blockNumber': 12345678,
+        "transactionHash": b"\x12\x34" * 16,
+        "status": 1,
+        "blockNumber": 12345678,
     }
 
     mock_account = MagicMock()
-    mock_account.address = '0xTestSender0000000000000000000000000000'
-    mock_account.sign_transaction.return_value = MagicMock(
-        raw_transaction=b'signed_tx_data'
-    )
+    mock_account.address = "0xTestSender0000000000000000000000000000"
+    mock_account.sign_transaction.return_value = MagicMock(raw_transaction=b"signed_tx_data")
 
     mock_contract = MagicMock()
 
@@ -80,10 +81,10 @@ def create_mocked_vault_contract(mock_web3_components):
     import contract
 
     # Ensure environment is set up before reloading
-    os.environ['RPC_URL'] = 'https://eth-test.example.com'
-    os.environ['PRIVATE_KEY'] = '0x' + 'a' * 64
-    os.environ['CHAIN_ID'] = '1'
-    os.environ['VAULT_ADDRESS'] = '0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C'
+    os.environ["RPC_URL"] = "https://eth-test.example.com"
+    os.environ["PRIVATE_KEY"] = "0x" + "a" * 64
+    os.environ["CHAIN_ID"] = "1"
+    os.environ["VAULT_ADDRESS"] = "0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C"
 
     # Reload modules to pick up test environment
     importlib.reload(config)
@@ -91,11 +92,15 @@ def create_mocked_vault_contract(mock_web3_components):
 
     mock_w3, mock_account, mock_contract = mock_web3_components
 
-    with patch('contract.Web3') as mock_web3_class, \
-         patch('builtins.open', mock_open(read_data='[]')):
+    with (
+        patch("contract.Web3") as mock_web3_class,
+        patch("builtins.open", mock_open(read_data="[]")),
+    ):
         mock_web3_class.HTTPProvider.return_value = mock_w3
         mock_web3_class.return_value = mock_w3
-        mock_web3_class.to_checksum_address.return_value = '0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C'
+        mock_web3_class.to_checksum_address.return_value = (
+            "0x933aafc9C5B1e0000E1dd77ac52D67b0E4e4997C"
+        )
 
         return contract.VaultContract()
 
@@ -103,6 +108,7 @@ def create_mocked_vault_contract(mock_web3_components):
 # =============================================================================
 # Tests for VaultContract.update_settings() Method
 # =============================================================================
+
 
 class TestContractUpdateSettings:
     """Tests for VaultContract.update_settings() method."""
@@ -120,9 +126,9 @@ class TestContractUpdateSettings:
         # Setup mock for updateSettings transaction
         mock_contract.functions.updateSettings.return_value.estimate_gas.return_value = 100000
         mock_contract.functions.updateSettings.return_value.build_transaction.return_value = {
-            'from': '0xTestSender0000000000000000000000000000',
-            'nonce': 1,
-            'gas': 120000,
+            "from": "0xTestSender0000000000000000000000000000",
+            "nonce": 1,
+            "gas": 120000,
         }
 
         vault = create_mocked_vault_contract(mock_web3_components)
@@ -249,9 +255,9 @@ class TestContractUpdateSettings:
         # Setup mock for updateSettings transaction
         mock_contract.functions.updateSettings.return_value.estimate_gas.return_value = 100000
         mock_contract.functions.updateSettings.return_value.build_transaction.return_value = {
-            'from': '0xTestSender0000000000000000000000000000',
-            'nonce': 1,
-            'gas': 120000,
+            "from": "0xTestSender0000000000000000000000000000",
+            "nonce": 1,
+            "gas": 120000,
         }
 
         vault = create_mocked_vault_contract(mock_web3_components)
@@ -268,6 +274,7 @@ class TestContractUpdateSettings:
 # =============================================================================
 # Tests for cmd_update_settings Command Handler
 # =============================================================================
+
 
 class TestCmdUpdateSettings:
     """Tests for /update_settings command handler."""
@@ -294,15 +301,14 @@ class TestCmdUpdateSettings:
         }
 
         mock_api = AsyncMock()
-        mock_api.get_vault.return_value = {
-            'maxTrade': 1000,
-            'slippage': 50
-        }
+        mock_api.get_vault.return_value = {"maxTrade": 1000, "slippage": 50}
 
-        with patch("commands.admin.is_admin", return_value=True), \
-             patch("commands.admin._get_contract") as mock_get_contract, \
-             patch("commands.admin._get_api") as mock_get_api, \
-             patch("commands.admin.logger") as mock_logger:
+        with (
+            patch("commands.admin.is_admin", return_value=True),
+            patch("commands.admin._get_contract") as mock_get_contract,
+            patch("commands.admin._get_api") as mock_get_api,
+            patch("commands.admin.logger") as mock_logger,
+        ):
             mock_get_contract.return_value = mock_contract
             mock_get_api.return_value = mock_api
             from commands.admin import cmd_update_settings
@@ -320,9 +326,13 @@ class TestCmdUpdateSettings:
         assert "100" in call_args
         assert "0xabc123def456" in call_args
         mock_contract.update_settings.assert_called_once_with(
-            max_trade_bps=2000, slippage_bps=100,
-            trading_activity=None, asset_risk_preference=None,
-            trade_size=None, holding_style=None, diversification=None
+            max_trade_bps=2000,
+            slippage_bps=100,
+            trading_activity=None,
+            asset_risk_preference=None,
+            trade_size=None,
+            holding_style=None,
+            diversification=None,
         )
 
         # Verify audit log
@@ -352,14 +362,13 @@ class TestCmdUpdateSettings:
         }
 
         mock_api = AsyncMock()
-        mock_api.get_vault.return_value = {
-            'maxTrade': 1000,
-            'slippage': 50
-        }
+        mock_api.get_vault.return_value = {"maxTrade": 1000, "slippage": 50}
 
-        with patch("commands.admin.is_admin", return_value=True), \
-             patch("commands.admin._get_contract") as mock_get_contract, \
-             patch("commands.admin._get_api") as mock_get_api:
+        with (
+            patch("commands.admin.is_admin", return_value=True),
+            patch("commands.admin._get_contract") as mock_get_contract,
+            patch("commands.admin._get_api") as mock_get_api,
+        ):
             mock_get_contract.return_value = mock_contract
             mock_get_api.return_value = mock_api
             from commands.admin import cmd_update_settings
@@ -371,9 +380,13 @@ class TestCmdUpdateSettings:
 
         # Then
         mock_contract.update_settings.assert_called_once_with(
-            max_trade_bps=2000, slippage_bps=None,
-            trading_activity=None, asset_risk_preference=None,
-            trade_size=None, holding_style=None, diversification=None
+            max_trade_bps=2000,
+            slippage_bps=None,
+            trading_activity=None,
+            asset_risk_preference=None,
+            trade_size=None,
+            holding_style=None,
+            diversification=None,
         )
 
     @pytest.mark.asyncio
@@ -398,14 +411,13 @@ class TestCmdUpdateSettings:
         }
 
         mock_api = AsyncMock()
-        mock_api.get_vault.return_value = {
-            'maxTrade': 1000,
-            'slippage': 50
-        }
+        mock_api.get_vault.return_value = {"maxTrade": 1000, "slippage": 50}
 
-        with patch("commands.admin.is_admin", return_value=True), \
-             patch("commands.admin._get_contract") as mock_get_contract, \
-             patch("commands.admin._get_api") as mock_get_api:
+        with (
+            patch("commands.admin.is_admin", return_value=True),
+            patch("commands.admin._get_contract") as mock_get_contract,
+            patch("commands.admin._get_api") as mock_get_api,
+        ):
             mock_get_contract.return_value = mock_contract
             mock_get_api.return_value = mock_api
             from commands.admin import cmd_update_settings
@@ -417,9 +429,13 @@ class TestCmdUpdateSettings:
 
         # Then
         mock_contract.update_settings.assert_called_once_with(
-            max_trade_bps=None, slippage_bps=100,
-            trading_activity=None, asset_risk_preference=None,
-            trade_size=None, holding_style=None, diversification=None
+            max_trade_bps=None,
+            slippage_bps=100,
+            trading_activity=None,
+            asset_risk_preference=None,
+            trade_size=None,
+            holding_style=None,
+            diversification=None,
         )
 
     @pytest.mark.asyncio
@@ -467,17 +483,19 @@ class TestCmdUpdateSettings:
 
         mock_api = AsyncMock()
         mock_api.get_vault.return_value = {
-            'maxTradeAmount': 1000,
-            'slippageBps': 50,
-            'tradingActivity': 3,
-            'assetRiskPreference': 2,
-            'tradeSize': 2,
-            'holdingStyle': 1,
-            'diversification': 3
+            "maxTradeAmount": 1000,
+            "slippageBps": 50,
+            "tradingActivity": 3,
+            "assetRiskPreference": 2,
+            "tradeSize": 2,
+            "holdingStyle": 1,
+            "diversification": 3,
         }
 
-        with patch("commands.admin.is_admin", return_value=True), \
-             patch("commands.admin._get_api") as mock_get_api:
+        with (
+            patch("commands.admin.is_admin", return_value=True),
+            patch("commands.admin._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.admin import cmd_update_settings
 
@@ -523,7 +541,11 @@ class TestCmdUpdateSettings:
 
         # Then
         call_args = mock_telegram_update.message.reply_text.call_args[0][0]
-        assert "未知参数" in call_args or "unknown" in call_args.lower() or "invalid" in call_args.lower()
+        assert (
+            "未知参数" in call_args
+            or "unknown" in call_args.lower()
+            or "invalid" in call_args.lower()
+        )
 
     @pytest.mark.asyncio
     async def test_update_settings_contract_failure(
@@ -547,14 +569,13 @@ class TestCmdUpdateSettings:
         }
 
         mock_api = AsyncMock()
-        mock_api.get_vault.return_value = {
-            'maxTrade': 1000,
-            'slippage': 50
-        }
+        mock_api.get_vault.return_value = {"maxTrade": 1000, "slippage": 50}
 
-        with patch("commands.admin.is_admin", return_value=True), \
-             patch("commands.admin._get_contract") as mock_get_contract, \
-             patch("commands.admin._get_api") as mock_get_api:
+        with (
+            patch("commands.admin.is_admin", return_value=True),
+            patch("commands.admin._get_contract") as mock_get_contract,
+            patch("commands.admin._get_api") as mock_get_api,
+        ):
             mock_get_contract.return_value = mock_contract
             mock_get_api.return_value = mock_api
             from commands.admin import cmd_update_settings
@@ -591,15 +612,14 @@ class TestCmdUpdateSettings:
         }
 
         mock_api = AsyncMock()
-        mock_api.get_vault.return_value = {
-            'maxTrade': 1000,
-            'slippage': 50
-        }
+        mock_api.get_vault.return_value = {"maxTrade": 1000, "slippage": 50}
 
-        with patch("commands.admin.is_admin", return_value=True), \
-             patch("commands.admin._get_contract") as mock_get_contract, \
-             patch("commands.admin._get_api") as mock_get_api, \
-             patch("commands.admin.logger") as mock_logger:
+        with (
+            patch("commands.admin.is_admin", return_value=True),
+            patch("commands.admin._get_contract") as mock_get_contract,
+            patch("commands.admin._get_api") as mock_get_api,
+            patch("commands.admin.logger") as mock_logger,
+        ):
             mock_get_contract.return_value = mock_contract
             mock_get_api.return_value = mock_api
             from commands.admin import cmd_update_settings
@@ -636,15 +656,14 @@ class TestCmdUpdateSettings:
         mock_contract.update_settings.return_value = {"success": True, "transactionHash": "0xabc"}
 
         mock_api = AsyncMock()
-        mock_api.get_vault.return_value = {
-            'maxTrade': 1000,
-            'slippage': 50
-        }
+        mock_api.get_vault.return_value = {"maxTrade": 1000, "slippage": 50}
 
-        with patch("commands.admin.is_admin", return_value=True) as mock_is_admin, \
-             patch("utils.permissions.authorized") as mock_authorized, \
-             patch("commands.admin._get_contract") as mock_get_contract, \
-             patch("commands.admin._get_api") as mock_get_api:
+        with (
+            patch("commands.admin.is_admin", return_value=True) as mock_is_admin,
+            patch("utils.permissions.authorized") as mock_authorized,
+            patch("commands.admin._get_contract") as mock_get_contract,
+            patch("commands.admin._get_api") as mock_get_api,
+        ):
             mock_get_contract.return_value = mock_contract
             mock_get_api.return_value = mock_api
             from commands.admin import cmd_update_settings
@@ -664,6 +683,7 @@ class TestCmdUpdateSettings:
 # =============================================================================
 # Tests for Command Registration
 # =============================================================================
+
 
 class TestCommandRegistration:
     """Tests for bot command registration."""
@@ -716,14 +736,16 @@ class TestCommandRegistration:
             handler_commands = []
             for handler in handlers:
                 # Handle both CommandHandler and ConversationHandler
-                if hasattr(handler, 'commands'):
+                if hasattr(handler, "commands"):
                     handler_commands.extend(handler.commands)
-                elif hasattr(handler, 'entry_points'):
+                elif hasattr(handler, "entry_points"):
                     for entry_point in handler.entry_points:
-                        if hasattr(entry_point, 'commands'):
+                        if hasattr(entry_point, "commands"):
                             handler_commands.extend(entry_point.commands)
 
-            assert "update_settings" in handler_commands, "update_settings handler should be registered"
+            assert "update_settings" in handler_commands, (
+                "update_settings handler should be registered"
+            )
 
     @pytest.mark.asyncio
     async def test_start_help_includes_update_settings(self):

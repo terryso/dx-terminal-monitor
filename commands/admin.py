@@ -1,4 +1,5 @@
 """Admin commands module - write operations requiring admin privileges."""
+
 import logging
 import re
 
@@ -7,6 +8,7 @@ from telegram.ext import ContextTypes
 from web3 import Web3
 
 from config import is_admin
+from utils.error_handler import safe_command
 
 logger = logging.getLogger(__name__)
 
@@ -14,15 +16,18 @@ logger = logging.getLogger(__name__)
 def _get_api():
     """Lazy import api to avoid circular imports."""
     from main import api
+
     return api
 
 
 def _get_contract():
     """Lazy import contract to avoid circular imports."""
     from main import contract
+
     return contract()
 
 
+@safe_command
 async def cmd_disable_strategy(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Disable a single strategy."""
     if not is_admin(update.effective_user.id):
@@ -44,23 +49,28 @@ async def cmd_disable_strategy(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     else:
         error = result.get("error", "Unknown error")
         if "doesn't exist" in error.lower() or "not active" in error.lower():
-            await update.message.reply_text(f"Strategy #{strategy_id} not found or already disabled")
+            await update.message.reply_text(
+                f"Strategy #{strategy_id} not found or already disabled"
+            )
         else:
             await update.message.reply_text(f"Transaction failed: {error}")
 
 
+@safe_command
 async def cmd_disable_all(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Disable all active strategies."""
     if not is_admin(update.effective_user.id):
         await update.message.reply_text("Unauthorized: Admin only")
         return
     api = _get_api()
+
     async def get_active_count() -> int:
         data = await api.get_strategies()
         if isinstance(data, dict) and "error" in data:
             logger.warning(f"Failed to fetch strategies: {data['error']}")
             return -1
         return len(data) if data else 0
+
     result = await _get_contract().disable_all_strategies(get_active_count)
     if result.get("success"):
         disabled_count = result.get("disabledCount", -1)
@@ -77,6 +87,7 @@ async def cmd_disable_all(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"Transaction failed: {error}")
 
 
+@safe_command
 async def cmd_add_strategy(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Add a new trading strategy."""
     if not is_admin(update.effective_user.id):
@@ -91,7 +102,7 @@ async def cmd_add_strategy(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Error: Strategy content cannot be empty")
         return
     # Contract limits to 1024 bytes
-    if len(content.encode('utf-8')) > 1024:
+    if len(content.encode("utf-8")) > 1024:
         await update.message.reply_text("Error: Strategy too long (max 1024 bytes)")
         return
     logger.info(f"Admin {update.effective_user.id} adding strategy: {content[:50]}...")
@@ -101,7 +112,8 @@ async def cmd_add_strategy(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         tx_hash = result.get("transactionHash", "")
         if strategy_id is None:
             await update.message.reply_text(
-                f"Strategy added but could not parse ID\nTX: {tx_hash}\nCheck transaction for strategy ID")
+                f"Strategy added but could not parse ID\nTX: {tx_hash}\nCheck transaction for strategy ID"
+            )
         else:
             await update.message.reply_text(f"Strategy added, ID: #{strategy_id}\nTX: {tx_hash}")
     else:
@@ -112,6 +124,7 @@ async def cmd_add_strategy(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text(f"Failed to add: {error}")
 
 
+@safe_command
 async def cmd_pause(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Pause Agent trading."""
     if not is_admin(update.effective_user.id):
@@ -132,6 +145,7 @@ async def cmd_pause(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"Pause failed: {error}")
 
 
+@safe_command
 async def cmd_resume(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Resume Agent trading."""
     if not is_admin(update.effective_user.id):
@@ -152,6 +166,7 @@ async def cmd_resume(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"Resume failed: {error}")
 
 
+@safe_command
 async def cmd_update_settings(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """View or update Vault trading settings."""
     if not is_admin(update.effective_user.id):
@@ -168,21 +183,21 @@ async def cmd_update_settings(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             return
 
         # Trading settings
-        max_trade = int(vault_data.get('maxTradeAmount', 0))
-        slippage = int(vault_data.get('slippageBps', 0))
+        max_trade = int(vault_data.get("maxTradeAmount", 0))
+        slippage = int(vault_data.get("slippageBps", 0))
 
         # Behavior preferences (raw values)
-        trading_activity = vault_data.get('tradingActivity', '?')
-        risk_pref = vault_data.get('assetRiskPreference', '?')
-        trade_size = vault_data.get('tradeSize', '?')
-        holding_style = vault_data.get('holdingStyle', '?')
-        diversification = vault_data.get('diversification', '?')
+        trading_activity = vault_data.get("tradingActivity", "?")
+        risk_pref = vault_data.get("assetRiskPreference", "?")
+        trade_size = vault_data.get("tradeSize", "?")
+        holding_style = vault_data.get("holdingStyle", "?")
+        diversification = vault_data.get("diversification", "?")
 
         await update.message.reply_text(
             f"Current Settings\n\n"
             f"Trading Settings:\n"
-            f"  Max Trade: {max_trade} BPS ({max_trade/100:.1f}%)\n"
-            f"  Slippage: {slippage} BPS ({slippage/100:.1f}%)\n\n"
+            f"  Max Trade: {max_trade} BPS ({max_trade / 100:.1f}%)\n"
+            f"  Slippage: {slippage} BPS ({slippage / 100:.1f}%)\n\n"
             f"Behavior Preferences:\n"
             f"  Trading Activity: {trading_activity}\n"
             f"  Risk Preference: {risk_pref}\n"
@@ -191,33 +206,33 @@ async def cmd_update_settings(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             f"  Diversification: {diversification}\n\n"
             f"To update:\n"
             f"  /update_settings max_trade=1000 slippage=50\n"
-            f"  /update_settings activity=3 risk=2 size=3 holding=4 diversification=2")
+            f"  /update_settings activity=3 risk=2 size=3 holding=4 diversification=2"
+        )
         return
 
     # Parse parameters
     params = {}
     for arg in args:
-        match = re.match(r'(\w+)=(\d+)', arg)
+        match = re.match(r"(\w+)=(\d+)", arg)
         if match:
             key, value = match.groups()
             params[key] = int(value)
 
     # Valid parameter keys
-    valid_keys = {
-        'max_trade', 'slippage',
-        'activity', 'risk', 'size', 'holding', 'diversification'
-    }
+    valid_keys = {"max_trade", "slippage", "activity", "risk", "size", "holding", "diversification"}
     invalid_keys = set(params.keys()) - valid_keys
     if invalid_keys:
         await update.message.reply_text(
             f"Unknown params: {', '.join(invalid_keys)}\n"
-            f"Supported: max_trade, slippage, activity, risk, size, holding, diversification")
+            f"Supported: max_trade, slippage, activity, risk, size, holding, diversification"
+        )
         return
     if not params:
         await update.message.reply_text(
             "Provide at least one parameter\n"
             "Trading: /update_settings max_trade=1000 slippage=50\n"
-            "Behavior: /update_settings activity=3 risk=2 size=3 holding=4 diversification=2")
+            "Behavior: /update_settings activity=3 risk=2 size=3 holding=4 diversification=2"
+        )
         return
 
     # Get current values for any unspecified params (only needed for trading settings)
@@ -229,13 +244,13 @@ async def cmd_update_settings(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         vault_data = {}
 
     # Build update params (None means don't change)
-    max_trade_bps = params.get('max_trade')
-    slippage_bps = params.get('slippage')
-    trading_activity = params.get('activity')
-    asset_risk_preference = params.get('risk')
-    trade_size = params.get('size')
-    holding_style = params.get('holding')
-    diversification = params.get('diversification')
+    max_trade_bps = params.get("max_trade")
+    slippage_bps = params.get("slippage")
+    trading_activity = params.get("activity")
+    asset_risk_preference = params.get("risk")
+    trade_size = params.get("size")
+    holding_style = params.get("holding")
+    diversification = params.get("diversification")
 
     # Labels for display
     logger.info(f"Admin {update.effective_user.id} updating settings: {params}")
@@ -246,7 +261,7 @@ async def cmd_update_settings(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         asset_risk_preference=asset_risk_preference,
         trade_size=trade_size,
         holding_style=holding_style,
-        diversification=diversification
+        diversification=diversification,
     )
 
     if result.get("success"):
@@ -254,9 +269,9 @@ async def cmd_update_settings(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         # Build response message
         lines = ["Settings updated\n"]
         if max_trade_bps:
-            lines.append(f"Max Trade: {max_trade_bps} BPS ({max_trade_bps/100:.1f}%)")
+            lines.append(f"Max Trade: {max_trade_bps} BPS ({max_trade_bps / 100:.1f}%)")
         if slippage_bps:
-            lines.append(f"Slippage: {slippage_bps} BPS ({slippage_bps/100:.1f}%)")
+            lines.append(f"Slippage: {slippage_bps} BPS ({slippage_bps / 100:.1f}%)")
         if trading_activity:
             lines.append(f"Activity: {trading_activity}")
         if asset_risk_preference:
@@ -274,6 +289,7 @@ async def cmd_update_settings(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(f"Update failed: {error}")
 
 
+@safe_command
 async def cmd_deposit(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     """Deposit ETH to the vault."""
     if not is_admin(update.effective_user.id):
@@ -292,7 +308,7 @@ async def cmd_deposit(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("Amount must be greater than 0")
             return
         # Validate precision (max 6 decimal places for ETH)
-        if '.' in args[0] and len(args[0].split('.')[-1]) > 6:
+        if "." in args[0] and len(args[0].split(".")[-1]) > 6:
             await update.message.reply_text("Amount precision too high (max 6 decimals)")
             return
     except ValueError:
@@ -300,7 +316,7 @@ async def cmd_deposit(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         return
 
     # Convert to Wei
-    amount_wei = Web3.to_wei(amount_eth, 'ether')
+    amount_wei = Web3.to_wei(amount_eth, "ether")
 
     logger.info(f"Admin {update.effective_user.id} depositing {amount_eth} ETH")
 
@@ -308,10 +324,7 @@ async def cmd_deposit(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
     if result.get("success"):
         tx_hash = result.get("transactionHash", "")
-        await update.message.reply_text(
-            f"Deposited {amount_eth} ETH to Vault\n"
-            f"TX: {tx_hash}"
-        )
+        await update.message.reply_text(f"Deposited {amount_eth} ETH to Vault\nTX: {tx_hash}")
     else:
         error = result.get("error", "Unknown error")
         await update.message.reply_text(f"Deposit failed: {error}")

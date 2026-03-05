@@ -7,6 +7,7 @@ Run: pytest tests/unit/test_story_8_0_llm_client.py -v
 Generated: 2026-03-03
 Story: 8-0-llm-client
 """
+
 import asyncio
 from dataclasses import dataclass
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -112,9 +113,7 @@ def mock_successful_response(llm_data_factory):
     """Create mock successful HTTP response."""
     response = AsyncMock()
     response.status = 200
-    response.json = AsyncMock(
-        return_value=llm_data_factory.create_success_response()
-    )
+    response.json = AsyncMock(return_value=llm_data_factory.create_success_response())
     response.text = AsyncMock(return_value="OK")
     return response
 
@@ -277,9 +276,7 @@ class TestLLMClientChat:
         mock_response = AsyncMock()
         mock_response.status = 200
         mock_response.json = AsyncMock(
-            return_value=llm_data_factory.create_success_response(
-                content="AI trading advice here"
-            )
+            return_value=llm_data_factory.create_success_response(content="AI trading advice here")
         )
 
         # Create mock session
@@ -309,9 +306,7 @@ class TestLLMClientChat:
             mock_session = AsyncMock()
             mock_response = AsyncMock()
             mock_response.status = 200
-            mock_response.json = AsyncMock(
-                return_value=llm_data_factory.create_success_response()
-            )
+            mock_response.json = AsyncMock(return_value=llm_data_factory.create_success_response())
             mock_session.post = MagicMock(return_value=mock_response)
             mock_response.__aenter__ = AsyncMock(return_value=mock_response)
             mock_response.__aexit__ = AsyncMock(return_value=None)
@@ -351,9 +346,7 @@ class TestLLMClientChat:
             mock_session = AsyncMock()
             mock_response = AsyncMock()
             mock_response.status = 200
-            mock_response.json = AsyncMock(
-                return_value=llm_data_factory.create_success_response()
-            )
+            mock_response.json = AsyncMock(return_value=llm_data_factory.create_success_response())
             mock_session.post = MagicMock(return_value=mock_response)
             mock_response.__aenter__ = AsyncMock(return_value=mock_response)
             mock_response.__aexit__ = AsyncMock(return_value=None)
@@ -377,9 +370,7 @@ class TestLLMClientChat:
             mock_session = AsyncMock()
             mock_response = AsyncMock()
             mock_response.status = 200
-            mock_response.json = AsyncMock(
-                return_value=llm_data_factory.create_success_response()
-            )
+            mock_response.json = AsyncMock(return_value=llm_data_factory.create_success_response())
             mock_session.post = MagicMock(return_value=mock_response)
             mock_response.__aenter__ = AsyncMock(return_value=mock_response)
             mock_response.__aexit__ = AsyncMock(return_value=None)

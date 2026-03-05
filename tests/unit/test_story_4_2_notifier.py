@@ -24,6 +24,7 @@ from notifier import (
 # AC1: 实现 format_activity_message() 格式化活动消息
 # ============================================================
 
+
 class TestFormatActivityMessageExists:
     """测试 format_activity_message 函数存在"""
 
@@ -46,6 +47,7 @@ class TestFormatActivityMessageExists:
 # AC2: 支持格式化 Swap/Deposit/Withdrawal 三种类型
 # ============================================================
 
+
 class TestFormatSwapMessage:
     """测试 Swap 消息格式化"""
 
@@ -59,8 +61,8 @@ class TestFormatSwapMessage:
                 "side": "BUY",
                 "tokenSymbol": "USDC",
                 "ethAmount": "500000000000000000",
-                "effectivePriceUsd": "3000.00"
-            }
+                "effectivePriceUsd": "3000.00",
+            },
         }
         message = format_activity_message(activity)
         assert "SWAP" in message.upper()
@@ -75,8 +77,8 @@ class TestFormatSwapMessage:
                 "side": "BUY",
                 "tokenSymbol": "USDC",
                 "ethAmount": "500000000000000000",
-                "effectivePriceUsd": "3000.00"
-            }
+                "effectivePriceUsd": "3000.00",
+            },
         }
         message = format_activity_message(activity)
         assert "BUY" in message
@@ -91,8 +93,8 @@ class TestFormatSwapMessage:
                 "side": "BUY",
                 "tokenSymbol": "USDC",
                 "ethAmount": "500000000000000000",
-                "effectivePriceUsd": "3000.00"
-            }
+                "effectivePriceUsd": "3000.00",
+            },
         }
         message = format_activity_message(activity)
         assert "USDC" in message
@@ -107,8 +109,8 @@ class TestFormatSwapMessage:
                 "side": "BUY",
                 "tokenSymbol": "USDC",
                 "ethAmount": "500000000000000000",  # 0.5 ETH
-                "effectivePriceUsd": "3000.00"
-            }
+                "effectivePriceUsd": "3000.00",
+            },
         }
         message = format_activity_message(activity)
         assert "0.500000" in message
@@ -123,8 +125,8 @@ class TestFormatSwapMessage:
                 "side": "BUY",
                 "tokenSymbol": "USDC",
                 "ethAmount": "500000000000000000",
-                "effectivePriceUsd": "3000.00"
-            }
+                "effectivePriceUsd": "3000.00",
+            },
         }
         message = format_activity_message(activity)
         assert "3,000" in message or "3000" in message
@@ -139,9 +141,7 @@ class TestFormatDepositMessage:
             "id": "0xdef456",
             "type": "deposit",
             "timestamp": "2026-03-01T12:00:00Z",
-            "deposit": {
-                "amountWei": "1000000000000000000"
-            }
+            "deposit": {"amountWei": "1000000000000000000"},
         }
         message = format_activity_message(activity)
         assert "DEPOSIT" in message.upper()
@@ -154,7 +154,7 @@ class TestFormatDepositMessage:
             "timestamp": "2026-03-01T12:00:00Z",
             "deposit": {
                 "amountWei": "1000000000000000000"  # 1 ETH
-            }
+            },
         }
         message = format_activity_message(activity)
         assert "1.000000" in message
@@ -169,9 +169,7 @@ class TestFormatWithdrawalMessage:
             "id": "0x789xyz",
             "type": "withdrawal",
             "timestamp": "2026-03-01T12:00:00Z",
-            "withdrawal": {
-                "amountWei": "500000000000000000"
-            }
+            "withdrawal": {"amountWei": "500000000000000000"},
         }
         message = format_activity_message(activity)
         assert "WITHDRAWAL" in message.upper()
@@ -184,7 +182,7 @@ class TestFormatWithdrawalMessage:
             "timestamp": "2026-03-01T12:00:00Z",
             "withdrawal": {
                 "amountWei": "500000000000000000"  # 0.5 ETH
-            }
+            },
         }
         message = format_activity_message(activity)
         assert "0.500000" in message
@@ -208,6 +206,7 @@ class TestFormatUnknownType:
 # ============================================================
 # AC3: 推送到 ADMIN_USERS 或 ALLOWED_USERS
 # ============================================================
+
 
 class TestTelegramNotifierUserSelection:
     """测试用户选择逻辑"""
@@ -255,7 +254,7 @@ class TestTelegramNotifierSendNotification:
             "id": "0xabc123",
             "type": "swap",
             "timestamp": "2026-03-01T12:00:00Z",
-            "swap": {"side": "BUY"}
+            "swap": {"side": "BUY"},
         }
 
         await notifier.send_notification(activity)
@@ -273,13 +272,13 @@ class TestTelegramNotifierSendNotification:
             "id": "0xabc123",
             "type": "swap",
             "timestamp": "2026-03-01T12:00:00Z",
-            "swap": {"side": "BUY"}
+            "swap": {"side": "BUY"},
         }
 
         await notifier.send_notification(activity)
 
         call_args = mock_bot.send_message.call_args
-        assert call_args.kwargs['chat_id'] == 123456
+        assert call_args.kwargs["chat_id"] == 123456
 
     @pytest.mark.asyncio
     async def test_send_notification_no_users_configured(self):
@@ -289,6 +288,7 @@ class TestTelegramNotifierSendNotification:
 
         # Mock ADMIN_USERS and ALLOWED_USERS to be empty
         import notifier
+
         original_admin = notifier.ADMIN_USERS
         original_allowed = notifier.ALLOWED_USERS
         notifier.ADMIN_USERS = []
@@ -300,7 +300,7 @@ class TestTelegramNotifierSendNotification:
                 "id": "0xabc123",
                 "type": "swap",
                 "timestamp": "2026-03-01T12:00:00Z",
-                "swap": {"side": "BUY"}
+                "swap": {"side": "BUY"},
             }
 
             await notifier_instance.send_notification(activity)
@@ -315,6 +315,7 @@ class TestTelegramNotifierSendNotification:
 # AC4: 消息包含: 操作类型、时间、金额/数量、交易链接
 # ============================================================
 
+
 class TestMessageContent:
     """测试消息内容完整性"""
 
@@ -324,7 +325,7 @@ class TestMessageContent:
             "id": "0xabc123",
             "type": "swap",
             "timestamp": "2026-03-01T12:00:00Z",
-            "swap": {"side": "BUY"}
+            "swap": {"side": "BUY"},
         }
         message = format_activity_message(activity)
         assert "Type" in message
@@ -335,7 +336,7 @@ class TestMessageContent:
             "id": "0xabc123",
             "type": "swap",
             "timestamp": "2026-03-01T12:00:00Z",
-            "swap": {"side": "BUY"}
+            "swap": {"side": "BUY"},
         }
         message = format_activity_message(activity)
         assert "Time" in message
@@ -347,18 +348,14 @@ class TestMessageContent:
             "id": "0xabc123",
             "type": "swap",
             "timestamp": "2026-03-01T12:00:00Z",
-            "swap": {"side": "BUY"}
+            "swap": {"side": "BUY"},
         }
         message = format_activity_message(activity)
         assert "etherscan" in message.lower()
 
     def test_message_no_link_when_no_id(self):
         """没有 ID 时不应该包含链接"""
-        activity = {
-            "type": "swap",
-            "timestamp": "2026-03-01T12:00:00Z",
-            "swap": {"side": "BUY"}
-        }
+        activity = {"type": "swap", "timestamp": "2026-03-01T12:00:00Z", "swap": {"side": "BUY"}}
         message = format_activity_message(activity)
         # 消息应该仍然有效，只是没有链接
         assert isinstance(message, str)
@@ -370,6 +367,7 @@ class TestEtherscanUrlGeneration:
     def test_get_tx_url_mainnet(self):
         """主网应该生成正确的 Etherscan URL"""
         import notifier
+
         original_chain_id = notifier.CHAIN_ID
         notifier.CHAIN_ID = 1
 
@@ -383,6 +381,7 @@ class TestEtherscanUrlGeneration:
     def test_get_tx_url_sepolia(self):
         """Sepolia 测试网应该生成正确的 URL"""
         import notifier
+
         original_chain_id = notifier.CHAIN_ID
         notifier.CHAIN_ID = 11155111
 
@@ -396,6 +395,7 @@ class TestEtherscanUrlGeneration:
     def test_get_tx_url_holesky(self):
         """Holesky 测试网应该生成正确的 URL"""
         import notifier
+
         original_chain_id = notifier.CHAIN_ID
         notifier.CHAIN_ID = 17000
 
@@ -475,7 +475,7 @@ class TestPriceFallback:
                 "ethAmount": "500000000000000000",
                 "effectivePriceUsd": "3000.00",
                 "priceUsd": "2000.00",
-            }
+            },
         }
         message = format_activity_message(activity)
         assert "3,000" in message or "3000" in message
@@ -491,7 +491,7 @@ class TestPriceFallback:
                 "tokenSymbol": "USDC",
                 "ethAmount": "500000000000000000",
                 "priceUsd": "2500.00",
-            }
+            },
         }
         message = format_activity_message(activity)
         assert "2,500" in message or "2500" in message
@@ -507,7 +507,7 @@ class TestPriceFallback:
                 "tokenSymbol": "USDC",
                 "ethAmount": "500000000000000000",
                 "avgPriceUsd": "2800.00",
-            }
+            },
         }
         message = format_activity_message(activity)
         assert "2,800" in message or "2800" in message
@@ -522,7 +522,7 @@ class TestPriceFallback:
                 "side": "BUY",
                 "tokenSymbol": "USDC",
                 "ethAmount": "500000000000000000",
-            }
+            },
         }
         message = format_activity_message(activity)
         assert "$0.00" in message
@@ -543,7 +543,7 @@ class TestTokenQuantity:
                 "ethAmount": "500000000000000000",
                 "tokenAmount": "1000.5",
                 "effectivePriceUsd": "0.00022",
-            }
+            },
         }
         message = format_activity_message(activity)
         assert "Token Qty" in message
@@ -561,7 +561,7 @@ class TestTokenQuantity:
                 "tokenSymbol": "HOLE",
                 "ethAmount": "500000000000000000",
                 "quantity": "500",
-            }
+            },
         }
         message = format_activity_message(activity)
         assert "Token Qty" in message
@@ -577,7 +577,7 @@ class TestTokenQuantity:
                 "side": "BUY",
                 "tokenSymbol": "HOLE",
                 "ethAmount": "500000000000000000",
-            }
+            },
         }
         message = format_activity_message(activity)
         assert "Token Qty" not in message

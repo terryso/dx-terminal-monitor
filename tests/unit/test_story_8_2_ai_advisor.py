@@ -7,6 +7,7 @@ Run: pytest tests/unit/test_story_8_2_ai_advisor.py -v
 Generated: 2026-03-03
 Story: 8-2-ai-advisor
 """
+
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Literal
@@ -28,7 +29,7 @@ class SuggestionFactory:
         priority: int = 2,
         expiry_hours: int = 24,
         reason: str = "BTC breaking key resistance may trigger market correction",
-        **overrides
+        **overrides,
     ) -> dict:
         """Create mock add strategy suggestion."""
         return {
@@ -44,7 +45,7 @@ class SuggestionFactory:
     def create_disable_suggestion(
         strategy_id: int = 3,
         reason: str = "Strategy condition has become invalid due to market changes",
-        **overrides
+        **overrides,
     ) -> dict:
         """Create mock disable strategy suggestion."""
         return {
@@ -253,11 +254,7 @@ class TestSuggestionDataclass:
         # GIVEN: All required fields for add action
         # WHEN: Creating instance
         suggestion = Suggestion(
-            action="add",
-            content="Test strategy",
-            priority=2,
-            expiry_hours=24,
-            reason="Test reason"
+            action="add", content="Test strategy", priority=2, expiry_hours=24, reason="Test reason"
         )
 
         # THEN: Should create successfully
@@ -273,11 +270,7 @@ class TestSuggestionDataclass:
 
         # GIVEN: All required fields for disable action
         # WHEN: Creating instance
-        suggestion = Suggestion(
-            action="disable",
-            strategy_id=5,
-            reason="Test reason"
-        )
+        suggestion = Suggestion(action="disable", strategy_id=5, reason="Test reason")
 
         # THEN: Should create successfully
         assert suggestion.action == "disable"
@@ -321,7 +314,7 @@ class TestStrategyAdvisorClass:
 
         # Should not raise exception
         advisor = StrategyAdvisor(mock_llm, mock_api)
-        assert advisor.api is mock_api or hasattr(advisor, 'collector')
+        assert advisor.api is mock_api or hasattr(advisor, "collector")
 
     def test_strategy_advisor_creates_collector_internally(self, mock_llm, mock_api):
         """StrategyAdvisor should create StrategyDataCollector internally."""
@@ -386,8 +379,7 @@ class TestAnalyzeMethod:
             from advisor import CollectedData
 
             mock_collect.return_value = CollectedData(
-                positions={"ethBalance": 10.0},
-                collected_at=datetime.now().isoformat()
+                positions={"ethBalance": 10.0}, collected_at=datetime.now().isoformat()
             )
 
             await advisor.analyze()
@@ -397,14 +389,14 @@ class TestAnalyzeMethod:
     @pytest.mark.asyncio
     async def test_analyze_calls_collector_format_for_llm(self, advisor):
         """analyze() should call collector.format_for_llm() to format data."""
-        with patch.object(advisor.collector, "collect") as mock_collect, \
-             patch.object(advisor.collector, "format_for_llm") as mock_format:
-
+        with (
+            patch.object(advisor.collector, "collect") as mock_collect,
+            patch.object(advisor.collector, "format_for_llm") as mock_format,
+        ):
             from advisor import CollectedData
 
             mock_collect.return_value = CollectedData(
-                positions={"ethBalance": 10.0},
-                collected_at=datetime.now().isoformat()
+                positions={"ethBalance": 10.0}, collected_at=datetime.now().isoformat()
             )
             mock_format.return_value = "Formatted data"
 
@@ -415,14 +407,14 @@ class TestAnalyzeMethod:
     @pytest.mark.asyncio
     async def test_analyze_calls_llm_chat(self, advisor):
         """analyze() should call llm.chat() with system prompt and user message."""
-        with patch.object(advisor.collector, "collect") as mock_collect, \
-             patch.object(advisor.collector, "format_for_llm") as mock_format:
-
+        with (
+            patch.object(advisor.collector, "collect") as mock_collect,
+            patch.object(advisor.collector, "format_for_llm") as mock_format,
+        ):
             from advisor import CollectedData
 
             mock_collect.return_value = CollectedData(
-                positions={"ethBalance": 10.0},
-                collected_at=datetime.now().isoformat()
+                positions={"ethBalance": 10.0}, collected_at=datetime.now().isoformat()
             )
             mock_format.return_value = "Formatted data for analysis"
 
@@ -451,8 +443,7 @@ class TestAnalyzeMethod:
         """analyze() should limit suggestions to MAX_SUGGESTIONS (3)."""
         # Create response with more than 3 suggestions
         suggestions = [
-            suggestion_factory.create_add_suggestion(content=f"Strategy {i}")
-            for i in range(5)
+            suggestion_factory.create_add_suggestion(content=f"Strategy {i}") for i in range(5)
         ]
         advisor.llm.chat.return_value = suggestion_factory.create_llm_response(suggestions)
 
@@ -514,7 +505,11 @@ class TestSystemPrompt:
         from advisor import SYSTEM_PROMPT
 
         # Should mention guidelines or constraints
-        assert "guideline" in SYSTEM_PROMPT.lower() or "conservative" in SYSTEM_PROMPT.lower() or "risk" in SYSTEM_PROMPT.lower()
+        assert (
+            "guideline" in SYSTEM_PROMPT.lower()
+            or "conservative" in SYSTEM_PROMPT.lower()
+            or "risk" in SYSTEM_PROMPT.lower()
+        )
 
 
 # ============================================================================
@@ -573,13 +568,15 @@ class TestJSONParsing:
         """_parse_suggestions() should skip invalid suggestion objects."""
         import json
 
-        malformed_response = json.dumps({
-            "suggestions": [
-                {"action": "add", "content": "Valid"},
-                {"action": "add"},  # Missing content - should fail validation
-                {"invalid": "object"},
-            ]
-        })
+        malformed_response = json.dumps(
+            {
+                "suggestions": [
+                    {"action": "add", "content": "Valid"},
+                    {"action": "add"},  # Missing content - should fail validation
+                    {"invalid": "object"},
+                ]
+            }
+        )
 
         suggestions = advisor._parse_suggestions(malformed_response)
 
@@ -626,14 +623,14 @@ class TestEnvExample:
     """Tests for .env.example documentation."""
 
     def test_env_example_includes_advisor_enabled(self):
-        """ .env.example should include ADVISOR_ENABLED."""
+        """.env.example should include ADVISOR_ENABLED."""
         with open(".env.example") as f:
             content = f.read()
 
         assert "ADVISOR_ENABLED" in content
 
     def test_env_example_includes_advisor_interval_hours(self):
-        """ .env.example should include ADVISOR_INTERVAL_HOURS."""
+        """.env.example should include ADVISOR_INTERVAL_HOURS."""
         with open(".env.example") as f:
             content = f.read()
 
@@ -721,6 +718,7 @@ class TestIntegration:
         assert isinstance(result, list)
         if len(result) > 0:
             from advisor import Suggestion
+
             assert isinstance(result[0], Suggestion)
 
     @pytest.mark.asyncio
@@ -976,4 +974,5 @@ class TestJSONParsingValidation:
 
         if len(result) > 0:
             from advisor import Suggestion
-            assert len(result[0].content.encode('utf-8')) <= Suggestion.MAX_CONTENT_LENGTH
+
+            assert len(result[0].content.encode("utf-8")) <= Suggestion.MAX_CONTENT_LENGTH

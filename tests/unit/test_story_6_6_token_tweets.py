@@ -243,9 +243,7 @@ class TestCmdTweets:
     """Tests for cmd_tweets command handler - AC2, AC3, AC4, AC5, AC6."""
 
     @pytest.mark.asyncio
-    async def test_cmd_tweets_success(
-        self, mock_update, mock_context, mock_tweets_response
-    ):
+    async def test_cmd_tweets_success(self, mock_update, mock_context, mock_tweets_response):
         """Test normal query - cmd_tweets returns formatted tweets.
 
         AC2: Add cmd_tweets command handler in commands/query.py
@@ -256,9 +254,10 @@ class TestCmdTweets:
         mock_api = AsyncMock()
         mock_api.get_token_tweets = AsyncMock(return_value=mock_tweets_response)
 
-        with patch("commands.query.authorized", return_value=True), patch(
-            "commands.query._get_api"
-        ) as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.query import cmd_tweets
 
@@ -327,9 +326,10 @@ class TestCmdTweets:
         mock_api = AsyncMock()
         mock_api.get_token_tweets = AsyncMock(return_value=mock_empty_tweets_response)
 
-        with patch("commands.query.authorized", return_value=True), patch(
-            "commands.query._get_api"
-        ) as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.query import cmd_tweets
 
@@ -342,18 +342,17 @@ class TestCmdTweets:
         assert "UNKNOWN" in call_args
 
     @pytest.mark.asyncio
-    async def test_cmd_tweets_api_error(
-        self, mock_update, mock_context, mock_api_error_response
-    ):
+    async def test_cmd_tweets_api_error(self, mock_update, mock_context, mock_api_error_response):
         """Test API error message display."""
         # Given
         mock_context.args = ["ETH"]
         mock_api = AsyncMock()
         mock_api.get_token_tweets = AsyncMock(return_value=mock_api_error_response)
 
-        with patch("commands.query.authorized", return_value=True), patch(
-            "commands.query._get_api"
-        ) as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.query import cmd_tweets
 
@@ -365,9 +364,7 @@ class TestCmdTweets:
         assert "Error" in call_args or "error" in call_args.lower()
 
     @pytest.mark.asyncio
-    async def test_cmd_tweets_with_limit_arg(
-        self, mock_update, mock_context, mock_tweets_response
-    ):
+    async def test_cmd_tweets_with_limit_arg(self, mock_update, mock_context, mock_tweets_response):
         """Test command with custom limit argument.
 
         AC3: Command format: /tweets <symbol> [limit] - optional limit parameter
@@ -383,9 +380,10 @@ class TestCmdTweets:
         }
         mock_api.get_token_tweets = AsyncMock(return_value=two_tweets)
 
-        with patch("commands.query.authorized", return_value=True), patch(
-            "commands.query._get_api"
-        ) as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.query import cmd_tweets
 
@@ -409,9 +407,10 @@ class TestCmdTweets:
         mock_api = AsyncMock()
         mock_api.get_token_tweets = AsyncMock(return_value=mock_tweets_response)
 
-        with patch("commands.query.authorized", return_value=True), patch(
-            "commands.query._get_api"
-        ) as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.query import cmd_tweets
 
@@ -435,9 +434,10 @@ class TestCmdTweets:
         mock_api = AsyncMock()
         mock_api.get_token_tweets = AsyncMock(return_value=mock_tweets_response)
 
-        with patch("commands.query.authorized", return_value=True), patch(
-            "commands.query._get_api"
-        ) as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.query import cmd_tweets
 
@@ -538,9 +538,10 @@ class TestOutputFormatting:
         mock_api = AsyncMock()
         mock_api.get_token_tweets = AsyncMock(return_value=mock_tweets_response)
 
-        with patch("commands.query.authorized", return_value=True), patch(
-            "commands.query._get_api"
-        ) as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.query import cmd_tweets
 
@@ -565,9 +566,10 @@ class TestOutputFormatting:
         mock_api = AsyncMock()
         mock_api.get_token_tweets = AsyncMock(return_value=mock_tweets_response)
 
-        with patch("commands.query.authorized", return_value=True), patch(
-            "commands.query._get_api"
-        ) as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.query import cmd_tweets
 

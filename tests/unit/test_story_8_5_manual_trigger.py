@@ -7,6 +7,7 @@ Run: pytest tests/unit/test_story_8_5_manual_trigger.py -v
 Generated: 2026-03-04
 Story: 8-5-manual-trigger
 """
+
 from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -101,9 +102,7 @@ async def test_non_admin_rejected(mock_non_admin_update, mock_context):
     with patch("commands.advisor.is_admin", return_value=False):
         await cmd_advisor_analyze(mock_non_admin_update, mock_context)
 
-    mock_non_admin_update.message.reply_text.assert_called_once_with(
-        "Unauthorized: Admin only"
-    )
+    mock_non_admin_update.message.reply_text.assert_called_once_with("Unauthorized: Admin only")
 
 
 # ============================================================================
@@ -129,7 +128,9 @@ async def test_cooldown_rejects_repeated_calls(mock_admin_update, mock_context):
 
 
 @pytest.mark.asyncio
-async def test_cooldown_allows_after_5_minutes(mock_admin_update, mock_context, mock_suggestion_add, mock_collected_data):
+async def test_cooldown_allows_after_5_minutes(
+    mock_admin_update, mock_context, mock_suggestion_add, mock_collected_data
+):
     """Test that calls are allowed after 5 minute cooldown expires."""
     user_id = mock_admin_update.effective_user.id
 
@@ -170,7 +171,9 @@ async def test_cooldown_allows_after_5_minutes(mock_admin_update, mock_context, 
 
 
 @pytest.mark.asyncio
-async def test_successful_analysis_flow(mock_admin_update, mock_context, mock_suggestion_add, mock_collected_data):
+async def test_successful_analysis_flow(
+    mock_admin_update, mock_context, mock_suggestion_add, mock_collected_data
+):
     """Test complete successful analysis flow with suggestions returned."""
     user_id = mock_admin_update.effective_user.id
 
@@ -199,7 +202,9 @@ async def test_successful_analysis_flow(mock_admin_update, mock_context, mock_su
 
 
 @pytest.mark.asyncio
-async def test_analysis_shows_status_message(mock_admin_update, mock_context, mock_suggestion_add, mock_collected_data):
+async def test_analysis_shows_status_message(
+    mock_admin_update, mock_context, mock_suggestion_add, mock_collected_data
+):
     """Test that 'Analyzing your portfolio...' status message is shown."""
     user_id = mock_admin_update.effective_user.id
     if user_id in _last_manual_analysis:
@@ -224,15 +229,18 @@ async def test_analysis_shows_status_message(mock_admin_update, mock_context, mo
     # Verify initial status message content - MUST start with "Analyzing your portfolio..."
     initial_call = mock_admin_update.message.reply_text.call_args_list[0]
     initial_message = initial_call[0][0]
-    assert initial_message == "Analyzing your portfolio...", \
+    assert initial_message == "Analyzing your portfolio...", (
         f"Expected 'Analyzing your portfolio...' but got '{initial_message}'"
+    )
 
     # Verify final status message shows completion with count
     final_call = mock_status_msg.edit_text.call_args[0][0]
-    assert "Analysis complete!" in final_call, \
+    assert "Analysis complete!" in final_call, (
         f"Expected 'Analysis complete!' in final message but got '{final_call}'"
-    assert "1 suggestion" in final_call, \
+    )
+    assert "1 suggestion" in final_call, (
         f"Expected '1 suggestion' count in final message but got '{final_call}'"
+    )
 
 
 # ============================================================================
@@ -313,14 +321,13 @@ async def test_monitor_not_initialized_error(mock_admin_update, mock_context):
             await cmd_advisor_analyze(mock_admin_update, mock_context)
 
     # Verify error message
-    mock_admin_update.message.reply_text.assert_called_once_with(
-        "Advisor monitor not initialized"
-    )
+    mock_admin_update.message.reply_text.assert_called_once_with("Advisor monitor not initialized")
 
     # MEDIUM fix: Cooldown should be recorded even on monitor init failure
     # to prevent spam while system is recovering
-    assert user_id in _last_manual_analysis, \
+    assert user_id in _last_manual_analysis, (
         "Cooldown should be recorded even when monitor not initialized"
+    )
 
     # Cleanup
     del _last_manual_analysis[user_id]

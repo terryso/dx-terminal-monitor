@@ -161,9 +161,10 @@ class TestCmdLaunches:
         mock_api = AsyncMock()
         mock_api.get_launch_schedule = AsyncMock(return_value=mock_launch_schedule_response)
 
-        with patch("commands.query.authorized", return_value=True), patch(
-            "commands.query._get_api"
-        ) as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.query import cmd_launches
 
@@ -206,9 +207,10 @@ class TestCmdLaunches:
         mock_api = AsyncMock()
         mock_api.get_launch_schedule = AsyncMock(return_value=mock_empty_launch_schedule_response)
 
-        with patch("commands.query.authorized", return_value=True), patch(
-            "commands.query._get_api"
-        ) as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.query import cmd_launches
 
@@ -226,9 +228,10 @@ class TestCmdLaunches:
         mock_api = AsyncMock()
         mock_api.get_launch_schedule = AsyncMock(return_value={"error": "HTTP 500"})
 
-        with patch("commands.query.authorized", return_value=True), patch(
-            "commands.query._get_api"
-        ) as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.query import cmd_launches
 
@@ -326,9 +329,10 @@ class TestOutputFormatting:
         mock_api = AsyncMock()
         mock_api.get_launch_schedule = AsyncMock(return_value=mock_launch_schedule_response)
 
-        with patch("commands.query.authorized", return_value=True), patch(
-            "commands.query._get_api"
-        ) as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.query import cmd_launches
 
@@ -350,9 +354,10 @@ class TestOutputFormatting:
         mock_api = AsyncMock()
         mock_api.get_launch_schedule = AsyncMock(return_value=mock_launch_schedule_response)
 
-        with patch("commands.query.authorized", return_value=True), patch(
-            "commands.query._get_api"
-        ) as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.query import cmd_launches
 
@@ -373,9 +378,10 @@ class TestOutputFormatting:
         mock_api = AsyncMock()
         mock_api.get_launch_schedule = AsyncMock(return_value=mock_launch_schedule_response)
 
-        with patch("commands.query.authorized", return_value=True), patch(
-            "commands.query._get_api"
-        ) as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.query import cmd_launches
 

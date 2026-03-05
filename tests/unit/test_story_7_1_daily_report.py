@@ -7,6 +7,7 @@ Run: pytest tests/unit/test_story_7_1_daily_report.py -v
 Generated: 2026-03-03
 Story: 7-1-daily-report
 """
+
 import asyncio
 from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -16,6 +17,7 @@ import pytest
 # ============================================================================
 # Test Data Factory
 # ============================================================================
+
 
 class ReportDataFactory:
     """Factory for creating test report data."""
@@ -114,6 +116,7 @@ class ReportDataFactory:
 # Fixtures
 # ============================================================================
 
+
 @pytest.fixture
 def report_data_factory():
     """Provide ReportDataFactory."""
@@ -142,6 +145,7 @@ def mock_notifier():
 # Test Classes
 # ============================================================================
 
+
 class TestDailyReporterInit:
     """Tests for DailyReporter initialization."""
 
@@ -165,12 +169,12 @@ class TestDailyReporterInit:
         """Default report time should be 08:00 UTC."""
         from reporter import DailyReporter
 
-        with patch.dict('os.environ', {}, clear=True):
+        with patch.dict("os.environ", {}, clear=True):
             reporter = DailyReporter(mock_api, mock_notifier)
 
         assert reporter.report_time == (8, 0)
 
-    @patch.dict('os.environ', {'REPORT_TIME': '09:30'})
+    @patch.dict("os.environ", {"REPORT_TIME": "09:30"})
     def test_init_reads_report_time_from_env(self, mock_api, mock_notifier):
         """REPORT_TIME should be read from environment variable."""
         from reporter import DailyReporter
@@ -179,7 +183,7 @@ class TestDailyReporterInit:
 
         assert reporter.report_time == (9, 30)
 
-    @patch.dict('os.environ', {'REPORT_TIME': 'invalid'})
+    @patch.dict("os.environ", {"REPORT_TIME": "invalid"})
     def test_init_handles_invalid_report_time(self, mock_api, mock_notifier):
         """Invalid REPORT_TIME should fall back to 08:00."""
         from reporter import DailyReporter
@@ -192,7 +196,7 @@ class TestDailyReporterInit:
         """running flag should be initialized to False."""
         from reporter import DailyReporter
 
-        with patch.dict('os.environ', {}, clear=True):
+        with patch.dict("os.environ", {}, clear=True):
             reporter = DailyReporter(mock_api, mock_notifier)
 
         assert reporter.running is False
@@ -201,12 +205,12 @@ class TestDailyReporterInit:
         """REPORT_ENABLED should default to true."""
         from reporter import DailyReporter
 
-        with patch.dict('os.environ', {}, clear=True):
+        with patch.dict("os.environ", {}, clear=True):
             reporter = DailyReporter(mock_api, mock_notifier)
 
         assert reporter.enabled is True
 
-    @patch.dict('os.environ', {'REPORT_ENABLED': 'false'})
+    @patch.dict("os.environ", {"REPORT_ENABLED": "false"})
     def test_init_enabled_from_env(self, mock_api, mock_notifier):
         """REPORT_ENABLED should be read from environment."""
         from reporter import DailyReporter
@@ -223,7 +227,7 @@ class TestParseReportTime:
         """Valid HH:MM format should be parsed correctly."""
         from reporter import DailyReporter
 
-        with patch.dict('os.environ', {'REPORT_TIME': '14:30'}):
+        with patch.dict("os.environ", {"REPORT_TIME": "14:30"}):
             reporter = DailyReporter(mock_api, mock_notifier)
 
         assert reporter.report_time == (14, 30)
@@ -232,7 +236,7 @@ class TestParseReportTime:
         """Invalid format should return default 08:00."""
         from reporter import DailyReporter
 
-        with patch.dict('os.environ', {'REPORT_TIME': 'not-a-time'}):
+        with patch.dict("os.environ", {"REPORT_TIME": "not-a-time"}):
             reporter = DailyReporter(mock_api, mock_notifier)
 
         assert reporter.report_time == (8, 0)
@@ -241,7 +245,7 @@ class TestParseReportTime:
         """Malformed time string should be handled gracefully."""
         from reporter import DailyReporter
 
-        with patch.dict('os.environ', {'REPORT_TIME': '14'}):
+        with patch.dict("os.environ", {"REPORT_TIME": "14"}):
             reporter = DailyReporter(mock_api, mock_notifier)
 
         # Should fall back to default
@@ -251,7 +255,7 @@ class TestParseReportTime:
         """Empty string should return default."""
         from reporter import DailyReporter
 
-        with patch.dict('os.environ', {'REPORT_TIME': ''}):
+        with patch.dict("os.environ", {"REPORT_TIME": ""}):
             reporter = DailyReporter(mock_api, mock_notifier)
 
         assert reporter.report_time == (8, 0)
@@ -265,12 +269,13 @@ class TestCalculateNextRun:
         from reporter import DailyReporter
 
         # Set report time to 23:59 (likely in future during test)
-        with patch.dict('os.environ', {'REPORT_TIME': '23:59'}):
+        with patch.dict("os.environ", {"REPORT_TIME": "23:59"}):
             reporter = DailyReporter(mock_api, mock_notifier)
 
         # Mock datetime.now to return a known time
-        with patch('reporter.datetime') as mock_dt:
+        with patch("reporter.datetime") as mock_dt:
             from datetime import UTC as utc
+
             mock_dt.now.return_value = datetime(2026, 3, 3, 10, 0, 0)
             mock_dt.UTC = utc
             mock_dt.side_effect = lambda *args, **kwargs: datetime(*args, **kwargs)
@@ -286,11 +291,12 @@ class TestCalculateNextRun:
         from reporter import DailyReporter
 
         # Set report time to 01:00 (likely in past during test)
-        with patch.dict('os.environ', {'REPORT_TIME': '01:00'}):
+        with patch.dict("os.environ", {"REPORT_TIME": "01:00"}):
             reporter = DailyReporter(mock_api, mock_notifier)
 
-        with patch('reporter.datetime') as mock_dt:
+        with patch("reporter.datetime") as mock_dt:
             from datetime import UTC as utc
+
             mock_dt.now.return_value = datetime(2026, 3, 3, 10, 0, 0)
             mock_dt.UTC = utc
             mock_dt.side_effect = lambda *args, **kwargs: datetime(*args, **kwargs)
@@ -305,11 +311,12 @@ class TestCalculateNextRun:
         """Should return value in seconds (float)."""
         from reporter import DailyReporter
 
-        with patch.dict('os.environ', {'REPORT_TIME': '12:00'}):
+        with patch.dict("os.environ", {"REPORT_TIME": "12:00"}):
             reporter = DailyReporter(mock_api, mock_notifier)
 
-        with patch('reporter.datetime') as mock_dt:
+        with patch("reporter.datetime") as mock_dt:
             from datetime import UTC as utc
+
             mock_dt.now.return_value = datetime(2026, 3, 3, 10, 0, 0)
             mock_dt.UTC = utc
             mock_dt.side_effect = lambda *args, **kwargs: datetime(*args, **kwargs)
@@ -323,7 +330,7 @@ class TestCalculateNextRun:
         """Should use UTC timezone consistently."""
         from reporter import DailyReporter
 
-        with patch.dict('os.environ', {'REPORT_TIME': '08:00'}):
+        with patch.dict("os.environ", {"REPORT_TIME": "08:00"}):
             reporter = DailyReporter(mock_api, mock_notifier)
 
         # Verify method exists and returns a value
@@ -340,9 +347,7 @@ class TestGatherReportData:
         from reporter import DailyReporter
 
         # Setup mock responses
-        mock_api.get_positions = AsyncMock(
-            return_value=report_data_factory.create_positions_data()
-        )
+        mock_api.get_positions = AsyncMock(return_value=report_data_factory.create_positions_data())
         mock_api.get_strategies = AsyncMock(
             return_value=report_data_factory.create_strategies_data()
         )
@@ -388,14 +393,14 @@ class TestGatherReportData:
         assert isinstance(data, dict)
 
     @pytest.mark.asyncio
-    async def test_gather_report_data_partial_failure(self, mock_api, mock_notifier, report_data_factory):
+    async def test_gather_report_data_partial_failure(
+        self, mock_api, mock_notifier, report_data_factory
+    ):
         """Partial API failures should not break report gathering."""
         from reporter import DailyReporter
 
         # One succeeds, one fails
-        mock_api.get_positions = AsyncMock(
-            return_value=report_data_factory.create_positions_data()
-        )
+        mock_api.get_positions = AsyncMock(return_value=report_data_factory.create_positions_data())
         mock_api.get_strategies = AsyncMock(return_value={"error": "Failed"})
 
         reporter = DailyReporter(mock_api, mock_notifier)
@@ -408,7 +413,9 @@ class TestGatherReportData:
 class TestFormatDailyReport:
     """Tests for _format_daily_report method."""
 
-    def test_format_daily_report_includes_balance(self, mock_api, mock_notifier, report_data_factory):
+    def test_format_daily_report_includes_balance(
+        self, mock_api, mock_notifier, report_data_factory
+    ):
         """Report should include ETH balance and USD value."""
         from reporter import DailyReporter
 
@@ -431,7 +438,9 @@ class TestFormatDailyReport:
 
         assert "PnL" in report or "pnl" in report
 
-    def test_format_daily_report_includes_positions(self, mock_api, mock_notifier, report_data_factory):
+    def test_format_daily_report_includes_positions(
+        self, mock_api, mock_notifier, report_data_factory
+    ):
         """Report should include position count."""
         from reporter import DailyReporter
 
@@ -442,7 +451,9 @@ class TestFormatDailyReport:
 
         assert "Position" in report or "position" in report
 
-    def test_format_daily_report_includes_strategies(self, mock_api, mock_notifier, report_data_factory):
+    def test_format_daily_report_includes_strategies(
+        self, mock_api, mock_notifier, report_data_factory
+    ):
         """Report should include active strategy count."""
         from reporter import DailyReporter
 
@@ -527,7 +538,9 @@ class TestReportCommands:
     """Tests for /report_on and /report_off commands."""
 
     @pytest.mark.asyncio
-    async def test_cmd_report_on_responds(self, mock_telegram_update, mock_telegram_context, mock_api, mock_notifier):
+    async def test_cmd_report_on_responds(
+        self, mock_telegram_update, mock_telegram_context, mock_api, mock_notifier
+    ):
         """/report_on command should respond with confirmation."""
         from commands.query import cmd_report_on
         from reporter import DailyReporter
@@ -536,8 +549,10 @@ class TestReportCommands:
         mock_reporter = DailyReporter(mock_api, mock_notifier)
         mock_reporter.enabled = False
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("main.get_reporter", return_value=mock_reporter):
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("main.get_reporter", return_value=mock_reporter),
+        ):
             await cmd_report_on(mock_telegram_update, mock_telegram_context)
 
         mock_telegram_update.message.reply_text.assert_called_once()
@@ -545,7 +560,9 @@ class TestReportCommands:
         assert "enabled" in call_args.lower() or "on" in call_args.lower()
 
     @pytest.mark.asyncio
-    async def test_cmd_report_off_responds(self, mock_telegram_update, mock_telegram_context, mock_api, mock_notifier):
+    async def test_cmd_report_off_responds(
+        self, mock_telegram_update, mock_telegram_context, mock_api, mock_notifier
+    ):
         """/report_off command should respond with confirmation."""
         from commands.query import cmd_report_off
         from reporter import DailyReporter
@@ -554,8 +571,10 @@ class TestReportCommands:
         mock_reporter = DailyReporter(mock_api, mock_notifier)
         mock_reporter.enabled = True
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("main.get_reporter", return_value=mock_reporter):
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("main.get_reporter", return_value=mock_reporter),
+        ):
             await cmd_report_off(mock_telegram_update, mock_telegram_context)
 
         mock_telegram_update.message.reply_text.assert_called_once()
@@ -567,7 +586,9 @@ class TestReportTimeCommand:
     """Tests for /report_time command."""
 
     @pytest.mark.asyncio
-    async def test_cmd_report_time_shows_current_time(self, mock_telegram_update, mock_telegram_context, mock_api, mock_notifier):
+    async def test_cmd_report_time_shows_current_time(
+        self, mock_telegram_update, mock_telegram_context, mock_api, mock_notifier
+    ):
         """/report_time without args should show current time."""
         from commands.query import cmd_report_time
         from reporter import DailyReporter
@@ -575,8 +596,10 @@ class TestReportTimeCommand:
         mock_reporter = DailyReporter(mock_api, mock_notifier)
         mock_telegram_context.args = []
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("main.get_reporter", return_value=mock_reporter):
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("main.get_reporter", return_value=mock_reporter),
+        ):
             await cmd_report_time(mock_telegram_update, mock_telegram_context)
 
         mock_telegram_update.message.reply_text.assert_called_once()
@@ -587,7 +610,9 @@ class TestReportTimeCommand:
         assert ":00" in call_args  # Any hour:00 format
 
     @pytest.mark.asyncio
-    async def test_cmd_report_time_sets_new_time(self, mock_telegram_update, mock_telegram_context, mock_api, mock_notifier):
+    async def test_cmd_report_time_sets_new_time(
+        self, mock_telegram_update, mock_telegram_context, mock_api, mock_notifier
+    ):
         """/report_time HH:MM should update report time (converts local to UTC)."""
         from commands.query import cmd_report_time
         from reporter import DailyReporter
@@ -595,8 +620,10 @@ class TestReportTimeCommand:
         mock_reporter = DailyReporter(mock_api, mock_notifier)
         mock_telegram_context.args = ["09:30"]
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("main.get_reporter", return_value=mock_reporter):
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("main.get_reporter", return_value=mock_reporter),
+        ):
             await cmd_report_time(mock_telegram_update, mock_telegram_context)
 
         mock_telegram_update.message.reply_text.assert_called_once()
@@ -605,7 +632,9 @@ class TestReportTimeCommand:
         assert mock_reporter.report_time != (8, 0)  # Time was changed
 
     @pytest.mark.asyncio
-    async def test_cmd_report_time_invalid_format(self, mock_telegram_update, mock_telegram_context, mock_api, mock_notifier):
+    async def test_cmd_report_time_invalid_format(
+        self, mock_telegram_update, mock_telegram_context, mock_api, mock_notifier
+    ):
         """/report_time with invalid format should show error."""
         from commands.query import cmd_report_time
         from reporter import DailyReporter
@@ -613,8 +642,10 @@ class TestReportTimeCommand:
         mock_reporter = DailyReporter(mock_api, mock_notifier)
         mock_telegram_context.args = ["invalid"]
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("main.get_reporter", return_value=mock_reporter):
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("main.get_reporter", return_value=mock_reporter),
+        ):
             await cmd_report_time(mock_telegram_update, mock_telegram_context)
 
         mock_telegram_update.message.reply_text.assert_called_once()
@@ -626,7 +657,9 @@ class TestReportStatusCommand:
     """Tests for /report_status command."""
 
     @pytest.mark.asyncio
-    async def test_cmd_report_status_shows_status(self, mock_telegram_update, mock_telegram_context, mock_api, mock_notifier):
+    async def test_cmd_report_status_shows_status(
+        self, mock_telegram_update, mock_telegram_context, mock_api, mock_notifier
+    ):
         """/report_status should show current report settings."""
         from commands.query import cmd_report_status
         from reporter import DailyReporter
@@ -634,8 +667,10 @@ class TestReportStatusCommand:
         mock_reporter = DailyReporter(mock_api, mock_notifier)
         mock_reporter.enabled = True
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("main.get_reporter", return_value=mock_reporter):
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("main.get_reporter", return_value=mock_reporter),
+        ):
             await cmd_report_status(mock_telegram_update, mock_telegram_context)
 
         mock_telegram_update.message.reply_text.assert_called_once()
@@ -647,7 +682,9 @@ class TestReportStatusCommand:
         assert ":00" in call_args  # Any hour:00 format
 
     @pytest.mark.asyncio
-    async def test_cmd_report_status_shows_disabled(self, mock_telegram_update, mock_telegram_context, mock_api, mock_notifier):
+    async def test_cmd_report_status_shows_disabled(
+        self, mock_telegram_update, mock_telegram_context, mock_api, mock_notifier
+    ):
         """/report_status should show disabled status."""
         from commands.query import cmd_report_status
         from reporter import DailyReporter
@@ -655,8 +692,10 @@ class TestReportStatusCommand:
         mock_reporter = DailyReporter(mock_api, mock_notifier)
         mock_reporter.enabled = False
 
-        with patch("commands.query.authorized", return_value=True), \
-             patch("main.get_reporter", return_value=mock_reporter):
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("main.get_reporter", return_value=mock_reporter),
+        ):
             await cmd_report_status(mock_telegram_update, mock_telegram_context)
 
         mock_telegram_update.message.reply_text.assert_called_once()
@@ -706,7 +745,7 @@ class TestSetReportTime:
 class TestEnvironmentConfiguration:
     """Tests for environment variable configuration."""
 
-    @patch.dict('os.environ', {'REPORT_TIME': '18:45'})
+    @patch.dict("os.environ", {"REPORT_TIME": "18:45"})
     def test_reads_report_time_from_env(self, mock_api, mock_notifier):
         """Should read REPORT_TIME from environment."""
         from reporter import DailyReporter
@@ -715,7 +754,7 @@ class TestEnvironmentConfiguration:
 
         assert reporter.report_time == (18, 45)
 
-    @patch.dict('os.environ', {'REPORT_ENABLED': 'true'})
+    @patch.dict("os.environ", {"REPORT_ENABLED": "true"})
     def test_report_enabled_true(self, mock_api, mock_notifier):
         """Should read REPORT_ENABLED=true from environment."""
         from reporter import DailyReporter
@@ -724,7 +763,7 @@ class TestEnvironmentConfiguration:
 
         assert reporter.enabled is True
 
-    @patch.dict('os.environ', {'REPORT_ENABLED': 'FALSE'})
+    @patch.dict("os.environ", {"REPORT_ENABLED": "FALSE"})
     def test_report_enabled_case_insensitive(self, mock_api, mock_notifier):
         """Should handle REPORT_ENABLED case-insensitively."""
         from reporter import DailyReporter

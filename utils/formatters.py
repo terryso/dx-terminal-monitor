@@ -1,4 +1,5 @@
 """格式化工具函数模块。"""
+
 from datetime import UTC, datetime
 
 
@@ -43,11 +44,11 @@ def format_large_number(value) -> str:
     try:
         v = float(value)
         if v >= 1e9:
-            return f"${v/1e9:.1f}B"
+            return f"${v / 1e9:.1f}B"
         elif v >= 1e6:
-            return f"${v/1e6:.1f}M"
+            return f"${v / 1e6:.1f}M"
         elif v >= 1e3:
-            return f"${v/1e3:.1f}K"
+            return f"${v / 1e3:.1f}K"
         return f"${v:.2f}"
     except (ValueError, TypeError):
         return str(value)

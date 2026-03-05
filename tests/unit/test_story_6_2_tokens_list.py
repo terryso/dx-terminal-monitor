@@ -119,9 +119,10 @@ class TestCmdTokens:
         mock_api = AsyncMock()
         mock_api.get_tokens = AsyncMock(return_value=mock_tokens_response)
 
-        with patch("commands.query.authorized", return_value=True), patch(
-            "commands.query._get_api"
-        ) as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.query import cmd_tokens
 
@@ -159,9 +160,10 @@ class TestCmdTokens:
         mock_api = AsyncMock()
         mock_api.get_tokens = AsyncMock(return_value={"error": "API unavailable"})
 
-        with patch("commands.query.authorized", return_value=True), patch(
-            "commands.query._get_api"
-        ) as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.query import cmd_tokens
 
@@ -179,9 +181,10 @@ class TestCmdTokens:
         mock_api = AsyncMock()
         mock_api.get_tokens = AsyncMock(return_value={"items": [], "total": 0})
 
-        with patch("commands.query.authorized", return_value=True), patch(
-            "commands.query._get_api"
-        ) as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.query import cmd_tokens
 
@@ -202,9 +205,10 @@ class TestCmdTokens:
         mock_api = AsyncMock()
         mock_api.get_tokens = AsyncMock(return_value=mock_tokens_response)
 
-        with patch("commands.query.authorized", return_value=True), patch(
-            "commands.query._get_api"
-        ) as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.query import cmd_tokens
 
@@ -219,7 +223,9 @@ class TestCmdTokens:
         assert "11-" in call_args  # Page 2 shows tokens 11-20
 
     @pytest.mark.asyncio
-    async def test_cmd_tokens_invalid_page_zero(self, mock_update, mock_context, mock_tokens_response):
+    async def test_cmd_tokens_invalid_page_zero(
+        self, mock_update, mock_context, mock_tokens_response
+    ):
         """Test page 0 defaults to page 1."""
         # Given
         mock_context.args = ["0"]  # Invalid page 0
@@ -228,9 +234,10 @@ class TestCmdTokens:
         mock_api = AsyncMock()
         mock_api.get_tokens = AsyncMock(return_value=mock_tokens_response)
 
-        with patch("commands.query.authorized", return_value=True), patch(
-            "commands.query._get_api"
-        ) as mock_get_api:
+        with (
+            patch("commands.query.authorized", return_value=True),
+            patch("commands.query._get_api") as mock_get_api,
+        ):
             mock_get_api.return_value = mock_api
             from commands.query import cmd_tokens
 
