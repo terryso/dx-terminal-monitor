@@ -6,7 +6,7 @@ import time
 
 from telegram import BotCommand, Update
 from telegram.error import NetworkError, TelegramError, TimedOut
-from telegram.ext import Application
+from telegram.ext import Application, ContextTypes, MessageHandler, filters
 
 from advisor import StrategyAdvisor
 from advisor_monitor import AdvisorMonitor
@@ -26,6 +26,7 @@ from llm import LLMClient
 from monitor import ActivityMonitor
 from notifier import TelegramNotifier
 from reporter import DailyReporter
+from utils.polling_monitor import get_polling_monitor
 
 # Import alerter conditionally to avoid issues during testing
 try:
@@ -37,6 +38,31 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 logger = logging.getLogger(__name__)
+
+# 全局错误处理器
+async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
+    """处理所有未捕获的异常。"""
+    error = context.error if context else None
+    if error:
+        logger.error(f"Unhandled error: {error}", exc_info=True)
+        # 发送错误通知给管理员
+        if _notifier_instance and ADMIN_USERS:
+            try:
+                import traceback
+                tb_lines = traceback.format_exception_only(type(error), error)
+                error_msg = f"Bot Error:\n{''.join(tb_lines)}"
+                await _notifier_instance.bot.send_message(
+                    chat_id=ADMIN_USERS[0],
+                    text=error_msg[:4000]  # Telegram 限制
+                )
+            except Exception as e:
+                logger.error(f"Failed to send error notification: {e}")
+
+
+async def polling_activity_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """记录 polling 活跃状态（每个 update 触发）。"""
+    monitor = get_polling_monitor()
+    monitor.record_poll_activity()
 
 # 全局实例
 api = TerminalAPI()
@@ -168,6 +194,11 @@ async def post_init(app: Application):
             await _advisor_monitor_instance.start_background()
             logger.info(f"Advisor monitor started ({ADVISOR_INTERVAL_HOURS}h interval)")
 
+    # 启动 polling 健康监控
+    polling_monitor = get_polling_monitor()
+    await polling_monitor.start()
+    logger.info("Polling health monitor started")
+
 
 async def _on_new_activity(activity: dict):
     """ActivityMonitor 回调 - 发送 TG 通知。"""
@@ -182,8 +213,20 @@ def create_app():
     from telegram.request import HTTPXRequest
 
     proxy_url = os.environ.get("https_proxy") or os.environ.get("HTTPS_PROXY")
+
+    # 增加 HTTPXRequest 超时配置 - 解决 polling 静默死亡问题
+    # - read_timeout: 30s (足够 getUpdates long polling)
+    # - connect_timeout: 15s (更多连接时间)
+    # - pool_timeout: 30s (更长的连接池超时)
+    # - connection_pool_size: 使用默认值 256 (不显式设置)
+    request_kwargs = {
+        "read_timeout": 30,
+        "connect_timeout": 15,
+        "pool_timeout": 30,
+    }
+
     if proxy_url:
-        request = HTTPXRequest(proxy=proxy_url)
+        request = HTTPXRequest(proxy=proxy_url, **request_kwargs)
         app = (
             Application.builder()
             .token(TELEGRAM_BOT_TOKEN)
@@ -193,8 +236,19 @@ def create_app():
         )
         logger.info(f"Using proxy: {proxy_url}")
     else:
-        app = Application.builder().token(TELEGRAM_BOT_TOKEN).post_init(post_init).build()
+        request = HTTPXRequest(**request_kwargs)
+        app = Application.builder().token(TELEGRAM_BOT_TOKEN).post_init(post_init).request(request).build()
+        logger.info("Using HTTPXRequest with extended timeouts (read=30s, connect=15s, pool=30s)")
     register_handlers(app)
+
+    # 注册全局错误处理器
+    app.add_error_handler(error_handler)
+    logger.info("Global error handler registered")
+
+    # 注册 polling 活跃状态监控 handler（接收所有消息）
+    app.add_handler(MessageHandler(filters.ALL, polling_activity_handler))
+    logger.info("Polling activity handler registered")
+
     return app
 
 

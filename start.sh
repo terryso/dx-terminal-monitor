@@ -45,24 +45,32 @@ kill_existing() {
     fi
 }
 
-# 启动新进程
+# 启动新进程（带自动重启）
 start() {
     echo "Starting bot..."
     cd "$SCRIPT_DIR"
 
-    # 激活虚拟环境（如果存在）
-    if [ -d ".venv" ]; then
-        source .venv/bin/activate
-    elif [ -d "venv" ]; then
-        source venv/bin/activate
-    fi
-
-    # 后台启动，输出到日志文件
-    nohup python main.py >> "$LOG_FILE" 2>&1 &
+    # 后台启动，带自动重启机制
+    (
+        if [ -d ".venv" ]; then
+            source .venv/bin/activate
+        elif [ -d "venv" ]; then
+            source venv/bin/activate
+        fi
+        while true; do
+            python main.py >> "$LOG_FILE" 2>&1
+            e=$?
+            [ $e -eq 0 ] && break
+            echo "$(date): Bot exit=$e, restarting in 5s..." >> "$LOG_FILE"
+            sleep 5
+        done
+    ) &
+    disown 2>/dev/null
     NEW_PID=$!
     echo $NEW_PID > "$PID_FILE"
     echo "Bot started (PID: $NEW_PID)"
     echo "Log file: $LOG_FILE"
+    echo "Auto-restart: enabled"
 }
 
 # 主逻辑
